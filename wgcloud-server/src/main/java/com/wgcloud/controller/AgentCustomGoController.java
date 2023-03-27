@@ -43,6 +43,7 @@ public class AgentCustomGoController {
    @ResponseBody
    @RequestMapping({"/minTask"})
    public JSONObject minTask(@RequestBody String paramBean) {
+      logger.info("=AgentCustomGoController-minTask.paramBean:{}=", paramBean);
       JSONObject agentJsonObject = (JSONObject)JSONUtil.parse(paramBean);
       logger.debug("agent上报自定义监控项数据-------------" + agentJsonObject.toString());
       JSONObject resultJson = new JSONObject();

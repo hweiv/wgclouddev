@@ -1,5 +1,6 @@
 package com.wgcloud.controller;
 
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.github.pagehelper.PageInfo;
@@ -216,8 +217,18 @@ public class SystemInfoController {
       return "redirect:/systemInfo/systemInfoList";
    }
 
+   /**
+    * 显示所有主机
+    *
+    * @param systemInfo
+    * @param model
+    * @param request
+    * @return
+    */
    @RequestMapping({"systemInfoList"})
    public String systemInfoList(SystemInfo systemInfo, Model model, HttpServletRequest request) {
+      logger.info("=SystemInfoController-systemInfoList.systemInfo:{}, model:{}, request:{}=", JSONUtil.toJsonStr(systemInfo),
+              JSONUtil.toJsonStr(model), JSONUtil.toJsonStr(request));
       HashMap params = new HashMap();
 
       try {

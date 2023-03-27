@@ -151,7 +151,7 @@ public class ScheduledTask {
             if (!StringUtils.isEmpty(logInfo.getInfoContent())) {
                 jsonObject.put("logInfo", logInfo);
             }
-            restUtil.post(commonConfig.getServerUrl() + "/wgcloud/agent/minTask", jsonObject);
+            restUtil.post(commonConfig.getServerUrl() + "/wgcloud/agentCustomGo/minTask", jsonObject);
         }
 
     }
