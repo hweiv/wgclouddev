@@ -1,0 +1,60 @@
+<!-- Control Sidebar -->
+<aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+    <form method="post" id="form5" th:action="@{'/systemInfo/saveHostListHideCols'}">
+    <div class="p-3 control-sidebar-content">
+        <button type="button" class="close" data-widget="control-sidebar" data-slide="true"  style="color:#FFF" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h5>请选择需要隐藏的列</h5>
+        <hr class="mb-2">
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="00" class="mr-1"><span>系统</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="01" class="mr-1"><span>IP</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="02" class="mr-1"><span>内存%</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="03" class="mr-1"><span>CPU%</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="04" class="mr-1"><span>磁盘%</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="05" class="mr-1"><span>CPU核数</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="06" class="mr-1"><span>内存</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="07" class="mr-1"><span>下行速率</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="08" class="mr-1"><span>上行速率</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="09" class="mr-1"><span>系统负载</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="10" class="mr-1"><span>连接数量</span></div>
+        <div th:if="${application.showWarnCount == 'true'}" class="mb-1"><input type="checkbox" name="hostListHideCols" value="11" class="mr-1"><span>告警次数</span></div>
+        <div th:if="${application.hostGroup == 'true'}" class="mb-1"><input type="checkbox" name="hostListHideCols" value="12" class="mr-1"><span>标签</span></div>
+        <div th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role != 'user'}" class="mb-1"><input type="checkbox" name="hostListHideCols" value="13" class="mr-1"><span>账号</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="14" class="mr-1"><span>更新时间</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="15" class="mr-1"><span>备注</span></div>
+        <div class="mb-1"><input type="checkbox" name="hostListHideCols" value="16" class="mr-1"><span>操作</span></div>
+        <h6></h6>
+        <div class="d-flex flex-wrap mb-3">
+            <button type="button" onclick="ajaxSaveHostListHideCols()" style="margin-right:5px;" class="btn btn-primary btn-sm">保存</button>
+            <button type="button" onclick="resetHostListHideCols()"  class="btn bg-gradient-danger btn-sm">清空</button></div></div>
+    </form>
+</aside>
+<!-- /.control-sidebar -->
+
+<script th:inline="javascript">
+    var hostListHideColsInfo = [[${session.HostListHideColsInfo}]];
+    // 回显选中的隐藏列
+    if("" != hostListHideColsInfo){
+        $("input[name='hostListHideCols'][type='checkbox']").each(function () {
+            var hostListHideColsVal = $(this).val();
+            if(hostListHideColsInfo.indexOf(hostListHideColsVal)>-1){
+                $(this).attr('checked','checked');
+            }
+        })
+    }
+
+    function ajaxSaveHostListHideCols(){
+        $("#form5").ajaxSubmit(function(message) {
+            window.location.href = window.location.href;
+        });
+    }
+
+    function resetHostListHideCols(){
+        $("input[name='hostListHideCols'][type='checkbox']").each(function () {
+                $(this).prop("checked",false);
+                $(this).removeAttr('checked');
+        })
+    }
+</script>

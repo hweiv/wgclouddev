@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wgcloud.mapper.DockerInfoMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.DockerInfo">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="DOCKER_ID" property="dockerId" jdbcType="CHAR" />
+		<result column="DOCKER_NAME" property="dockerName" jdbcType="CHAR" />
+		<result column="DOCKER_STATE" property="dockerState" jdbcType="CHAR" />
+		<result column="USER_TIME" property="userTime" jdbcType="CHAR" />
+		<result column="MEM_PER" property="memPer" jdbcType="DOUBLE" />
+		<result column="STATE" property="state" jdbcType="CHAR" />
+		<result column="ACTIVE" property="active" jdbcType="CHAR" />
+		<result column="APP_TYPE" property="appType" jdbcType="CHAR" />
+		<result column="DOCKER_IMAGE" property="dockerImage" jdbcType="CHAR" />
+		<result column="DOCKER_PORT" property="dockerPort" jdbcType="CHAR" />
+		<result column="DOCKER_COMMAND" property="dockerCommand" jdbcType="CHAR" />
+		<result column="DOCKER_CREATED" property="dockerCreated" jdbcType="CHAR" />
+		<result column="DOCKER_SIZE" property="dockerSize" jdbcType="CHAR" />
+		<result column="DOCKER_STATUS" property="dockerStatus" jdbcType="CHAR" />
+		<result column="GATHER_DOCKER_NAMES" property="gatherDockerNames" jdbcType="CHAR" />
+		<result column="GROUP_ID" property="groupId" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,HOST_NAME,APP_TYPE, DOCKER_ID,DOCKER_NAME,CREATE_TIME,DOCKER_STATE,USER_TIME,MEM_PER,STATE,ACTIVE,DOCKER_IMAGE,DOCKER_PORT,DOCKER_COMMAND,DOCKER_CREATED,DOCKER_SIZE,DOCKER_STATUS,GATHER_DOCKER_NAMES,GROUP_ID
+	</sql>
+
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR DOCKER_NAME LIKE   CONCAT(CONCAT('%',#{hostname}),'%') OR GATHER_DOCKER_NAMES LIKE  CONCAT(CONCAT('%',#{hostname}),'%') )]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR DOCKER_NAME LIKE  CONCAT('%',#{hostname},'%') OR GATHER_DOCKER_NAMES LIKE  CONCAT('%',#{hostname},'%') )]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="state != null">
+			<![CDATA[ AND STATE = #{state} ]]>
+		</if>
+		<if test="active != null">
+			<![CDATA[ AND ACTIVE = #{active} ]]>
+		</if>
+		<if test="groupId != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT(CONCAT('%',#{groupId}),'%') ]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT('%',#{groupId},'%') ]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+		</if>
+	</sql>
+	
+	
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DOCKER_INFO 
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM DOCKER_INFO 
+		WHERE ID = #{id}
+	</delete>
+
+
+	<delete id="deleteByHostName" parameterType="map">
+		DELETE FROM DOCKER_INFO WHERE <![CDATA[  HOST_NAME =#{hostname}]]>
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		DOCKER_INFO 
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.DockerInfo">
+		INSERT INTO DOCKER_INFO 
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" >HOST_NAME,</if>
+      		<if test="dockerId != null">DOCKER_ID,</if>
+			<if test="appType != null">APP_TYPE,</if>
+      		<if test="dockerName != null">DOCKER_NAME,</if>
+			<if test="dockerState != null">DOCKER_STATE,</if>
+			<if test="userTime != null">USER_TIME,</if>
+			<if test="memPer != null">MEM_PER,</if>
+			<if test="state != null">STATE,</if>
+			<if test="active != null">ACTIVE,</if>
+			<if test="dockerImage != null">DOCKER_IMAGE,</if>
+			<if test="dockerPort != null">DOCKER_PORT,</if>
+			<if test="dockerCommand != null">DOCKER_COMMAND,</if>
+			<if test="dockerCreated != null">DOCKER_CREATED,</if>
+			<if test="dockerSize != null">DOCKER_SIZE,</if>
+			<if test="dockerStatus != null">DOCKER_STATUS,</if>
+			<if test="gatherDockerNames != null">GATHER_DOCKER_NAMES,</if>
+			<if test="groupId != null">GROUP_ID,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="dockerId != null" >#{dockerId},</if>
+			<if test="appType != null" >#{appType},</if>
+      		<if test="dockerName != null" >#{dockerName},</if>
+			<if test="dockerState != null" >#{dockerState},</if>
+			<if test="userTime != null" >#{userTime},</if>
+			<if test="memPer != null" >#{memPer},</if>
+			<if test="state != null" >#{state},</if>
+			<if test="active != null" >#{active},</if>
+			<if test="dockerImage != null" >#{dockerImage},</if>
+			<if test="dockerPort != null" >#{dockerPort},</if>
+			<if test="dockerCommand != null" >#{dockerCommand},</if>
+			<if test="dockerCreated != null" >#{dockerCreated},</if>
+			<if test="dockerSize != null" >#{dockerSize},</if>
+			<if test="dockerStatus != null" >#{dockerStatus},</if>
+			<if test="gatherDockerNames != null" >#{gatherDockerNames},</if>
+			<if test="groupId != null" >#{groupId},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO DOCKER_INFO (ID,HOST_NAME, DOCKER_ID,APP_TYPE,DOCKER_NAME,CREATE_TIME,DOCKER_STATE,USER_TIME,MEM_PER,STATE,ACTIVE,DOCKER_IMAGE,DOCKER_PORT,DOCKER_COMMAND,DOCKER_CREATED,DOCKER_SIZE,DOCKER_STATUS,GATHER_DOCKER_NAMES,GROUP_ID)  VALUES
+					(#{item.id},#{item.hostname},#{item.dockerId},#{item.appType},#{item.dockerName},#{item.createTime},#{item.dockerState},#{item.userTime},#{item.memPer},#{item.state},#{item.active}
+					,#{dockerImage},#{dockerPort},#{dockerCommand},#{dockerCreated},#{dockerSize},#{dockerStatus},#{gatherDockerNames},#{groupId});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO DOCKER_INFO (ID,HOST_NAME, DOCKER_ID,APP_TYPE,DOCKER_NAME,CREATE_TIME,DOCKER_STATE,USER_TIME,MEM_PER,STATE,ACTIVE,DOCKER_IMAGE,DOCKER_PORT,DOCKER_COMMAND,DOCKER_CREATED,DOCKER_SIZE,DOCKER_STATUS,GATHER_DOCKER_NAMES,GROUP_ID)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.dockerId},#{item.appType},#{item.dockerName},#{item.createTime},#{item.dockerState},#{item.userTime},#{item.memPer},#{item.state},#{item.active}
+					,#{dockerImage},#{dockerPort},#{dockerCommand},#{dockerCreated},#{dockerSize},#{dockerStatus},#{gatherDockerNames},#{groupId})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<update id="downByHostName" parameterType="java.util.List">
+		UPDATE  DOCKER_INFO SET STATE = '2'
+		WHERE HOST_NAME IN
+		<foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+
+	<update id="updateList" parameterType="java.util.List" >
+		<if test="_databaseId == 'oracle'">
+			begin
+		</if>
+		<foreach collection="list" item="item" index="index">
+			UPDATE DOCKER_INFO
+			<set>
+				<if test="item.hostname != null">
+					HOST_NAME = #{item.hostname},
+				</if>
+				<if test="item.dockerId != null">
+					DOCKER_ID = #{item.dockerId},
+				</if>
+				<if test="item.appType != null">
+					APP_TYPE = #{item.appType},
+				</if>
+				<if test="item.dockerName != null">
+					DOCKER_NAME = #{item.dockerName},
+				</if>
+				<if test="item.dockerState != null">
+					DOCKER_STATE = #{item.dockerState},
+				</if>
+				<if test="item.userTime != null">
+					USER_TIME = #{item.userTime},
+				</if>
+				<if test="item.memPer != null">
+					MEM_PER = #{item.memPer},
+				</if>
+				<if test="item.state != null">
+					STATE = #{item.state},
+				</if>
+				<if test="item.active != null">
+					ACTIVE = #{item.active},
+				</if>
+				<if test="item.dockerImage != null">
+					DOCKER_IMAGE = #{item.dockerImage},
+				</if>
+				<if test="item.dockerPort != null">
+					DOCKER_PORT = #{item.dockerPort},
+				</if>
+				<if test="item.dockerCommand != null">
+					DOCKER_COMMAND = #{item.dockerCommand},
+				</if>
+				<if test="item.dockerCreated != null">
+					DOCKER_CREATED = #{item.dockerCreated},
+				</if>
+				<if test="item.dockerSize != null">
+					DOCKER_SIZE = #{item.dockerSize},
+				</if>
+				<if test="item.dockerStatus != null">
+					DOCKER_STATUS = #{item.dockerStatus},
+				</if>
+				<if test="item.gatherDockerNames != null">
+					GATHER_DOCKER_NAMES = #{item.gatherDockerNames},
+				</if>
+				<if test="item.groupId != null">
+					GROUP_ID = #{item.groupId},
+				</if>
+				<if test="item.createTime != null" >
+					CREATE_TIME= #{item.createTime}
+				</if>
+			</set>
+			WHERE ID = #{item.id};
+		</foreach>
+		<if test="_databaseId == 'oracle'">
+			end;
+		</if>
+	</update>
+	
+	
+	<update id="updateById" parameterType="com.wgcloud.entity.DockerInfo">
+		UPDATE DOCKER_INFO
+		<set>
+			<if test="hostname != null">
+				HOST_NAME = #{hostname},
+			</if>
+			<if test="dockerId != null">
+				DOCKER_ID = #{dockerId},
+			</if>
+			<if test="appType != null">
+				APP_TYPE = #{appType},
+			</if>
+			<if test="dockerName != null">
+				DOCKER_NAME = #{dockerName},
+			</if>
+			<if test="dockerState != null">
+				DOCKER_STATE = #{dockerState},
+			</if>
+			<if test="userTime != null">
+				USER_TIME = #{userTime},
+			</if>
+			<if test="memPer != null">
+				MEM_PER = #{memPer},
+			</if>
+			<if test="state != null">
+				STATE = #{state},
+			</if>
+			<if test="active != null">
+				ACTIVE = #{active},
+			</if>
+			<if test="dockerImage != null">
+				DOCKER_IMAGE = #{dockerImage},
+			</if>
+			<if test="dockerPort != null">
+				DOCKER_PORT = #{dockerPort},
+			</if>
+			<if test="dockerCommand != null">
+				DOCKER_COMMAND = #{dockerCommand},
+			</if>
+			<if test="dockerCreated != null">
+				DOCKER_CREATED = #{dockerCreated},
+			</if>
+			<if test="dockerSize != null">
+				DOCKER_SIZE = #{dockerSize},
+			</if>
+			<if test="dockerStatus != null">
+				DOCKER_STATUS = #{dockerStatus},
+			</if>
+			<if test="gatherDockerNames != null">
+				GATHER_DOCKER_NAMES = #{gatherDockerNames},
+			</if>
+			<if test="groupId != null">
+				GROUP_ID = #{groupId},
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME = #{createTime}
+			</if>
+		</set>
+		WHERE ID = #{id}
+	</update>
+
+	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)  FROM DOCKER_INFO t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+
+	<select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DOCKER_INFO t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID DESC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DOCKER_INFO
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</when>
+			<otherwise>
+				ORDER BY ID DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+</mapper>

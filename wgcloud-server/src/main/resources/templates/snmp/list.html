@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper"  style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header" style="height:38px">
+      <div class="container-fluid">
+        <div class="row mb-2" style="margin-top: -7px;">
+          <div class="col-sm-6"></div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="nav-icon fa fa-cloud"></i>&nbsp;SNMP设备监测列表</h3>
+        <div class=" float-sm-right">
+          <!-- SEARCH FORM -->
+          <form class="form-inline ml-3" th:action="@{'/snmpInfo/list'}">
+            <a th:href="@{'/tuopu/tuopuListSnmp'}" class="btn btn-sm bg-teal" style="margin-right:5px;"><i class="fas fa-network-wired"></i> 拓扑图</a>
+            <button type="button" onclick="searchByOnline('')" class="btn btn-primary btn-sm" style="margin-right:5px;">全部</button>
+            <button type="button" onclick="searchByOnline('1')" class="btn btn-success btn-sm" style="margin-right:5px;">在线</button>
+            <button type="button" onclick="searchByOnline('2')" class="btn bg-danger btn-sm" style="margin-right:5px;">已下线</button>
+            <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+              <button type="button" onclick="startMonitor('/snmpInfo/updateActive')" class="btn btn-primary btn-sm" style="margin-right:5px;">开始监控</button>
+              <button type="button" onclick="stopMonitor('/snmpInfo/updateActive')" class="btn btn-default btn-sm" style="margin-right:5px;">停止监控</button>
+              <button type="button" onclick="delChecks('/snmpInfo/del')"  class="btn bg-danger btn-sm" style="margin-right:5px;">删除</button>
+              <button type="button" onclick="add()" class="btn btn-primary btn-sm" style="margin-right:5px;">添加</button>
+            </th:block>
+            <div th:replace="common/accountSelect.html"></div>
+            <div class="input-group input-group-sm">
+              <input class="form-control"  id="hostname" name="hostname" autocomplete="off" th:value="${snmpInfo.hostname}" type="text" placeholder="输入设备IP">
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body">
+        <table class="table table-bordered table-hover">
+          <thead>
+          <tr>
+            <th style="width: 20px"> <input type="checkbox" value="" name="checkall" id="checkall"></th>
+            <th style="width: 60px">序号</th>
+            <th:block th:if="${snmpInfo.orderBy  == 'HOST_NAME'}">
+              <th:block th:if="${snmpInfo.orderType  == 'ASC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('HOST_NAME','DESC')">设备IP<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+              <th:block th:if="${snmpInfo.orderType  == 'DESC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('HOST_NAME','ASC')">设备IP<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+            </th:block>
+            <th:block th:if="${snmpInfo.orderBy  ne 'HOST_NAME'}">
+              <th style="cursor:pointer" onclick="searchByOrder('HOST_NAME','ASC')">设备IP<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+            </th>
+
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="出口流量总计数值">出口流量</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="入口流量总计数值">入口流量</th>
+            <th:block th:if="${snmpInfo.orderBy  == 'SENT_AVG'}">
+              <th:block th:if="${snmpInfo.orderType  == 'ASC'}">
+                <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="相当于上行传输速率" style="cursor:pointer" onclick="searchByOrder('SENT_AVG','DESC')">出口速率<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+              <th:block th:if="${snmpInfo.orderType  == 'DESC'}">
+                <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="相当于上行传输速率" style="cursor:pointer" onclick="searchByOrder('SENT_AVG','ASC')">出口速率<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+            </th:block>
+            <th:block th:if="${snmpInfo.orderBy  ne 'SENT_AVG'}">
+              <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="相当于上行传输速率" style="cursor:pointer" onclick="searchByOrder('SENT_AVG','ASC')">出口速率<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+            </th>
+
+            <th:block th:if="${snmpInfo.orderBy  == 'RECV_AVG'}">
+              <th:block th:if="${snmpInfo.orderType  == 'ASC'}">
+                <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="相当于下行传输速率" style="cursor:pointer" onclick="searchByOrder('RECV_AVG','DESC')">入口速率<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+              <th:block th:if="${snmpInfo.orderType  == 'DESC'}">
+                <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="相当于下行传输速率"  style="cursor:pointer" onclick="searchByOrder('RECV_AVG','ASC')">入口速率<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+            </th:block>
+            <th:block th:if="${snmpInfo.orderBy  ne 'RECV_AVG'}">
+              <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="相当于下行传输速率"  style="cursor:pointer" onclick="searchByOrder('RECV_AVG','ASC')">入口速率<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+            </th>
+
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="CPU%使用率">CPU%</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="内存%使用率">内存%</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="磁盘使用率%">磁盘%</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="监控状态">监控状态</th>
+            <th th:if="${application.showWarnCount == 'true'}" title="累积告警次数">告警次数</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="备注">备注</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="若已下线，显示最后在线时间，但监控仍在继续">更新时间</th>
+            <th th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}">账号</th>
+            <th>操作</th>
+          </tr>
+          </thead>
+          <tbody>
+          <th:block th:each="item,iterStat : ${page.list}">
+            <tr>
+              <td><input type="checkbox" th:value="${item.id}" name="todo2" th:id="${item.id}+'_check'"/></td>
+              <td th:text="${iterStat.index+1}">1</td>
+              <th:block th:if="${item.state  == '2'}">
+                <td><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.hostname}+' 可能已下线'" class="badge bg-danger"    th:text="${#strings.abbreviate(item.hostname,20)}"></span>
+              </th:block>
+              <th:block th:if="${item.state != '2'}">
+                <td><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.hostname}" th:text="${#strings.abbreviate(item.hostname,20)}"></span>
+              </th:block>
+              </td>
+
+              <td th:text="${item.bytesSent}"></td>
+              <td th:text="${item.bytesRecv}"></td>
+              <td th:text="${item.sentAvg}"></td>
+              <td th:text="${item.recvAvg}"></td>
+              <td>
+                <th:block th:if="${item.cpuPerDouble >= 90}">
+                  <span class="badge bg-danger" th:text="${item.cpuPer}"></span>
+                </th:block>
+                <th:block th:if="${item.cpuPerDouble < 90 && item.cpuPerDouble >= 70  }">
+                  <span class="badge bg-warning" th:text="${item.cpuPer}"></span>
+                </th:block>
+                <th:block th:if="${item.cpuPerDouble < 70  }">
+                  <span class="badge bg-primary" th:text="${item.cpuPer}"></span>
+                </th:block>
+                <th:block th:if="${item.cpuPer  == 'NaN'}"><span class="text-muted">NaN</span></th:block>
+              </td>
+              <td>
+                <th:block th:if="${item.memPerDouble >= 90}">
+                  <span class="badge bg-danger" th:text="${item.memPer}"></span>
+                </th:block>
+                <th:block th:if="${item.memPerDouble < 90 && item.memPerDouble >= 70  }">
+                  <span class="badge bg-warning" th:text="${item.memPer}"></span>
+                </th:block>
+                <th:block th:if="${item.memPerDouble < 70  }">
+                  <span class="badge bg-primary" th:text="${item.memPer}"></span>
+                </th:block>
+                <th:block th:if="${item.memPer  == 'NaN'}"><span class="text-muted">NaN</span></th:block>
+              </td>
+              <td>
+                <th:block th:if="${item.diskPer  != 'NaN'}"> <span th:text="${item.diskPer}"></span></th:block>
+                <th:block th:if="${item.diskPer  == 'NaN'}"><span class="text-muted">NaN</span></th:block>
+              </td>
+              <td>
+                <th:block th:if="${item.active  == '1'}">
+                  <span class="badge bg-primary">监控中</span>
+                </th:block>
+                <th:block th:if="${item.active  == '2'}">
+                  <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                </th:block>
+              </td>
+              <td th:if="${application.showWarnCount == 'true'}"><span style="cursor:pointer;color:#007bff;font-weight:bold" th:onclick="goHrefLogInfo([[${item.warnQueryWd}]])" th:text="${item.warnCount}"></span></td>
+              <td th:text="${item.remark}"><span   th:text="${#strings.abbreviate(item.remark,20)}"></span></td>
+              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+              <th th:text="${item.account}" th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}"></th>
+              <td>
+                <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+                  <button type="button"  th:onclick="del([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button>
+                  <button type="button"  th:onclick="edit([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">编辑</button>
+                </th:block>
+              <button type="button"  th:onclick="view([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">图表</button></td>
+            </tr>
+          </th:block>
+
+          </tbody>
+        </table>
+      </div>
+      <!-- /.card-body -->
+      <div th:replace="common/page.html"></div>
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-12 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<script th:src="@{'/static/js/snmp.js?v=3.4.5'}"></script>
+<script th:inline="javascript">
+  $(document).ready(function(){
+    $("#account").val([[${snmpInfo.account}]]);
+  });
+
+  var msg = [[${msg}]];
+  if(msg!='' && msg!=null){
+    toastr.info(msg);
+  }
+</script>
+
+</body>
+</html>

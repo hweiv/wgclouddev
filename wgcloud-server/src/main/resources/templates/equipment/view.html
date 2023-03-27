@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active"></li>
+                </ol>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-10">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">查看资产</h3>
+          <div class=" float-sm-right">
+              <a href="javascript:history.back()">返回</a>
+          </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+        <form role="form" id="form1" th:action="@{'/equipment/save'}">
+            <input type="hidden" name="id" th:value="${equipment.id}"/>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><font color="red">*</font>设备名称</label>
+                            <div  th:text="${equipment.name}" ></div>
+                        </div>
+                        <div class="form-group">
+                            <label>规格型号</label>
+                            <div  th:text="${equipment.xinghao}" ></div>
+                        </div>
+                        <div class="form-group">
+                            <label>使用人员</label>
+                            <div  th:text="${equipment.person}" ></div>
+                        </div>
+                        <div class="form-group">
+                            <label>供应商</label>
+                            <div  th:text="${equipment.gongyingshang}" ></div>
+                        </div>
+                        <div class="form-group">
+                            <label>维保到期时间</label>
+                            <div  th:text="${equipment.weibaoDate}" ></div>
+                        </div>
+
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label><font color="red">*</font>设备编号</label>
+                            <div  th:text="${equipment.code}" ></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>使用部门</label>
+                            <div  th:text="${equipment.dept}" ></div>
+                        </div>
+                        <div class="form-group">
+                            <label>采购日期</label>
+                            <div  th:text="${equipment.caigouDate}" ></div>
+                        </div>
+                        <div class="form-group">
+                            <label>采购价格(元)</label>
+                            <div  th:text="${equipment.price}" ></div>
+                        </div>
+                        <div class="form-group">
+                            <label></label>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <div  th:text="${equipment.remark}" ></div>
+                </div>
+
+
+            </div>
+            <!-- /.card-body -->
+
+        </form>
+      <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+
+
+  </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+</body>
+</html>

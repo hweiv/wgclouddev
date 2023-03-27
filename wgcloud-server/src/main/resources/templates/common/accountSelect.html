@@ -1,0 +1,6 @@
+<div class="input-group input-group-sm" th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}"><select style="width:150px;margin-right:5px;margin-left:5px;" class="form-control" onchange="searchByAccount()" name="account" id="account">
+    <option value="">选择账号</option>
+    <th:block th:each="item,iterStat : ${accountList}">
+        <option  th:value="${item.account}"  th:text="${item.account}">Alabama</option>
+    </th:block>
+</select></div>

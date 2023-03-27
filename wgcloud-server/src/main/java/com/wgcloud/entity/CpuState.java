@@ -1,147 +1,91 @@
 package com.wgcloud.entity;
 
+import com.wgcloud.util.DateUtil;
+import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
-
-/**
- * @version v2.3
- * @ClassName:CpuState.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: 查看CPU使用情况
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class CpuState extends BaseEntity {
+   private static final long serialVersionUID = 1L;
+   private String hostname;
+   private String userPer;
+   private Double sys;
+   private Double idle;
+   private Double iowait;
+   private String irq;
+   private String soft;
+   private String dateStr;
+   private Date createTime;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -2913111613773445949L;
+   public String getUserPer() {
+      return this.userPer;
+   }
 
+   public void setUserPer(String userPer) {
+      this.userPer = userPer;
+   }
 
-    /**
-     * host名称
-     */
-    private String hostname;
+   public Double getSys() {
+      return this.sys;
+   }
 
-    /**
-     * 用户态的CPU时间（%）废弃
-     */
-    private String user;
+   public void setSys(Double sys) {
+      this.sys = sys;
+   }
 
-    /**
-     * cpu使用率
-     */
-    private Double sys;
+   public Double getIdle() {
+      return this.idle;
+   }
 
-    /**
-     * 当前空闲率
-     */
-    private Double idle;
+   public void setIdle(Double idle) {
+      this.idle = idle;
+   }
 
-    /**
-     * cpu当前等待率
-     */
-    private Double iowait;
+   public Double getIowait() {
+      return this.iowait;
+   }
 
-    /**
-     * 硬中断时间（%） 废弃
-     */
-    private String irq;
+   public void setIowait(Double iowait) {
+      this.iowait = iowait;
+   }
 
-    /**
-     * 软中断时间（%） 废弃
-     */
-    private String soft;
+   public String getIrq() {
+      return this.irq;
+   }
 
-    /**
-     * 添加时间
-     * MM-dd hh:mm:ss
-     */
-    private String dateStr;
+   public void setIrq(String irq) {
+      this.irq = irq;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+   public String getSoft() {
+      return this.soft;
+   }
 
+   public void setSoft(String soft) {
+      this.soft = soft;
+   }
 
-    public String getUser() {
-        return user;
-    }
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
-    public void setUser(String user) {
-        this.user = user;
-    }
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 
-    public Double getSys() {
-        return sys;
-    }
+   public String getDateStr() {
+      String s = DateUtil.getDateTimeString(this.getCreateTime());
+      return !StringUtils.isEmpty(s) && s.length() > 16 ? s.substring(5) : this.dateStr;
+   }
 
-    public void setSys(Double sys) {
-        this.sys = sys;
-    }
+   public void setDateStr(String dateStr) {
+      this.dateStr = dateStr;
+   }
 
-    public Double getIdle() {
-        return idle;
-    }
+   public String getHostname() {
+      return this.hostname;
+   }
 
-    public void setIdle(Double idle) {
-        this.idle = idle;
-    }
-
-    public Double getIowait() {
-        return iowait;
-    }
-
-    public void setIowait(Double iowait) {
-        this.iowait = iowait;
-    }
-
-    public String getIrq() {
-        return irq;
-    }
-
-    public void setIrq(String irq) {
-        this.irq = irq;
-    }
-
-    public String getSoft() {
-        return soft;
-    }
-
-    public void setSoft(String soft) {
-        this.soft = soft;
-    }
-
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getDateStr() {
-        if (!StringUtils.isEmpty(dateStr) && dateStr.length() > 16) {
-            return dateStr.substring(11);
-        }
-        return dateStr;
-    }
-
-    public void setDateStr(String dateStr) {
-        this.dateStr = dateStr;
-    }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-
+   public void setHostname(String hostname) {
+      this.hostname = hostname;
+   }
 }

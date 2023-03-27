@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wgcloud.mapper.DiskStateMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.DiskState">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="FILE_STSTEM" property="fileSystem" jdbcType="CHAR" />
+		<result column="DISK_SIZE" property="diskSize" jdbcType="CHAR" />
+		<result column="USED" property="used" jdbcType="CHAR" />
+		<result column="AVAIL" property="avail" jdbcType="CHAR" />
+		<result column="USE_PER" property="usePer" jdbcType="CHAR" />
+		<result column="DATE_STR" property="dateStr" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,HOST_NAME, FILE_STSTEM, DISK_SIZE, USED, AVAIL,USE_PER,DATE_STR,CREATE_TIME
+	</sql>
+	
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+		</if>
+		<if test="hostname == null and account == null">
+			<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c) ]]>
+		</if>
+	</sql>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+				INSERT INTO DISK_STATE (ID,HOST_NAME, FILE_STSTEM, DISK_SIZE, USED, AVAIL,USE_PER,DATE_STR,CREATE_TIME)  VALUES
+					(#{item.id},#{item.hostname},#{item.fileSystem},#{item.diskSize},#{item.used},#{item.avail},#{item.usePer},#{item.dateStr},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO DISK_STATE (ID,HOST_NAME, FILE_STSTEM, DISK_SIZE, USED, AVAIL,USE_PER,DATE_STR,CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.fileSystem},#{item.diskSize},#{item.used},#{item.avail},#{item.usePer},#{item.dateStr},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DISK_STATE
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByAccountAndDate"  parameterType="map">
+		DELETE FROM DISK_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
+	</delete>
+	
+	<delete id="deleteByAccHname"  parameterType="java.util.List">
+			DELETE FROM DISK_STATE WHERE HOST_NAME IN
+			<foreach item="item" collection="list" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM DISK_STATE
+		WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		DISK_STATE
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.DiskState">
+		INSERT INTO DISK_STATE
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" > HOST_NAME,</if>
+      		<if test="fileSystem != null">FILE_STSTEM,</if>
+      		<if test="diskSize != null" >DISK_SIZE,</if>
+      		<if test="used != null" >USED,</if>
+      		<if test="avail != null" >AVAIL,</if>
+      		<if test="usePer != null" >USE_PER,</if>
+      		<if test="dateStr != null" >DATE_STR,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="fileSystem != null" >#{fileSystem},</if>
+      		<if test="diskSize != null" >#{diskSize},</if>
+      		<if test="used != null" >#{used},</if>
+      		<if test="avail != null" >#{avail},</if>
+      		<if test="usePer != null" >#{usePer},</if>
+      		<if test="dateStr != null" >#{dateStr},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+	
+	
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DISK_STATE t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY USE_PER DESC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DISK_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY USE_PER DESC
+	</select>
+	
+</mapper>

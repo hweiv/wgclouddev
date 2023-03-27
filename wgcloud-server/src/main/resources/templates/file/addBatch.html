@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active"></li>
+                </ol>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-10">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">添加日志监控信息</h3>
+          <div class=" float-sm-right">
+              <a href="javascript:history.back()">返回</a>
+          </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+        <form role="form" id="form1" th:action="@{'/fileWarnInfo/saveBatch'}">
+            <input type="hidden" name="id" th:value="${fileWarnInfo.id}"/>
+            <div class="card-body">
+                <div class="form-group">
+                    <label><font color="red">*</font>监控主机</label>
+                    <div th:replace="common/multiSelectHost.html"></div>
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>日志文件或文件夹完整路径<span class="text-muted">（当监控文件夹时，系统每次会扫描文件夹下时间戳最新的日志文件）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${fileWarnInfo.filePath}" class="validate[required,maxSize[200]] form-control" name="filePath" id="filePath"
+                           placeholder="如:/usr/lcoal/nginx/log/access.log，或/usr/lcoal/nginx/log/，当为文件夹时每次扫描文件夹下的最新log文件">
+                </div>
+                <div class="form-group">
+                    <label for="fromMailName" title="多个关键字用英文逗号隔开"><font color="red">*</font>告警关键字<span class="text-muted">（多个关键字用英文逗号隔开）</span></label>
+                    <textarea class="validate[required,maxSize[500]] form-control"   name="warnChars" id="warnChars"
+                              th:text="${fileWarnInfo.warnChars}"  rows="3" placeholder="多个关键字用英文逗号隔开"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>日志文件名称需包含的关键字<span class="text-muted">（当监控日志文件夹时，此处才会生效，用来标识文件夹下的日志文件名称里需要包含的关键字）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${fileWarnInfo.fileNamePrefix}" class="validate[maxSize[30]] form-control" name="fileNamePrefix" id="fileNamePrefix"
+                           placeholder="">
+                </div>
+                <div class="form-group">
+                    <label>日志文件类型<span class="text-muted">（当监控日志文件夹时，此处才会生效）</span></label>
+                    <select class="form-control"  name="fileType" id="fileType">
+                        <option value="1">.log</option>
+                        <option value="2">.txt</option>
+                        <option value="3">.out</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <input type="text" autocomplete="off"  th:value="${fileWarnInfo.remark}" class="validate[maxSize[200]] form-control" name="remark" id="remark"
+                           placeholder="">
+                </div>
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>监控状态</label></br>
+                    <th:block th:if="${#strings.isEmpty(fileWarnInfo.active)}" >
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${fileWarnInfo.active  == '1'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" name="active" value="2">
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${fileWarnInfo.active  == '2'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1">
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" name="active" checked value="2">
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                </div>
+
+            </div>
+            <!-- /.card-body -->
+
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
+            </div>
+
+        </form>
+      <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-10 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#form1").validationEngine();
+        $('.duallistbox').bootstrapDualListbox({
+            nonSelectedListLabel: '未选监控主机',
+            selectedListLabel: '已选监控主机',
+            filterPlaceHolder: '过滤条件',
+            moveAllLabel: '添加全部',
+            removeAllLabel: '移除全部',
+            infoText: '当前列表共 {0} 项',
+            infoTextEmpty: '列表为空',
+        });
+
+        $("#hostname").val([[${fileWarnInfo.hostname}]]).select2();
+        $("#fileType").val([[${fileWarnInfo.fileType}]]);
+    });
+
+</script>
+</body>
+</html>

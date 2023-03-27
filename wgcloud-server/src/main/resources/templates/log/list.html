@@ -5,7 +5,7 @@
 
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 <div th:replace="common/chart.html"></div>
 
 <div class="wrapper">
@@ -15,23 +15,20 @@
   <div th:replace="common/aside.html"></div>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper"  style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1></h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-
-            </ol>
-          </div>
+    <section class="content-header" style="height:38px">
+    <div class="container-fluid">
+      <div class="row mb-2" style="margin-top: -7px;">
+        <div class="col-sm-6"></div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
+          </ol>
         </div>
-
-      </div><!-- /.container-fluid -->
-    </section>
+      </div>
+    </div><!-- /.container-fluid -->
+  </section>
 
     <!-- Main content -->
     <section class="content">
@@ -41,33 +38,35 @@
   <div class="col-md-12">
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">日志列表</h3>
-
-
-        <div class=" float-sm-right">
-          <!-- SEARCH FORM -->
-          <form class="form-inline ml-3" th:action="@{'/log/list'}">
-            <div class="input-group input-group-sm">
-              <input class="form-control"  id="hostname" name="hostname" autocomplete="off" th:value="${logInfo.hostname}" type="text" placeholder="输入摘要关键字">
-              <div class="input-group-append">
-                <button class="btn btn-primary" type="submit">
-                  <i class="fas fa-search"></i>
-                </button>
+        <h3 class="card-title"><i class="nav-icon  fas fa-copy"></i>&nbsp;日志列表</h3>
+        <div class="card-tools">
+          <div class="float-sm-right">
+            <!-- SEARCH FORM -->
+            <form class="form-inline ml-3" th:action="@{'/log/list'}">
+              <button type="button" onclick="searchByPara('1')" class="btn bg-maroon btn-sm" style="margin-right:5px;">业务告警</button>
+              <button type="button" onclick="searchByPara('3')" class="btn btn-success btn-sm" style="margin-right:5px;">告警恢复</button>
+              <button type="button" onclick="searchByPara('2')" class="btn bg-primary btn-sm" style="margin-right:5px;">系统操作</button>
+              <div class="input-group input-group-sm">
+                <input type="text" autocomplete="off"  value="" class="validate[maxSize[50]] form-control"  th:value="${startTime}" name="startTime" id="startTime" placeholder="开始时间" style="margin-right:5px;">
+                <label style="margin-right:5px;">至</label>
+                <input type="text" autocomplete="off"  value="" class="validate[maxSize[50]] form-control"  th:value="${endTime}" name="endTime" id="endTime" placeholder="结束时间" style="margin-right:5px;">
+                <input type="text" autocomplete="off"  th:value="${logInfo.hostname}" class="form-control" name="hostname" id="hostname" placeholder="输入摘要关键字" style="margin-right:5px;">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:5px;">查询</button>
+                <button type="button" onclick="resetParam()" class="btn bg-danger btn-sm" style="margin-right:5px;">重置</button>
               </div>
-
-            </div>
-          </form>
-
+            </form>
+          </div>
         </div>
       </div>
       <!-- /.card-header -->
       <div class="card-body">
-        <table class="table table-bordered">
+        <table class="table table-bordered table-hover">
           <thead>
           <tr>
-            <th style="width: 80px">序号</th>
+            <th style="width: 60px">序号</th>
             <th>摘要</th>
-            <th>日期</th>
+            <th>日志类型</th>
+            <th>添加时间</th>
             <th>操作</th>
           </tr>
           </thead>
@@ -76,6 +75,17 @@
             <tr>
               <td th:text="${iterStat.index+1}">1</td>
               <td th:text="${item.hostname}">Update software</td>
+              <td>
+                <th:block th:if="${item.state == '1'}">
+                  <span class="badge bg-maroon">业务告警</span>
+                </th:block>
+                <th:block th:if="${item.state == '3'}">
+                  <span class="badge bg-success">告警恢复</span>
+                </th:block>
+                <th:block th:if="${item.state == '2'}">
+                  <span class="badge bg-primary">系统操作</span>
+                </th:block>
+              </td>
               <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
               <td> <button type="button"  th:onclick="view([[${item.id}]])"  class="btn btn-block bg-gradient-primary btn-sm">查看</button></td>
             </tr>
@@ -103,7 +113,52 @@
 </div>
 <!-- ./wrapper -->
 
-<script th:src="@{'/static/js/log.js'}"></script>
+<script th:src="@{'/static/js/log.js?v=3.4.0'}"></script>
+
+<script th:inline="javascript">
+  $(document).ready(function(){
+    var startTimeResponse =[[${startTime}]];
+    var endTimeResponse =[[${endTime}]];
+    var startTime = $('#startTime');
+    if(startTime!=null && startTime != undefined){
+      startTime.daterangepicker({
+        singleDatePicker: true,
+        "opens": "center",
+        "locale": {
+          format: 'YYYY-MM-DD',
+          applyLabel: "应用",
+          cancelLabel: "取消",
+          daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+          monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        }
+      });
+      if(startTimeResponse=='' || startTimeResponse==null){
+        startTime.val("");
+      }
+    }
+
+    var endTime = $('#endTime');
+    if(endTime!=null && endTime != undefined){
+      endTime.daterangepicker({
+        singleDatePicker: true,
+        "opens": "center",
+        "locale": {
+          format: 'YYYY-MM-DD',
+          applyLabel: "应用",
+          cancelLabel: "取消",
+          daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+          monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        }
+      });
+      if(endTimeResponse==''  || endTimeResponse==null){
+        endTime.val("");
+      }
+    }
+
+  });
+
+
+</script>
 
 </body>
 </html>

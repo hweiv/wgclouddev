@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wgcloud.mapper.CpuTemperaturesMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.CpuTemperatures">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="CORE_INDEX" property="core_index" jdbcType="CHAR" />
+		<result column="CRIT" property="crit" jdbcType="CHAR" />
+		<result column="INPUT" property="input" jdbcType="CHAR" />
+		<result column="MAX" property="max" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,HOST_NAME, CORE_INDEX, CRIT, INPUT, MAX, CREATE_TIME
+	</sql>
+	
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
+		</if>
+	</sql>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO CPU_TEMPERATURES (ID,HOST_NAME, CORE_INDEX, CRIT, INPUT, MAX, CREATE_TIME)  VALUES
+					(#{item.id},#{item.hostname},#{item.core_index},#{item.crit},#{item.input},#{item.max},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO CPU_TEMPERATURES (ID,HOST_NAME, CORE_INDEX, CRIT, INPUT, MAX, CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.core_index},#{item.crit},#{item.input},#{item.max},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM CPU_TEMPERATURES
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByAccountAndDate"  parameterType="map">
+		DELETE FROM CPU_TEMPERATURES WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
+	</delete>
+
+
+	<delete id="deleteByAccHname"  parameterType="java.util.List">
+		DELETE FROM CPU_TEMPERATURES WHERE HOST_NAME IN
+		<foreach item="item" collection="list" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM CPU_TEMPERATURES
+		WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		CPU_TEMPERATURES
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.DiskState">
+		INSERT INTO CPU_TEMPERATURES
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" > HOST_NAME,</if>
+      		<if test="core_index != null">CORE_INDEX,</if>
+      		<if test="crit != null" >CRIT,</if>
+      		<if test="input != null" >INPUT,</if>
+      		<if test="max != null" >MAX,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="core_index != null" >#{core_index},</if>
+      		<if test="crit != null" >#{crit},</if>
+      		<if test="input != null" >#{input},</if>
+      		<if test="max != null" >#{max},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+	
+	
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM CPU_TEMPERATURES t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY CORE_INDEX ASC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM CPU_TEMPERATURES
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY CORE_INDEX ASC
+	</select>
+	
+</mapper>

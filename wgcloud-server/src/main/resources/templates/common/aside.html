@@ -1,10 +1,9 @@
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
-    <a href="http://www.wgstart.com"  target="_blank" class="brand-link">
-        <img th:src="@{'/static/logincss/logo.png'}"  class="brand-image img-circle elevation-3"
-             style="opacity: .8">
-        <span class="brand-text font-weight-light">WGCLOUD</span>
+    <a href="javascript:location.reload();" class="brand-link">
+        <img th:src="${application.logoUrl}"   class="brand-image img-circle elevation-3"  style="opacity: .8">
+        <span class="brand-text font-weight-light" th:title="${application.wgName}" th:text="${application.wgShortName}">WGCLOUD</span>
     </a>
 
     <!-- Sidebar -->
@@ -26,6 +25,19 @@
                 <!-- Add icons to the links using the .nav-icon class
                      with font-awesome or any other icon font library -->
 
+
+                <li class="nav-item">
+                    <th:block th:if="${session.menuActive eq '01'}">
+                        <a th:href="@{'/dash/main'}" class="nav-link active">
+                    </th:block>
+                    <th:block th:unless="${session.menuActive eq '01'}">
+                        <a th:href="@{'/dash/main'}" class="nav-link">
+                    </th:block>
+                    <i class="nav-icon fas fa-book"></i>
+                    <p>监控概要</p>
+                    </a>
+                </li>
+
                 <th:block th:if="${#strings.startsWith(session.menuActive,'1')}">
                     <li class="nav-item has-treeview menu-open">
                         <a href="javascript:void(0);" class="nav-link active">
@@ -42,24 +54,13 @@
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <th:block th:if="${session.menuActive eq '11'}">
-                                <a th:href="@{'/dash/main'}" class="nav-link active">
-                            </th:block>
-                            <th:block th:unless="${session.menuActive eq '11'}">
-                                <a th:href="@{'/dash/main'}" class="nav-link">
-                            </th:block>
-                                <i class="far fa-circle nav-icon"></i>
-                                <p>监控概要</p>
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <th:block th:if="${session.menuActive eq '12'}">
-                                <a th:href="@{'/dash/systemInfoList'}" class="nav-link active">
+                                <a th:href="@{'/systemInfo/systemInfoList'}" class="nav-link active">
                             </th:block>
                             <th:block th:unless="${session.menuActive eq '12'}">
-                                <a th:href="@{'/dash/systemInfoList'}" class="nav-link">
+                                <a th:href="@{'/systemInfo/systemInfoList'}" class="nav-link">
                             </th:block>
-                                <i class="nav-icon fas fa-desktop"></i>
+                                <i class="fas fa-desktop nav-icon"></i>
                                 <p>主机管理</p>
                             </a>
                         </li>
@@ -71,7 +72,62 @@
                                 <a th:href="@{'/appInfo/list'}" class="nav-link">
                             </th:block>
                                 <i class="fas fa-tasks nav-icon"></i>
-                                <p>进程管理</p>
+                                <p>进程监测</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <th:block th:if="${session.menuActive eq '15'}">
+                                <a th:href="@{'/portInfo/list'}" class="nav-link active">
+                            </th:block>
+                            <th:block th:unless="${session.menuActive eq '15'}">
+                                <a th:href="@{'/portInfo/list'}" class="nav-link">
+                            </th:block>
+                            <i class="fas fa-leaf nav-icon"></i>
+                            <p>端口监测</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <th:block th:if="${session.menuActive eq '16'}">
+                                <a th:href="@{'/fileWarnInfo/list'}" class="nav-link active">
+                            </th:block>
+                            <th:block th:unless="${session.menuActive eq '16'}">
+                                <a th:href="@{'/fileWarnInfo/list'}" class="nav-link">
+                            </th:block>
+                            <i class="fas fa-comment nav-icon"></i>
+                            <p>日志监控</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <th:block th:if="${session.menuActive eq '17'}">
+                                <a th:href="@{'/fileSafe/list'}" class="nav-link active">
+                            </th:block>
+                            <th:block th:unless="${session.menuActive eq '17'}">
+                                <a th:href="@{'/fileSafe/list'}" class="nav-link">
+                            </th:block>
+                            <i class="fas fa-shield-alt nav-icon"></i>
+                            <p>文件防篡改</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <th:block th:if="${session.menuActive eq '14'}">
+                                <a th:href="@{'/dockerInfo/list'}" class="nav-link active">
+                            </th:block>
+                            <th:block th:unless="${session.menuActive eq '14'}">
+                                <a th:href="@{'/dockerInfo/list'}" class="nav-link">
+                            </th:block>
+                            <i class="fab fa-docker nav-icon"></i>
+                            <p>DOCKER监测</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <th:block th:if="${session.menuActive eq '18'}">
+                                <a th:href="@{'/customInfo/list'}" class="nav-link active">
+                            </th:block>
+                            <th:block th:unless="${session.menuActive eq '18'}">
+                                <a th:href="@{'/customInfo/list'}" class="nav-link">
+                            </th:block>
+                            <i class="fas fa-star nav-icon"></i>
+                            <p>自定义监控项</p>
                             </a>
                         </li>
                     </ul>
@@ -87,7 +143,7 @@
                         <a  href="javascript:void(0);" class="nav-link">
                 </th:block>
                 <i class="nav-icon fas fa-table"></i>
-                <p>
+                <p title="检测数据表的数据量变化趋势">
                     数据监控
                     <i class="fas fa-angle-left right"></i>
                 </p>
@@ -119,33 +175,163 @@
                 </ul>
                 </li>
 
-                <th:block th:if="${#strings.startsWith(session.menuActive,'5')}">
-                    <li class="nav-item has-treeview menu-open">
-                        <a  href="javascript:void(0);" class="nav-link active">
-                </th:block>
-                <th:block th:unless="${#strings.startsWith(session.menuActive,'5')}">
-                    <li class="nav-item has-treeview">
-                        <a  href="javascript:void(0);" class="nav-link">
-                </th:block>
-                <i class="nav-icon fas fa-link"></i>
-                <p>
-                    服务接口检测
+                <li class="nav-item">
+                    <th:block th:if="${session.menuActive eq '51'}">
+                        <a th:href="@{'/heathMonitor/list'}" class="nav-link active">
+                    </th:block>
+                    <th:block th:unless="${session.menuActive eq '51'}">
+                        <a th:href="@{'/heathMonitor/list'}" class="nav-link">
+                    </th:block>
+                    <i class="nav-icon  fas fa-link"></i>
+                    <p>服务接口监测</p>
+                    </a>
+                </li>
+
+
+                <li class="nav-item has-treeview">
+                <a  href="javascript:void(0);" class="nav-link">
+                <i class="nav-icon fas fa-th"></i>
+                <p title="请确认配置文件已开启展示看板" >
+                    展示看板
                     <i class="fas fa-angle-left right"></i>
                 </p>
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <th:block th:if="${session.menuActive eq '51'}">
-                            <a th:href="@{'/heathMonitor/list'}" class="nav-link active">
-                        </th:block>
-                        <th:block th:unless="${session.menuActive eq '51'}">
-                            <a th:href="@{'/heathMonitor/list'}" class="nav-link">
-                        </th:block>
+                        <a target="_blank" th:href="@{'/daping/index?dashView=1'}" class="nav-link">
+                        <i class="nav-icon far fa-circle text-danger"></i>
+                        <p>大屏原版</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a target="_blank" th:href="@{'/dapingNew/index?dashView=1'}" class="nav-link">
+                            <i class="nav-icon fa fa-solid fa-chart-area"></i>
+                            <p>大屏新版</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a target="_blank" th:href="@{'/dash/main?dashView=1'}" class="nav-link">
                         <i class="far fa-circle nav-icon"></i>
-                        <p>服务接口管理</p>
+                        <p>公众看板</p>
                         </a>
                     </li>
                 </ul>
+                </li>
+
+                <th:block th:if="${#strings.startsWith(session.menuActive,'6')}">
+                    <li class="nav-item has-treeview menu-open">
+                        <a  href="javascript:void(0);" class="nav-link active">
+                </th:block>
+                <th:block th:unless="${#strings.startsWith(session.menuActive,'6')}">
+                    <li class="nav-item has-treeview">
+                        <a  href="javascript:void(0);" class="nav-link">
+                </th:block>
+                <i class="nav-icon fa fa-cloud"></i>
+                <p title="数通设备监测">
+                    数通监测
+                    <i class="fas fa-angle-left right"></i>
+                </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                        <th:block th:if="${session.menuActive eq '61'}">
+                            <a th:href="@{'/dceInfo/list'}" class="nav-link active">
+                        </th:block>
+                        <th:block th:unless="${session.menuActive eq '61'}">
+                            <a th:href="@{'/dceInfo/list'}" class="nav-link">
+                        </th:block>
+                        <i class="nav-icon far fa-circle text-info"></i>
+                        <p>PING监测</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <th:block th:if="${session.menuActive eq '62'}">
+                            <a th:href="@{'/snmpInfo/list'}" class="nav-link active">
+                        </th:block>
+                        <th:block th:unless="${session.menuActive eq '62'}">
+                            <a th:href="@{'/snmpInfo/list'}" class="nav-link">
+                        </th:block>
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>SNMP监测</p>
+                        </a>
+                    </li>
+                </ul>
+                </li>
+
+                <li class="nav-item">
+                    <th:block th:if="${session.menuActive eq 'a1'}">
+                        <a th:href="@{'/ftpInfo/list'}" class="nav-link active">
+                    </th:block>
+                    <th:block th:unless="${session.menuActive eq 'a1'}">
+                        <a th:href="@{'/ftpInfo/list'}" class="nav-link">
+                    </th:block>
+                    <i class="nav-icon  fas fa-cloud-upload-alt"></i>
+                    <p title="检测ftp和sftp的健康状态">FTP/SFTP监测</p>
+                    </a>
+                </li>
+
+                <th:block th:if="${#strings.startsWith(session.menuActive,'7')}">
+                    <li class="nav-item has-treeview menu-open">
+                        <a  href="javascript:void(0);" class="nav-link active">
+                </th:block>
+                <th:block th:unless="${#strings.startsWith(session.menuActive,'7')}">
+                    <li class="nav-item has-treeview">
+                        <a  href="javascript:void(0);" class="nav-link">
+                </th:block>
+                <i class="nav-icon fas fa-network-wired"></i>
+                <p title="自动绘制网络拓扑图">
+                    拓扑图
+                    <i class="fas fa-angle-left right"></i>
+                </p>
+                </a>
+                <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                        <th:block th:if="${session.menuActive eq '71'}">
+                            <a th:href="@{'/tuopu/tuopuListHost'}" class="nav-link active">
+                        </th:block>
+                        <th:block th:unless="${session.menuActive eq '71'}">
+                            <a th:href="@{'/tuopu/tuopuListHost'}" class="nav-link">
+                        </th:block>
+                        <i class="nav-icon far fa-circle text-info"></i>
+                        <p>主机拓扑图</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <th:block th:if="${session.menuActive eq '72'}">
+                            <a th:href="@{'/tuopu/tuopuListSt'}" class="nav-link active">
+                        </th:block>
+                        <th:block th:unless="${session.menuActive eq '72'}">
+                            <a th:href="@{'/tuopu/tuopuListSt'}" class="nav-link">
+                        </th:block>
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>PING拓扑图</p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <th:block th:if="${session.menuActive eq '73'}">
+                            <a th:href="@{'/tuopu/tuopuListSnmp'}" class="nav-link active">
+                        </th:block>
+                        <th:block th:unless="${session.menuActive eq '73'}">
+                            <a th:href="@{'/tuopu/tuopuListSnmp'}" class="nav-link">
+                        </th:block>
+                        <i class="far fa-circle nav-icon"></i>
+                        <p>SNMP拓扑图</p>
+                        </a>
+                    </li>
+
+                </ul>
+                </li>
+
+                <li class="nav-item">
+                    <th:block th:if="${session.menuActive eq '91'}">
+                        <a th:href="@{'/report/list'}" class="nav-link active">
+                    </th:block>
+                    <th:block th:unless="${session.menuActive eq '91'}">
+                        <a th:href="@{'/report/list'}" class="nav-link">
+                    </th:block>
+                    <i class="nav-icon  far fa-calendar-alt"></i>
+                    <p>巡检报告</p>
+                    </a>
                 </li>
 
 
@@ -157,9 +343,9 @@
                     <li class="nav-item has-treeview">
                         <a  href="javascript:void(0);" class="nav-link">
                 </th:block>
-                <i class="nav-icon fas fa-copy"></i>
-                <p>
-                    系统信息
+                <i class="nav-icon fas fa-laptop-code"></i>
+                <p title="系统管理" >
+                    系统管理
                     <i class="fas fa-angle-left right"></i>
                 </p>
                 </a>
@@ -171,70 +357,79 @@
                         <th:block th:unless="${session.menuActive eq '21'}">
                             <a th:href="@{'/log/list'}" class="nav-link">
                         </th:block>
-                        <i class="far fa-circle nav-icon"></i>
-                        <p>日志信息</p>
+                        <i class="nav-icon  fas fa-copy"></i>
+                        <p>系统日志</p>
                         </a>
                     </li>
-
-                </ul>
-                </li>
-
-
-
-                <th:block th:if="${#strings.startsWith(session.menuActive,'3')}">
-                    <li class="nav-item has-treeview menu-open">
-                        <a  href="javascript:void(0);" class="nav-link active">
-                </th:block>
-                <th:block th:unless="${#strings.startsWith(session.menuActive,'3')}">
-                    <li class="nav-item has-treeview">
-                        <a  href="javascript:void(0);" class="nav-link">
-                </th:block>
-                <i class="nav-icon far fa-envelope"></i>
-                <p>
-                    邮件告警
-                    <i class="fas fa-angle-left right"></i>
-                </p>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <th:block th:if="${session.menuActive eq '31'}">
+                    <li class="nav-item" th:if="${session.LOGIN_KEY.role == 'admin'}">
+                        <th:block th:if="${session.menuActive eq '22'}">
                             <a th:href="@{'/mailset/list'}" class="nav-link active">
                         </th:block>
-                        <th:block th:unless="${session.menuActive eq '31'}">
+                        <th:block th:unless="${session.menuActive eq '22'}">
                             <a th:href="@{'/mailset/list'}" class="nav-link">
                         </th:block>
-                        <i class="far fa-circle nav-icon"></i>
-                        <p>设置</p>
+                        <i class="nav-icon far fa-envelope"></i>
+                        <p>邮件告警</p>
                         </a>
                     </li>
-
+                    <li class="nav-item" th:if="${application.shellToRun  == 'true'}">
+                        <th:block th:if="${session.menuActive eq '23'}">
+                            <a th:href="@{'/shellInfo/list'}" class="nav-link active">
+                        </th:block>
+                        <th:block th:unless="${session.menuActive eq '23'}">
+                            <a th:href="@{'/shellInfo/list'}" class="nav-link">
+                        </th:block>
+                        <i class="nav-icon fas fa-terminal"></i>
+                        <p>指令下发</p>
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${application.hostGroup == 'true'  && session.LOGIN_KEY.role == 'admin'}">
+                        <th:block th:if="${session.menuActive eq '24'}">
+                            <a th:href="@{'/hostGroup/list'}" class="nav-link active">
+                        </th:block>
+                        <th:block th:unless="${session.menuActive eq '24'}">
+                            <a th:href="@{'/hostGroup/list'}" class="nav-link">
+                        </th:block>
+                        <i class="nav-icon fas fa-layer-group"></i>
+                        <p>标签管理</p>
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}">
+                        <th:block th:if="${session.menuActive eq '25'}">
+                            <a th:href="@{'/accountInfo/list'}" class="nav-link active">
+                        </th:block>
+                        <th:block th:unless="${session.menuActive eq '25'}">
+                            <a th:href="@{'/accountInfo/list'}" class="nav-link">
+                        </th:block>
+                        <i class="nav-icon fa fa-users"></i>
+                        <p>成员账号</p>
+                        </a>
+                    </li>
                 </ul>
                 </li>
 
-
                 <li class="nav-item">
-                    <a target="_blank" th:href="@{'/dash/main?dashView=1'}" title="请确认配置文件已开启公众看板" class="nav-link">
-                        <i class="nav-icon fas fa-th"></i>
-                        <p>公众看板</p>
+                    <th:block th:if="${session.menuActive eq '81'}">
+                        <a th:href="@{'/equipment/list'}" class="nav-link active">
+                    </th:block>
+                    <th:block th:unless="${session.menuActive eq '81'}">
+                        <a th:href="@{'/equipment/list'}" class="nav-link">
+                    </th:block>
+                    <i class="nav-icon fas fa-server"></i>
+                    <p>资产管理</p>
                     </a>
                 </li>
 
-                <li class="nav-item">
+
+                <!--<li class="nav-item">
                     <a target="_blank" href="http://www.wgstart.com/elasticsearch-head/index.html"
                        class="nav-link">
-                        <i class="nav-icon far fa-circle text-danger"></i>
+                        <i class="nav-icon fas fa-search-plus"></i>
                         <p>ES监控工具</p>
                     </a>
-                </li>
+                </li>-->
 
 
-                <li class="nav-item">
-                    <a target="_blank" href="http://www.wgstart.com/docs.html"
-                       class="nav-link">
-                        <i class="nav-icon fas fa-file"></i>
-                        <p>帮助</p>
-                    </a>
-                </li>
 
 
             </ul>

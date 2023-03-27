@@ -1,139 +1,106 @@
 package com.wgcloud.entity;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
-/**
- * @version v2.3
- * @ClassName:DbInfo.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: 检查系统入侵信息
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class DbInfo extends BaseEntity {
+   private static final long serialVersionUID = 1L;
+   private String aliasName;
+   private String dbType;
+   private String userName;
+   private String passwd;
+   private String dbUrl;
+   private String dbState;
+   private Integer warnCount;
+   private String warnQueryWd;
+   private String image;
+   private Date createTime;
+   private String account;
 
+   public String getDbType() {
+      return this.dbType;
+   }
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 879979812204191283L;
+   public void setDbType(String dbType) {
+      this.dbType = dbType;
+   }
 
+   public String getUserName() {
+      return this.userName;
+   }
 
-    /**
-     * 连接别名
-     */
-    private String aliasName;
+   public void setUserName(String userName) {
+      this.userName = userName;
+   }
 
+   public String getPasswd() {
+      return this.passwd;
+   }
 
-    /**
-     * 数据库类型，mysql或则oracle
-     */
-    private String dbType;
+   public void setPasswd(String passwd) {
+      this.passwd = passwd;
+   }
 
-    /**
-     * 数据库用户名
-     */
-    private String user;
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
-    /**
-     * 数据库密码
-     */
-    private String passwd;
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 
-    /**
-     * 数据库服务器ip
-     */
-    private String ip;
+   public String getDbState() {
+      return this.dbState;
+   }
 
-    /**
-     * 数据库端口
-     */
-    private String port;
+   public void setDbState(String dbState) {
+      this.dbState = dbState;
+   }
 
-    /**
-     * 数据库名称
-     */
-    private String dbName;
+   public String getAliasName() {
+      return this.aliasName;
+   }
 
-    /**
-     * 数据库连接状态,1正常，2失败
-     */
-    private String dbState;
+   public void setAliasName(String aliasName) {
+      this.aliasName = aliasName;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Timestamp createTime;
+   public String getDbUrl() {
+      return this.dbUrl;
+   }
 
-    public String getDbType() {
-        return dbType;
-    }
+   public void setDbUrl(String dbUrl) {
+      this.dbUrl = dbUrl;
+   }
 
-    public void setDbType(String dbType) {
-        this.dbType = dbType;
-    }
+   public Integer getWarnCount() {
+      return this.warnCount;
+   }
 
-    public String getUser() {
-        return user;
-    }
+   public void setWarnCount(Integer warnCount) {
+      this.warnCount = warnCount;
+   }
 
-    public void setUser(String user) {
-        this.user = user;
-    }
+   public String getWarnQueryWd() {
+      return this.warnQueryWd;
+   }
 
-    public String getPasswd() {
-        return passwd;
-    }
+   public void setWarnQueryWd(String warnQueryWd) {
+      this.warnQueryWd = warnQueryWd;
+   }
 
-    public void setPasswd(String passwd) {
-        this.passwd = passwd;
-    }
+   public String getAccount() {
+      return this.account;
+   }
 
-    public String getIp() {
-        return ip;
-    }
+   public void setAccount(String account) {
+      this.account = account;
+   }
 
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
+   public String getImage() {
+      return this.image;
+   }
 
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    public Timestamp getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Timestamp createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getDbName() {
-        return dbName;
-    }
-
-    public void setDbName(String dbName) {
-        this.dbName = dbName;
-    }
-
-    public String getDbState() {
-        return dbState;
-    }
-
-    public void setDbState(String dbState) {
-        this.dbState = dbState;
-    }
-
-    public String getAliasName() {
-        return aliasName;
-    }
-
-    public void setAliasName(String aliasName) {
-        this.aliasName = aliasName;
-    }
+   public void setImage(String image) {
+      this.image = image;
+   }
 }

@@ -5,7 +5,7 @@
 
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 <div th:replace="common/chart.html"></div>
 
 <div class="wrapper">
@@ -15,17 +15,15 @@
   <div th:replace="common/aside.html"></div>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper"  style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
-    <section class="content-header">
+    <section class="content-header" style="height:38px">
       <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1></h1>
-          </div>
+        <div class="row mb-2" style="margin-top: -7px;">
+          <div class="col-sm-6"></div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"></li>
+              <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
             </ol>
           </div>
         </div>
@@ -40,43 +38,118 @@
   <div class="col-md-12">
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">服务接口列表</h3>
+        <h3 class="card-title"><i class="nav-icon fas fa-link"></i>&nbsp;服务接口列表</h3>
         <div class=" float-sm-right">
-          <button type="button" onclick="add()" class="btn btn-block btn-primary btn-sm">添加</button>
+          <!-- SEARCH FORM -->
+          <form class="form-inline ml-3" th:action="@{'/heathMonitor/list'}">
+            <button type="button" onclick="searchByOnline('')" class="btn btn-primary btn-sm" style="margin-right:5px;">全部</button>
+            <button type="button" onclick="searchByOnline('200')" class="btn btn-success btn-sm" style="margin-right:5px;">200</button>
+            <button type="button" onclick="searchByOnline('500')" class="btn bg-danger btn-sm" style="margin-right:5px;">500</button>
+            <button type="button" onclick="searchByOnline('404')" class="btn bg-danger btn-sm" style="margin-right:5px;">404</button>
+            <button type="button" onclick="searchByOnline('403')" class="btn bg-danger btn-sm" style="margin-right:5px;">403</button>
+            <button type="button" onclick="searchByOnline('400')" class="btn bg-danger btn-sm" style="margin-right:5px;">400</button>
+            <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+              <button type="button" onclick="startMonitor('/heathMonitor/updateActive')" class="btn btn-primary btn-sm" style="margin-right:5px;">开始监控</button>
+              <button type="button" onclick="stopMonitor('/heathMonitor/updateActive')" class="btn btn-default btn-sm" style="margin-right:5px;">停止监控</button>
+              <button type="button" onclick="delChecks('/heathMonitor/del')"  class="btn bg-danger btn-sm" style="margin-right:5px;">删除</button>
+              <button type="button" onclick="add()" class="btn btn-primary btn-sm" style="margin-right:5px;">添加</button>
+            </th:block>
+            <div th:replace="common/accountSelect.html"></div>
+            <div class="input-group input-group-sm">
+              <input class="form-control"  id="appName" name="appName" autocomplete="off" th:value="${heathMonitor.appName}" type="text" placeholder="输入服务名称">
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
       <!-- /.card-header -->
       <div class="card-body">
-        <table class="table table-bordered">
+        <table class="table table-bordered table-hover">
           <thead>
           <tr>
-            <th style="width: 80px">序号</th>
-            <th>服务名称</th>
-            <th>响应状态</th>
-            <th>更新时间</th>
-              <th>操作</th>
+            <th style="width: 20px"> <input type="checkbox" value="" name="checkall" id="checkall"></th>
+            <th style="width: 60px">序号</th>
+            <th:block th:if="${heathMonitor.orderBy  == 'APP_NAME'}">
+              <th:block th:if="${heathMonitor.orderType  == 'ASC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('APP_NAME','DESC')">服务名称<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+              <th:block th:if="${heathMonitor.orderType  == 'DESC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('APP_NAME','ASC')">服务名称<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+            </th:block>
+            <th:block th:if="${heathMonitor.orderBy  ne 'APP_NAME'}">
+              <th style="cursor:pointer" onclick="searchByOrder('APP_NAME','ASC')">服务名称<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+            </th>
+            <th>请求方式</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="鼠标放在错误状态码停留，会显示响应的错误信息">响应状态</th>
+            <th:block th:if="${heathMonitor.orderBy  == 'RES_TIMES'}">
+              <th:block th:if="${heathMonitor.orderType  == 'ASC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('RES_TIMES','DESC')">响应时间ms<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+              <th:block th:if="${heathMonitor.orderType  == 'DESC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('RES_TIMES','ASC')">响应时间ms<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+            </th:block>
+            <th:block th:if="${heathMonitor.orderBy  ne 'RES_TIMES'}">
+              <th style="cursor:pointer" onclick="searchByOrder('RES_TIMES','ASC')">响应时间ms<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+            </th>
+            <th>响应Body</th>
+            <th>监控状态</th>
+            <th th:if="${application.showWarnCount == 'true'}" title="累积告警次数">告警次数</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="若已下线，显示最后在线时间，但监控仍在继续">更新时间</th>
+            <th th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}">账号</th>
+            <th>操作</th>
           </tr>
           </thead>
           <tbody>
           <th:block th:each="item,iterStat : ${page.list}">
             <tr>
+              <td><input type="checkbox" th:value="${item.id}" name="todo2" th:id="${item.id}+'_check'"/></td>
               <td th:text="${iterStat.index+1}">1</td>
-              <td th:text="${item.appName}">Update software</td>
+              <td><span  th:text="${item.appName}" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="'URL：'+${item.heathUrl}+'，响应内容需包含的关键字：'+${item.resKeyword}+'，响应内容不能包含的关键字：'+${item.resNoKeyword}"></span></td>
+              <td>
+                <th:block th:if="${item.method=='GET'}">
+                  <span class="badge bg-primary" th:text="${item.method}"></span>
+                </th:block>
+                <th:block th:if="${item.method=='POST'}">
+                  <span class="badge bg-dark" th:text="${item.method}"></span>
+                </th:block>
+              </td>
               <td>
 
                 <th:block th:if="${item.heathStatus eq '200'}">
-                  <span class="badge bg-primary" th:text="${item.heathStatus}"></span>
+                  <span data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="200" class="badge bg-success" th:text="${item.heathStatus}"></span>
                 </th:block>
                 <th:block th:unless="${item.heathStatus eq '200'}">
-                  <span class="badge bg-danger" th:text="${item.heathStatus}"></span>
+                  <span data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="'响应错误信息：'+${item.errorMsg}" class="badge bg-danger" th:text="${item.heathStatus}"></span>
                 </th:block>
               </td>
-
-              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+              <td th:text="${item.resTimes}">Update software</td>
+              <td th:text="${item.responseBodySize}">Update software</td>
               <td>
-                <button type="button"  th:onclick="del([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button>
-                <button type="button"  th:onclick="edit([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">编辑</button>
-              <button type="button"  th:onclick="view([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">查看</button></td>
+                <th:block th:if="${item.active  == '1'}">
+                  <span class="badge bg-primary">监控中</span>
+                </th:block>
+                <th:block th:if="${item.active  == '2'}">
+                  <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                </th:block>
+              </td>
+              <td th:if="${application.showWarnCount == 'true'}"><span  style="cursor:pointer;color:#007bff;font-weight:bold" th:onclick="goHrefLogInfo([[${item.warnQueryWd}]])" th:text="${item.warnCount}"></span></td>
+              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+              <th th:text="${item.account}" th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}"></th>
+              <td>
+                <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+                  <button type="button"  th:onclick="del([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button>
+                  <button type="button"  th:onclick="edit([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">编辑</button>
+                </th:block>
+                <button type="button"  th:onclick="targetUrl([[${item.heathUrl}]])"  style="color:#fff;"  class="btn btn-warning btn-sm">打开URL</button>
+              <button type="button"  th:onclick="view([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">图表</button></td>
             </tr>
           </th:block>
 
@@ -89,12 +162,12 @@
     <!-- /.card -->
 
 
-  </div>
+  </div><!-- /.col-md-12 -->
 
-        </div>
-      </div>
-    </section>
-  </div>
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 
 
   <div th:replace="common/footer.html"></div>
@@ -102,7 +175,17 @@
 </div>
 <!-- ./wrapper -->
 
-<script th:src="@{'/static/js/heath.js'}"></script>
+<script th:src="@{'/static/js/heath.js?v=3.4.4'}"></script>
+<script th:inline="javascript">
+  $(document).ready(function(){
+    $("#account").val([[${heathMonitor.account}]]);
+  });
+
+  var msg = [[${msg}]];
+  if(msg!='' && msg!=null){
+    toastr.info(msg);
+  }
+</script>
 
 </body>
 </html>

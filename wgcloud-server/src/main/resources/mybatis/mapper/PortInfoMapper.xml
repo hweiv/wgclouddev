@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wgcloud.mapper.PortInfoMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.PortInfo">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="PORT" property="port" jdbcType="CHAR" />
+		<result column="PORT_NAME" property="portName" jdbcType="CHAR" />
+		<result column="STATE" property="state" jdbcType="CHAR" />
+		<result column="ACTIVE" property="active" jdbcType="CHAR" />
+		<result column="TELNET_IP" property="telnetIp" jdbcType="CHAR" />
+		<result column="GROUP_ID" property="groupId" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,HOST_NAME, PORT,PORT_NAME,CREATE_TIME,STATE,ACTIVE,TELNET_IP,GROUP_ID
+	</sql>
+
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR PORT = #{hostname} OR TELNET_IP = #{hostname} OR PORT_NAME LIKE  CONCAT(CONCAT('%',#{hostname}),'%') )]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR PORT = #{hostname} OR TELNET_IP = #{hostname} OR PORT_NAME LIKE  CONCAT('%',#{hostname},'%') )]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="state != null">
+			<![CDATA[ AND STATE = #{state} ]]>
+		</if>
+		<if test="active != null">
+			<![CDATA[ AND ACTIVE = #{active} ]]>
+		</if>
+		<if test="groupId != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT(CONCAT('%',#{groupId}),'%') ]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT('%',#{groupId},'%') ]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+		</if>
+	</sql>
+	
+	
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM PORT_INFO 
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM PORT_INFO 
+		WHERE ID = #{id}
+	</delete>
+
+
+	<delete id="deleteByHostName" parameterType="map">
+		DELETE FROM PORT_INFO WHERE <![CDATA[   HOST_NAME =#{hostname}]]>
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		PORT_INFO 
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.PortInfo">
+		INSERT INTO PORT_INFO 
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" >HOST_NAME,</if>
+      		<if test="port != null">PORT,</if>
+      		<if test="portName != null">PORT_NAME,</if>
+			<if test="state != null">STATE,</if>
+			<if test="active != null">ACTIVE,</if>
+			<if test="telnetIp != null">TELNET_IP,</if>
+			<if test="groupId != null">GROUP_ID,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="port != null" >#{port},</if>
+      		<if test="portName != null" >#{portName},</if>
+			<if test="state != null" >#{state},</if>
+			<if test="active != null" >#{active},</if>
+			<if test="telnetIp != null" >#{telnetIp},</if>
+			<if test="groupId != null" >#{groupId},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO PORT_INFO (ID,HOST_NAME, PORT,PORT_NAME,CREATE_TIME,STATE,ACTIVE,TELNET_IP,GROUP_ID)  VALUES
+					(#{item.id},#{item.hostname},#{item.port},#{item.portName},#{item.createTime},#{item.state},#{item.active},#{item.telnetIp},#{item.groupId});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO PORT_INFO (ID,HOST_NAME, PORT,PORT_NAME,CREATE_TIME,STATE,ACTIVE,TELNET_IP,GROUP_ID)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.port},#{item.portName},#{item.createTime},#{item.state},#{item.active},#{item.telnetIp},#{item.groupId})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<update id="downByHostName" parameterType="java.util.List">
+		UPDATE  PORT_INFO SET STATE = '2'
+		WHERE HOST_NAME IN
+		<foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+
+	<update id="updateList" parameterType="java.util.List" >
+		<if test="_databaseId == 'oracle'">
+			begin
+		</if>
+		<foreach collection="list" item="item" index="index" >
+			UPDATE PORT_INFO
+			<set>
+				<if test="item.hostname != null">
+					HOST_NAME = #{item.hostname},
+				</if>
+				<if test="item.port != null">
+					PORT = #{item.port},
+				</if>
+				<if test="item.portName != null">
+					PORT_NAME = #{item.portName},
+				</if>
+				<if test="item.state != null">
+					STATE = #{item.state},
+				</if>
+				<if test="item.active != null">
+					ACTIVE = #{item.active},
+				</if>
+				<if test="item.telnetIp != null">
+					TELNET_IP = #{item.telnetIp},
+				</if>
+				<if test="item.groupId != null">
+					GROUP_ID = #{item.groupId},
+				</if>
+				<if test="item.createTime != null" >
+					CREATE_TIME= #{item.createTime}
+				</if>
+			</set>
+			WHERE ID = #{item.id};
+		</foreach>
+		<if test="_databaseId == 'oracle'">
+			end;
+		</if>
+	</update>
+	
+	
+	<update id="updateById" parameterType="com.wgcloud.entity.PortInfo">
+		UPDATE PORT_INFO
+		<set>
+			<if test="hostname != null">
+				HOST_NAME = #{hostname},
+			</if>
+			<if test="port != null">
+				PORT = #{port},
+			</if>
+			<if test="portName != null">
+				PORT_NAME = #{portName},
+			</if>
+			<if test="state != null">
+				STATE = #{state},
+			</if>
+			<if test="active != null">
+				ACTIVE = #{active},
+			</if>
+			<if test="telnetIp != null">
+				TELNET_IP = #{telnetIp},
+			</if>
+			<if test="groupId != null">
+				GROUP_ID = #{groupId},
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME = #{createTime}
+			</if>
+		</set>
+		WHERE ID = #{id}
+	</update>
+
+	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)  FROM PORT_INFO t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+
+	<select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM PORT_INFO t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID DESC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM PORT_INFO
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</when>
+			<otherwise>
+				ORDER BY ID DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+</mapper>

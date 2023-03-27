@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active"></li>
+                </ol>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-10">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">添加自定义监控项</h3>
+          <div class=" float-sm-right">
+              <a href="javascript:history.back()">返回</a>
+          </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+        <form role="form" id="form1" th:action="@{'/customInfo/save'}">
+            <input type="hidden" name="id" th:value="${customInfo.id}"/>
+            <div class="card-body">
+                <div class="form-group">
+                    <label><font color="red">*</font>监控主机</label>
+                    <select  name="hostname" id="hostname"  class="validate[required] form-control select2" style="width: 100%;">
+                        <option value="">请选择</option>
+                        <th:block th:each="item,iterStat : ${systemInfoList}">
+                            <th:block th:if="${item.remark} == null or ${item.remark} == ''">
+                                <option  data-select2-id="" th:value="${item.hostname}" th:attr="data-select2-id=${item.hostname}" th:text="${item.hostname}">Alabama</option>
+                            </th:block>
+                            <th:block th:if="${item.remark} != null and ${item.remark} != ''">
+                                <option  data-select2-id="" th:value="${item.hostname}" th:attr="data-select2-id=${item.hostname}" th:text="${item.hostname}+'('+${item.remark}+')'">Alabama</option>
+                            </th:block>
+                        </th:block>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font><span>自定义监控项名称</span><span class="text-muted">(系统会自动获取下面指令或脚本执行结果的最后一行内容，请保证最后一行内容是纯数字，可以有小数点，不要有其它字符，内容中的空格系统会自动过滤，下面指令或脚本执行也可以不输出任何内容)</span></label>
+                    <input type="text" autocomplete="off"  th:value="${customInfo.customName}" class="validate[required,maxSize[50]] form-control" name="customName" id="customName" placeholder="如：统计/wgcloud文件数量">
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>自定义监控项执行的指令或脚本<span class="text-muted">(多条指令请换行输入)</span><span class="text-muted" th:text="${blockStr}">敏感字符串过滤</span></label>
+                    <textarea class="validate[required,maxSize[2000]] form-control"   name="customShell" id="customShell" th:text="${customInfo.customShell}"></textarea>
+                </div>
+                <div class="form-group">
+                    <label >告警表达式<span class="text-muted">（表达式成立时即告警，不成立不告警，如：<code class="highlighter-rouge" style="font-size:100%">result>=100</code>，其中<code class="highlighter-rouge" style="font-size:100%">result</code>为固定写法，标识为上面的指令或脚本输出结果值(系统会自动替换为数值)，注意表达式需为英文输入法拼写）</span></label>
+                    <input type="text" autocomplete="off" th:value="${customInfo.resultExp}" class="validate[maxSize[100]] form-control" name="resultExp" id="resultExp" placeholder="如：(result + 10)>=100">
+                </div>
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>监控状态</label></br>
+                    <th:block th:if="${#strings.isEmpty(customInfo.active)}" >
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${customInfo.active  == '1'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active"  value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" name="active" value="2"  >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${customInfo.active  == '2'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active"  value="1">
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" name="active" value="2"  checked>
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                </div>
+
+            </div>
+            <!-- /.card-body -->
+
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
+            </div>
+
+        </form>
+      <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-10 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+
+<div th:replace="common/codemirror.html"></div>
+<script th:src="@{'/static/js/customInfo.js?v=3.4.4'}"></script>
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#form1").validationEngine();
+        //Initialize Select2 Elements
+        $('.select2').select2()
+        //Initialize Select2 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4'
+        })
+
+        $("#hostname").val([[${customInfo.hostname}]]).select2();
+        var editor = CodeMirror.fromTextArea(document.getElementById("customShell"), {
+            lineNumbers: true,
+            styleActiveLine: true,
+            matchBrackets: true,
+            mode: 'shell',
+        });
+        editor.setOption("theme", "dracula");
+        editor.setSize('auto','220px');
+    });
+
+    var msg = [[${msg}]];
+    if(msg!='' && msg!=null){
+        toastr.error(msg);
+    }
+</script>
+</body>
+</html>

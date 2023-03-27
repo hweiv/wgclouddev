@@ -1,9 +1,11 @@
 package com.wgcloud;
 
 
+import cn.hutool.json.JSON;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.TypeReference;
 import com.wgcloud.entity.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -169,8 +172,11 @@ public class ScheduledTask {
             JSONObject paramsJson = new JSONObject();
             paramsJson.put("hostname", commonConfig.getBindIp());
             String resultJson = restUtil.post(commonConfig.getServerUrl() + "/wgcloud/appInfo/agentList", paramsJson);
+            Map<String, Object> map = com.alibaba.fastjson.JSONObject.parseObject(resultJson, new TypeReference<Map<String, Object>>() {
+            });
+            logger.info("==ScheduledTask-appInfoListTask.resultJson:{}", resultJson);
             if (resultJson != null) {
-                JSONArray resultArray = JSONUtil.parseArray(resultJson);
+                JSONArray resultArray = JSONUtil.parseArray(map.get("data"));
                 appInfoList.clear();
                 if (resultArray.size() > 0) {
                     appInfoList = JSONUtil.toList(resultArray, AppInfo.class);

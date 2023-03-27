@@ -4,36 +4,78 @@
 	<resultMap id="resultMap" type="com.wgcloud.entity.SystemInfo">
 		<id column="ID" property="id" jdbcType="CHAR" />
 		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
-		<result column="VERSION" property="version" jdbcType="CHAR" />
-		<result column="VERSION_DETAIL" property="versionDetail" jdbcType="CHAR" />
+		<result column="PLATFORM" property="platForm" jdbcType="CHAR" />
+		<result column="PLATFORM_VERSION" property="platformVersion" jdbcType="CHAR" />
 		<result column="MEM_PER" property="memPer" jdbcType="DOUBLE" />
 		<result column="CPU_PER" property="cpuPer" jdbcType="DOUBLE" />
 		<result column="CPU_CORE_NUM" property="cpuCoreNum" jdbcType="CHAR" />
 		<result column="CPU_XH" property="cpuXh" jdbcType="CHAR" />
 		<result column="STATE" property="state" jdbcType="CHAR" />
+		<result column="UPTIME" property="uptime" jdbcType="BIGINT" />
+		<result column="BOOT_TIME" property="bootTime" jdbcType="BIGINT" />
+		<result column="GROUP_ID" property="groupId" jdbcType="CHAR" />
+		<result column="PROCS" property="procs" jdbcType="CHAR" />
 		<result column="REMARK" property="remark" jdbcType="CHAR" />
+		<result column="TOTAL_MEM" property="totalMem" jdbcType="CHAR" />
+		<result column="SUBMIT_SECONDS" property="submitSeconds" jdbcType="CHAR" />
+		<result column="AGENT_VER" property="agentVer" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="BYTES_RECV" property="bytesRecv" jdbcType="CHAR" />
+		<result column="BYTES_SENT" property="bytesSent" jdbcType="CHAR" />
+		<result column="RXBYT" property="rxbyt" jdbcType="CHAR" />
+		<result column="TXBYT" property="txbyt" jdbcType="CHAR" />
+		<result column="HOST_NAME_EXT" property="hostnameExt" jdbcType="CHAR" />
+		<result column="FIVE_LOAD" property="fiveLoad" jdbcType="DOUBLE" />
+		<result column="FIFTEEN_LOAD" property="fifteenLoad" jdbcType="DOUBLE" />
+		<result column="WIN_CONSOLE" property="winConsole" jdbcType="CHAR" />
+		<result column="NET_CONNECTIONS" property="netConnections" jdbcType="CHAR" />
+		<result column="SWAP_MEM_PER" property="swapMemPer" jdbcType="CHAR" />
+		<result column="TOTAL_SWAP_MEM" property="totalSwapMem" jdbcType="CHAR" />
+		<result column="ACCOUNT" property="account" jdbcType="CHAR" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,HOST_NAME, VERSION, VERSION_DETAIL, MEM_PER, CPU_PER,CPU_CORE_NUM,CPU_XH,CREATE_TIME,STATE,REMARK
+		ID,HOST_NAME, HOST_NAME_EXT, PLATFORM, PLATFORM_VERSION,UPTIME,BOOT_TIME,GROUP_ID, PROCS,MEM_PER, CPU_PER,CPU_CORE_NUM,CPU_XH,CREATE_TIME,STATE,REMARK,TOTAL_MEM,SUBMIT_SECONDS,AGENT_VER,BYTES_RECV,BYTES_SENT,RXBYT,TXBYT,WIN_CONSOLE,FIVE_LOAD,FIFTEEN_LOAD,NET_CONNECTIONS,SWAP_MEM_PER,TOTAL_SWAP_MEM,ACCOUNT
 	</sql>
 	
 	<sql id="queryByParams">
 		<if test="hostname != null">
-			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND ( HOST_NAME LIKE   CONCAT(CONCAT('%',#{hostname}),'%') OR REMARK LIKE   CONCAT(CONCAT('%',#{hostname}),'%') )]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND ( HOST_NAME LIKE  CONCAT('%',#{hostname},'%') OR REMARK LIKE  CONCAT('%',#{hostname},'%') )]]>
+				</otherwise>
+			</choose>
 		</if>
 		<if test="memPer != null">
 			<![CDATA[ AND MEM_PER >= #{memPer} ]]>
 		</if>
 		<if test="memPerLe != null">
-			<![CDATA[ AND MEM_PER <= #{memPerLe} ]]>
+			<![CDATA[ AND MEM_PER < #{memPerLe} ]]>
 		</if>
 		<if test="cpuPer != null">
 			<![CDATA[ AND CPU_PER >= #{cpuPer} ]]>
 		</if>
 		<if test="cpuPerLe != null">
-			<![CDATA[ AND CPU_PER <= #{cpuPerLe} ]]>
+			<![CDATA[ AND CPU_PER < #{cpuPerLe} ]]>
+		</if>
+		<if test="state != null">
+			<![CDATA[ AND STATE = #{state} ]]>
+		</if>
+		<if test="groupId != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT(CONCAT('%',#{groupId}),'%') ]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT('%',#{groupId},'%') ]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND ACCOUNT = #{account} ]]>
 		</if>
 	</sql>
 	
@@ -43,15 +85,11 @@
 		FROM SYSTEM_INFO WHERE ID=#{id} 
 	</select>
 	
-	
 	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
 		DELETE FROM SYSTEM_INFO WHERE ID = #{id}
 	</delete>
-	
-	<delete id="deleteByAccountAndDate"  parameterType="map">
-		DELETE FROM SYSTEM_INFO WHERE   <![CDATA[  CREATE_TIME <=#{endTime}]]>
-	</delete>
-	
+
+
 	<delete id="deleteByAccHname"  parameterType="map">
 		DELETE FROM SYSTEM_INFO WHERE <![CDATA[  HOST_NAME  = #{hostname} ]]>
 	</delete>
@@ -63,26 +101,64 @@
 		</foreach>
 	</delete>
 
-	<insert id="insertList" parameterType="java.util.List" >
-		INSERT INTO SYSTEM_INFO (ID,HOST_NAME, VERSION, VERSION_DETAIL, MEM_PER, CPU_PER,CPU_CORE_NUM,CPU_XH,CREATE_TIME,STATE)  VALUES
-		<foreach collection="list" item="item" index="index" separator="," >
-			(#{item.id},#{item.hostname},#{item.version},#{item.versionDetail},#{item.memPer},#{item.cpuPer},#{item.cpuCoreNum},#{item.cpuXh},#{item.createTime},#{item.state})
+	<update id="downByHostName" parameterType="java.util.List">
+		UPDATE  SYSTEM_INFO SET STATE = '2'
+		WHERE HOST_NAME IN
+		<foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+			#{item}
 		</foreach>
+	</update>
+
+	<update id="updateAccountByHostName"  parameterType="map">
+		UPDATE  SYSTEM_INFO SET ACCOUNT = #{account}
+		WHERE HOST_NAME IN
+		<foreach item="item" index="index" collection="hostnames" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+
+	<update id="updateToTargetAccount"  parameterType="map">
+		UPDATE  SYSTEM_INFO SET ACCOUNT = #{accountTarget} WHERE ACCOUNT = #{account}
+	</update>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO SYSTEM_INFO (ID,HOST_NAME, HOST_NAME_EXT, PLATFORM, PLATFORM_VERSION, MEM_PER, CPU_PER,CPU_CORE_NUM,CPU_XH,CREATE_TIME,STATE,UPTIME,BOOT_TIME,GROUP_ID,PROCS,REMARK,TOTAL_MEM,SUBMIT_SECONDS,AGENT_VER,BYTES_RECV,BYTES_SENT,RXBYT,TXBYT,WIN_CONSOLE,FIVE_LOAD,FIFTEEN_LOAD,NET_CONNECTIONS,SWAP_MEM_PER,TOTAL_SWAP_MEM,ACCOUNT)  VALUES
+					(#{item.id},#{item.hostname},#{item.hostnameExt},#{item.platForm},#{item.platformVersion},#{item.memPer},#{item.cpuPer},#{item.cpuCoreNum},#{item.cpuXh},#{item.createTime},#{item.state},#{item.uptime},#{item.bootTime},#{item.groupId},#{item.procs},#{item.remark},#{item.totalMem},#{item.submitSeconds},#{item.agentVer},#{item.bytesRecv},#{item.bytesSent},#{item.rxbyt},#{item.txbyt},#{item.winConsole},#{item.fiveLoad},#{item.fifteenLoad},#{item.netConnections},#{item.swapMemPer},#{item.totalSwapMem},#{item.account});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO SYSTEM_INFO (ID,HOST_NAME, HOST_NAME_EXT, PLATFORM, PLATFORM_VERSION, MEM_PER, CPU_PER,CPU_CORE_NUM,CPU_XH,CREATE_TIME,STATE,UPTIME,BOOT_TIME,GROUP_ID,PROCS,REMARK,TOTAL_MEM,SUBMIT_SECONDS,AGENT_VER,BYTES_RECV,BYTES_SENT,RXBYT,TXBYT,WIN_CONSOLE,FIVE_LOAD,FIFTEEN_LOAD,NET_CONNECTIONS,SWAP_MEM_PER,TOTAL_SWAP_MEM,ACCOUNT)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.hostnameExt},#{item.platForm},#{item.platformVersion},#{item.memPer},#{item.cpuPer},#{item.cpuCoreNum},#{item.cpuXh},#{item.createTime},#{item.state},#{item.uptime},#{item.bootTime},#{item.groupId},#{item.procs},#{item.remark},#{item.totalMem},#{item.submitSeconds},#{item.agentVer},#{item.bytesRecv},#{item.bytesSent},#{item.rxbyt},#{item.txbyt},#{item.winConsole},#{item.fiveLoad},#{item.fifteenLoad},#{item.netConnections},#{item.swapMemPer},#{item.totalSwapMem},#{item.account})
+				</foreach>
+			</otherwise>
+		</choose>
 	</insert>
 
 
 	<update id="updateList" parameterType="java.util.List" >
-		<foreach collection="list" item="item" index="index" separator=";" >
+		<if test="_databaseId == 'oracle'">
+			begin
+		</if>
+		<foreach collection="list" item="item" index="index">
 		UPDATE SYSTEM_INFO
 		<set>
 			<if test="item.hostname != null">
 				HOST_NAME = #{item.hostname},
 			</if>
-			<if test="item.version != null">
-				VERSION= #{item.version},
+			<if test="item.hostnameExt != null">
+				HOST_NAME_EXT = #{item.hostnameExt},
 			</if>
-			<if test="item.versionDetail != null" >
-				VERSION_DETAIL= #{item.versionDetail},
+			<if test="item.platForm != null">
+				PLATFORM= #{item.platForm},
+			</if>
+			<if test="item.platformVersion != null" >
+				PLATFORM_VERSION= #{item.platformVersion},
 			</if>
 			<if test="item.memPer != null" >
 				MEM_PER= #{item.memPer},
@@ -99,12 +175,66 @@
 			<if test="item.state != null" >
 				STATE= #{item.state},
 			</if>
+			<if test="item.uptime != null" >
+				UPTIME= #{item.uptime},
+			</if>
+			<if test="item.bootTime != null" >
+				BOOT_TIME= #{item.bootTime},
+			</if>
+			<if test="item.procs != null" >
+				PROCS= #{item.procs},
+			</if>
+			<if test="item.totalMem != null" >
+				TOTAL_MEM= #{item.totalMem},
+			</if>
+			<if test="item.submitSeconds != null" >
+				SUBMIT_SECONDS= #{item.submitSeconds},
+			</if>
+			<if test="item.agentVer != null" >
+				AGENT_VER= #{item.agentVer},
+			</if>
+			<if test="item.bytesRecv != null" >
+				BYTES_RECV= #{item.bytesRecv},
+			</if>
+			<if test="item.bytesSent != null" >
+				BYTES_SENT= #{item.bytesSent},
+			</if>
+			<if test="item.rxbyt != null" >
+				RXBYT= #{item.rxbyt},
+			</if>
+			<if test="item.txbyt != null" >
+				TXBYT= #{item.txbyt},
+			</if>
+			<if test="item.winConsole != null" >
+				WIN_CONSOLE= #{item.winConsole},
+			</if>
+			<if test="item.fiveLoad != null" >
+				FIVE_LOAD= #{item.fiveLoad},
+			</if>
+			<if test="item.fifteenLoad != null" >
+				FIFTEEN_LOAD= #{item.fifteenLoad},
+			</if>
+			<if test="item.netConnections != null" >
+				NET_CONNECTIONS= #{item.netConnections},
+			</if>
+			<if test="item.swapMemPer != null" >
+				SWAP_MEM_PER= #{item.swapMemPer},
+			</if>
+			<if test="item.totalSwapMem != null" >
+				TOTAL_SWAP_MEM= #{item.totalSwapMem},
+			</if>
+			<if test="item.account != null" >
+				ACCOUNT= #{item.account},
+			</if>
 			<if test="item.createTime != null" >
 				CREATE_TIME= #{item.createTime}
 			</if>
 		</set>
-		WHERE ID = #{item.id}
+		WHERE ID = #{item.id};
 		</foreach>
+		<if test="_databaseId == 'oracle'">
+			end;
+		</if>
 	</update>
 
 	<insert id="save" parameterType="com.wgcloud.entity.SystemInfo">
@@ -112,25 +242,65 @@
     	<trim prefix="(" suffix=")" suffixOverrides="," >
       		<if test="id != null" >ID,</if>
       		<if test="hostname != null" > HOST_NAME,</if>
-      		<if test="version != null">VERSION,</if>
-      		<if test="versionDetail != null" >VERSION_DETAIL,</if>
+			<if test="hostnameExt != null" > HOST_NAME_EXT,</if>
+      		<if test="platForm != null">PLATFORM,</if>
+      		<if test="platformVersion != null" >PLATFORM_VERSION,</if>
       		<if test="memPer != null" >MEM_PER,</if>
       		<if test="cpuPer != null" >CPU_PER,</if>
       		<if test="cpuCoreNum != null" >CPU_CORE_NUM,</if>
       		<if test="cpuXh != null" >CPU_XH,</if>
 			<if test="state != null" >STATE,</if>
+			<if test="uptime != null" >UPTIME,</if>
+			<if test="bootTime != null" >BOOT_TIME,</if>
+			<if test="groupId != null" >GROUP_ID,</if>
+			<if test="procs != null" >PROCS,</if>
+			<if test="remark != null" >REMARK,</if>
+			<if test="totalMem != null" >TOTAL_MEM,</if>
+			<if test="submitSeconds != null" >SUBMIT_SECONDS,</if>
+			<if test="agentVer != null" >AGENT_VER,</if>
+			<if test="bytesRecv != null" >BYTES_RECV,</if>
+			<if test="bytesSent != null" >BYTES_SENT,</if>
+			<if test="rxbyt != null" >RXBYT,</if>
+			<if test="txbyt != null" >TXBYT,</if>
+			<if test="winConsole != null" >WIN_CONSOLE,</if>
+			<if test="fiveLoad != null" >FIVE_LOAD,</if>
+			<if test="fifteenLoad != null" >FIFTEEN_LOAD,</if>
+			<if test="netConnections != null" >NET_CONNECTIONS,</if>
+			<if test="swapMemPer != null" >SWAP_MEM_PER,</if>
+			<if test="totalSwapMem != null" >TOTAL_SWAP_MEM,</if>
+			<if test="account != null" >ACCOUNT,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
       		<if test="id != null" >#{id},</if>
       		<if test="hostname != null" >#{hostname},</if>
-      		<if test="version != null" >#{version},</if>
-      		<if test="versionDetail != null" >#{versionDetail},</if>
+			<if test="hostnameExt != null" >#{hostnameExt},</if>
+      		<if test="platForm != null" >#{platForm},</if>
+      		<if test="platformVersion != null" >#{platformVersion},</if>
       		<if test="memPer != null" >#{memPer},</if>
       		<if test="cpuPer != null" >#{cpuPer},</if>
       		<if test="cpuCoreNum != null" >#{cpuCoreNum},</if>
       		<if test="cpuXh != null" >#{cpuXh},</if>
 			<if test="state != null" >#{state},</if>
+			<if test="uptime != null" >#{uptime},</if>
+			<if test="bootTime != null" >#{bootTime},</if>
+			<if test="groupId != null" >#{groupId},</if>
+			<if test="procs != null" >#{procs},</if>
+			<if test="remark != null" >#{remark},</if>
+			<if test="totalMem != null" >#{totalMem},</if>
+			<if test="submitSeconds != null" >#{submitSeconds},</if>
+			<if test="agentVer != null" >#{agentVer},</if>
+			<if test="bytesRecv != null" >#{bytesRecv},</if>
+			<if test="bytesSent != null" >#{bytesSent},</if>
+			<if test="rxbyt != null" >#{rxbyt},</if>
+			<if test="txbyt != null" >#{txbyt},</if>
+			<if test="winConsole != null" >#{winConsole},</if>
+			<if test="fiveLoad != null" >#{fiveLoad},</if>
+			<if test="fifteenLoad != null" >#{fifteenLoad},</if>
+			<if test="netConnections != null" >#{netConnections},</if>
+			<if test="swapMemPer != null" >#{swapMemPer},</if>
+			<if test="totalSwapMem != null" >#{totalSwapMem},</if>
+			<if test="account != null" >#{account},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
@@ -141,11 +311,14 @@
 			<if test="hostname != null">
 				HOST_NAME = #{hostname},
 			</if>
-			<if test="version != null">
-				VERSION= #{version},
+			<if test="hostnameExt != null">
+				HOST_NAME_EXT = #{hostnameExt},
 			</if>
-			<if test="versionDetail != null" >
-				VERSION_DETAIL= #{versionDetail},
+			<if test="platForm != null">
+				PLATFORM= #{platForm},
+			</if>
+			<if test="platformVersion != null" >
+				PLATFORM_VERSION= #{platformVersion},
 			</if>
 			<if test="memPer != null" >
 				MEM_PER= #{memPer},
@@ -162,8 +335,62 @@
 			<if test="state != null" >
 				STATE= #{state},
 			</if>
+			<if test="uptime != null" >
+				UPTIME= #{uptime},
+			</if>
+			<if test="bootTime != null" >
+				BOOT_TIME= #{bootTime},
+			</if>
+			<if test="groupId != null" >
+				GROUP_ID= #{groupId},
+			</if>
+			<if test="procs != null" >
+				PROCS= #{procs},
+			</if>
 			<if test="remark != null" >
 				REMARK= #{remark},
+			</if>
+			<if test="totalMem != null" >
+				TOTAL_MEM= #{totalMem},
+			</if>
+			<if test="submitSeconds != null" >
+				SUBMIT_SECONDS= #{submitSeconds},
+			</if>
+			<if test="agentVer != null" >
+				AGENT_VER= #{agentVer},
+			</if>
+			<if test="bytesRecv != null" >
+				BYTES_RECV= #{bytesRecv},
+			</if>
+			<if test="bytesSent != null" >
+				BYTES_SENT= #{bytesSent},
+			</if>
+			<if test="rxbyt != null" >
+				RXBYT= #{rxbyt},
+			</if>
+			<if test="txbyt != null" >
+				TXBYT= #{txbyt},
+			</if>
+			<if test="winConsole != null" >
+				WIN_CONSOLE= #{winConsole},
+			</if>
+			<if test="fiveLoad != null" >
+				FIVE_LOAD= #{fiveLoad},
+			</if>
+			<if test="fifteenLoad != null" >
+				FIFTEEN_LOAD= #{fifteenLoad},
+			</if>
+			<if test="netConnections != null" >
+				NET_CONNECTIONS= #{netConnections},
+			</if>
+			<if test="swapMemPer != null" >
+				SWAP_MEM_PER= #{swapMemPer},
+			</if>
+			<if test="totalSwapMem != null" >
+				TOTAL_SWAP_MEM= #{totalSwapMem},
+			</if>
+			<if test="account != null" >
+				ACCOUNT= #{account},
 			</if>
 			<if test="createTime != null" >
 				CREATE_TIME= #{createTime}
@@ -172,10 +399,11 @@
 		WHERE ID = #{id}
 	</update>
 	
-	<select id="selectByAccountId" resultMap="resultMap" parameterType="java.lang.String">
+	<select id="selectByHostname" resultMap="resultMap" parameterType="java.lang.String">
 		SELECT
 		<include refid="tableColumnList" />
 		FROM SYSTEM_INFO
+		WHERE HOST_NAME = #{hostname}
 	</select>
 
 
@@ -186,25 +414,52 @@
 		</where>
 	</select>
 
-
-	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
-		SELECT
-		<include refid="tableColumnList" />
-		FROM SYSTEM_INFO
-		  <where>
-			  <include refid="queryByParams" />
-		  </where>
-		 ORDER BY HOST_NAME ASC
-	</select>
-	
-	<select id="selectByParams" parameterType="map" resultMap="resultMap">
-		SELECT
-		<include refid="tableColumnList" />
-		FROM SYSTEM_INFO
+	<select id="selectAllHostNameByParams" parameterType="map" resultMap="resultMap">
+		SELECT ID,HOST_NAME FROM SYSTEM_INFO
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		ORDER BY HOST_NAME ASC
+		ORDER BY ID DESC
+	</select>
+
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		  <include refid="tableColumnList" />
+		  FROM SYSTEM_INFO
+		  <where>
+			  <include refid="queryByParams" />
+		  </where>
+		  ORDER BY ID DESC
+	</select>
+
+	<sql id="mysqlOrderBySql">
+		<choose>
+			<when test="_databaseId == 'mysql' and (orderBy == 'TXBYT' || orderBy == 'RXBYT' || orderBy == 'TOTAL_MEM' || orderBy == 'CPU_CORE_NUM' || orderBy == 'NET_CONNECTIONS')">
+				<![CDATA[ ORDER BY ${orderBy} * 1 ${orderType}]]>
+			</when>
+			<otherwise>
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</otherwise>
+		</choose>
+	</sql>
+
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		 FROM SYSTEM_INFO
+		<where>
+			<include refid="queryByParams" />
+		</where>
+
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<include refid="mysqlOrderBySql" />
+			</when>
+			<otherwise>
+				ORDER BY ID DESC
+			</otherwise>
+		</choose>
+
 	</select>
 	
 </mapper>

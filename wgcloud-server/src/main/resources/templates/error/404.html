@@ -5,17 +5,28 @@
 
 
 </head>
+<th:block th:if="${session.LOGIN_KEY != null}">
+<body class="sidebar-mini sidebar-collapse">
+</th:block>
+<th:block th:if="${session.LOGIN_KEY == null}">
 <body class="hold-transition sidebar-mini layout-fixed">
-<div th:replace="common/chart.html"></div>
+</th:block>
 
 <div class="wrapper">
 
-  <div th:replace="common/navbar.html"></div>
+  <th:block th:if="${session.LOGIN_KEY != null}">
+    <div th:replace="common/navbar.html"></div>
 
-  <div th:replace="common/aside.html"></div>
+    <div th:replace="common/aside.html"></div>
+  </th:block>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
+  <th:block th:if="${session.LOGIN_KEY != null}">
+    <div class="content-wrapper">
+  </th:block>
+  <th:block th:if="${session.LOGIN_KEY == null}">
+    <div class="content-wrapper" style="margin-left: 10px">
+  </th:block>
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
@@ -24,10 +35,10 @@
             <h1>404 找不到页面</h1>
           </div>
           <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
+            <!--<ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="#"></a></li>
               <li class="breadcrumb-item active"></li>
-            </ol>
+            </ol>-->
           </div>
         </div>
       </div><!-- /.container-fluid -->
@@ -54,7 +65,13 @@
   </div>
   <!-- /.content-wrapper -->
 
-  <div th:replace="common/footer.html"></div>
+  <th:block th:if="${session.LOGIN_KEY != null}">
+    <div th:replace="common/footer.html"></div>
+  </th:block>
+  <th:block th:if="${session.LOGIN_KEY == null}">
+    <div th:replace="common/footerDashView.html"></div>
+  </th:block>
+
 
 </div>
 <!-- ./wrapper -->

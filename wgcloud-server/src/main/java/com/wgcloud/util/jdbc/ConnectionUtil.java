@@ -1,100 +1,140 @@
 package com.wgcloud.util.jdbc;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.wgcloud.config.CommonConfig;
 import com.wgcloud.entity.DbInfo;
+import com.wgcloud.entity.DbTable;
 import com.wgcloud.service.DbInfoService;
 import com.wgcloud.service.LogInfoService;
-import com.wgcloud.util.staticvar.StaticKeys;
+import com.wgcloud.util.DateUtil;
+import com.wgcloud.util.FormatUtil;
+import com.wgcloud.util.ThreadPoolUtil;
+import com.wgcloud.util.msg.WarnOtherUtil;
+import com.wgcloud.util.msg.WarnPools;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Resource;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-
-/**
- * @version v2.3
- * @ClassName:ConnectionUtil.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: ConnectionUtil.java
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 @Component
 public class ConnectionUtil {
-    private static final Logger logger = LoggerFactory.getLogger(ConnectionUtil.class);
-    @Resource
-    private LogInfoService logInfoService;
-    @Resource
-    private DbInfoService dbInfoService;
+   private static final Logger logger = LoggerFactory.getLogger(ConnectionUtil.class);
+   @Resource
+   private LogInfoService logInfoService;
+   @Resource
+   private DbInfoService dbInfoService;
+   @Autowired
+   CommonConfig commonConfig;
 
-    public JdbcTemplate getJdbcTemplate(DbInfo dbInfo) throws Exception {
-        JdbcTemplate jdbcTemplate = null;
-        String driver = "";
-        String url = "";
-        if ("mysql".equals(dbInfo.getDbType())) {
-            driver = RDSConnection.driver_mysql;
-            url = RDSConnection.url_mysql;
-        } else if ("postgresql".equals(dbInfo.getDbType())) {
-            driver = RDSConnection.driver_postgresql;
-            url = RDSConnection.url_postgresql;
-        } else if ("sqlserver".equals(dbInfo.getDbType())) {
-            driver = RDSConnection.driver_sqlserver;
-            url = RDSConnection.url_sqlserver;
-        } else if ("db2".equals(dbInfo.getDbType())) {
-            driver = RDSConnection.driver_db2;
-            url = RDSConnection.url_db2;
-        } else {
-            driver = RDSConnection.driver_oracle;
-            url = RDSConnection.url_oracle;
-        }
-        url = url.replace("{ip}", dbInfo.getIp()).replace("{port}", dbInfo.getPort()).replace("{dbname}", dbInfo.getDbName());
-        try {
-            //创建连接池
-            DriverManagerDataSource dataSource = new DriverManagerDataSource();
-            dataSource.setDriverClassName(driver);
-            dataSource.setUrl(url);
-            dataSource.setUsername(dbInfo.getUser());
-            dataSource.setPassword(dbInfo.getPasswd());
-            jdbcTemplate = new JdbcTemplate(dataSource);
-            if ("mysql".equals(dbInfo.getDbType())) {
-                jdbcTemplate.queryForRowSet(RDSConnection.MYSQL_VERSION);
-            } else if ("postgresql".equals(dbInfo.getDbType())) {
-                jdbcTemplate.queryForRowSet(RDSConnection.MYSQL_VERSION);
-            } else if ("sqlserver".equals(dbInfo.getDbType())) {
-                jdbcTemplate.queryForRowSet(RDSConnection.SQLSERVER_VERSION);
-            } else if ("db2".equals(dbInfo.getDbType())) {
-                jdbcTemplate.queryForRowSet(RDSConnection.DB2_VERSION);
+   public JdbcTemplate getJdbcTemplate(DbInfo dbInfo) throws Exception {
+      JdbcTemplate jdbcTemplate = null;
+      String driver = "";
+      String url = dbInfo.getDbUrl();
+      if ("mysql".equals(dbInfo.getDbType())) {
+         driver = "com.mysql.jdbc.Driver";
+      } else if ("mariadb".equals(dbInfo.getDbType())) {
+         driver = "org.mariadb.jdbc.Driver";
+      } else if ("postgresql".equals(dbInfo.getDbType())) {
+         driver = "org.postgresql.Driver";
+      } else if ("sqlserver".equals(dbInfo.getDbType())) {
+         driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+      } else if ("db2".equals(dbInfo.getDbType())) {
+         driver = "com.ibm.db2.jdbc.app.DB2Driver";
+      } else {
+         driver = "oracle.jdbc.driver.OracleDriver";
+      }
+
+      Runnable runnable;
+      try {
+         DriverManagerDataSource dataSource = new DriverManagerDataSource();
+         dataSource.setDriverClassName(driver);
+         dataSource.setUrl(url);
+         dataSource.setUsername(dbInfo.getUserName());
+         dataSource.setPassword(dbInfo.getPasswd());
+         jdbcTemplate = new JdbcTemplate(dataSource);
+         jdbcTemplate.setQueryTimeout(120);
+         if ("mysql".equals(dbInfo.getDbType())) {
+            jdbcTemplate.queryForRowSet("select version()");
+         } else if ("mariadb".equals(dbInfo.getDbType())) {
+            jdbcTemplate.queryForRowSet("select version()");
+         } else if ("postgresql".equals(dbInfo.getDbType())) {
+            jdbcTemplate.queryForRowSet("select version()");
+         } else if ("sqlserver".equals(dbInfo.getDbType())) {
+            jdbcTemplate.queryForRowSet("SELECT @@VERSION");
+         } else if ("db2".equals(dbInfo.getDbType())) {
+            jdbcTemplate.queryForRowSet("SELECT SERVICE_LEVEL FROM SYSIBMADM.ENV_INST_INFO");
+         } else {
+            jdbcTemplate.queryForRowSet("select * from v$version");
+         }
+
+         dbInfo.setDbState("1");
+         if (null != WarnPools.MEM_WARN_MAP && null != WarnPools.MEM_WARN_MAP.get(dbInfo.getId())) {
+            runnable = () -> {
+               WarnOtherUtil.sendDbDown(dbInfo, false);
+            };
+            ThreadPoolUtil.executor.execute(runnable);
+         }
+
+         dbInfo.setCreateTime(DateUtil.getNowTime());
+         this.dbInfoService.updateById(dbInfo);
+         return jdbcTemplate;
+      } catch (Exception var7) {
+         jdbcTemplate = null;
+         logger.error("连接数据库错误", var7);
+         dbInfo.setDbState("2");
+         this.dbInfoService.updateById(dbInfo);
+         runnable = () -> {
+            WarnOtherUtil.sendDbDown(dbInfo, true);
+         };
+         ThreadPoolUtil.executor.execute(runnable);
+         this.logInfoService.save("连接数据库错误：" + dbInfo.getAliasName(), "数据库别名：" + dbInfo.getAliasName() + "，" + var7.toString(), "2");
+         return null;
+      }
+   }
+
+   public long queryTableCount(DbInfo dbInfo, JdbcTemplate jdbcTemplate, DbTable dbTable) {
+      try {
+         dbTable.setState("1");
+         String sqlinkey = FormatUtil.haveSqlDanger(dbTable.getWhereVal(), this.commonConfig.getSqlInKeys());
+         if (!StringUtils.isEmpty(sqlinkey)) {
+            String errinfo = "统计SQL语句含有sql敏感字符" + sqlinkey;
+            logger.error("统计数据表错误：" + errinfo);
+            this.logInfoService.save(errinfo + "：" + dbInfo.getAliasName(), "数据库别名：" + dbInfo.getAliasName() + "，数据表别名：" + dbTable.getRemark() + "，错误信息：" + errinfo, "2");
+            return 0L;
+         } else if (null == jdbcTemplate) {
+            dbTable.setState("2");
+            return 0L;
+         } else {
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(dbTable.getWhereVal());
+            if (CollectionUtil.isEmpty(list)) {
+               return 0L;
             } else {
-                jdbcTemplate.queryForRowSet(RDSConnection.ORACLE_VERSION);
-            }
-            dbInfo.setDbState("1");
-            dbInfoService.updateById(dbInfo);
-            return jdbcTemplate;
-        } catch (Exception e) {
-            jdbcTemplate = null;
-            logger.error("连接数据库错误", e);
-            logInfoService.save("连接数据库错误：" + dbInfo.getAliasName(), "IP：" + dbInfo.getIp() + "，端口：" + dbInfo.getPort() + "，数据库别名："
-                    + dbInfo.getAliasName() + "，错误信息：" + e.toString(), StaticKeys.LOG_ERROR);
-            dbInfo.setDbState("2");
-            dbInfoService.updateById(dbInfo);
-        }
-        return null;
-    }
+               Map<String, Object> mapResult = (Map)list.get(0);
+               String resultStr = "0";
+               String key;
+               if (StringUtils.isEmpty(dbTable.getTableName())) {
+                  for(Iterator var8 = mapResult.keySet().iterator(); var8.hasNext(); resultStr = mapResult.get(key).toString()) {
+                     key = (String)var8.next();
+                  }
+               } else {
+                  resultStr = mapResult.get(dbTable.getTableName()).toString();
+               }
 
-    public long queryTableCount(DbInfo dbInfo, String sql) {
-        try {
-            JdbcTemplate jdbcTemplate = getJdbcTemplate(dbInfo);
-            if (null == jdbcTemplate) {
-                return 0;
+               return resultStr.indexOf(".") > -1 ? Double.valueOf(resultStr).longValue() : Long.valueOf(resultStr);
             }
-            return jdbcTemplate.queryForObject(sql, Long.class);
-        } catch (Exception e) {
-            logger.error("统计数据表错误：", e);
-            logInfoService.save("统计数据表错误：" + dbInfo.getAliasName(), "IP：" + dbInfo.getIp() + "，端口：" + dbInfo.getPort() + "，数据库别名："
-                    + dbInfo.getAliasName() + "，错误信息：" + e.toString(), StaticKeys.LOG_ERROR);
-            return 0;
-        }
-    }
-
+         }
+      } catch (Exception var10) {
+         dbTable.setState("2");
+         logger.error("统计数据表错误：", var10);
+         this.logInfoService.save("统计数据表sql执行错误：" + dbInfo.getAliasName(), "数据库别名：" + dbInfo.getAliasName() + "，数据表别名：" + dbTable.getRemark() + "，错误信息：" + var10.toString(), "2");
+         return 0L;
+      }
+   }
 }

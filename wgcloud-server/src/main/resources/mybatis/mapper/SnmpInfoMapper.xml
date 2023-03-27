@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wgcloud.mapper.SnmpInfoMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.SnmpInfo">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="BYTES_RECV" property="bytesRecv" jdbcType="CHAR" />
+		<result column="BYTES_SENT" property="bytesSent" jdbcType="CHAR" />
+		<result column="RECV_AVG" property="recvAvg" jdbcType="CHAR" />
+		<result column="SENT_AVG" property="sentAvg" jdbcType="CHAR" />
+		<result column="SNMP_UNIT" property="snmpUnit" jdbcType="CHAR" />
+		<result column="STATE" property="state" jdbcType="CHAR" />
+		<result column="ACTIVE" property="active" jdbcType="CHAR" />
+		<result column="REMARK" property="remark" jdbcType="CHAR" />
+		<result column="RECV_OID" property="recvOID" jdbcType="CHAR" />
+		<result column="SENT_OID" property="sentOID" jdbcType="CHAR" />
+		<result column="SNMP_COMMUNITY" property="snmpCommunity" jdbcType="CHAR" />
+		<result column="SNMP_PORT" property="snmpPort" jdbcType="CHAR" />
+		<result column="SNMP_VERSION" property="snmpVersion" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="ACCOUNT" property="account" jdbcType="CHAR" />
+		<result column="CPU_PER_OID" property="cpuPerOID" jdbcType="CHAR" />
+		<result column="MEM_SIZE_OID" property="memSizeOID" jdbcType="CHAR" />
+		<result column="MEM_TOTAL_SIZE_OID" property="memTotalSizeOID" jdbcType="CHAR" />
+		<result column="CPU_PER" property="cpuPer" jdbcType="CHAR" />
+		<result column="MEM_PER" property="memPer" jdbcType="CHAR" />
+		<result column="DISK_PER_OID" property="diskPerOid" jdbcType="CHAR" />
+		<result column="DISK_PER" property="diskPer" jdbcType="CHAR" />
+		<result column="RECV_AVG_OID" property="recvAvgOid" jdbcType="CHAR" />
+		<result column="SENT_AVG_OID" property="sentAvgOid" jdbcType="CHAR" />
+	</resultMap>
+
+	<sql id="tableColumnList">
+		ID,HOST_NAME, BYTES_RECV,BYTES_SENT,CREATE_TIME,RECV_AVG,SENT_AVG,SNMP_UNIT,STATE,ACTIVE,REMARK,RECV_OID,SENT_OID,SNMP_COMMUNITY,SNMP_PORT,SNMP_VERSION,ACCOUNT,CPU_PER_OID,MEM_SIZE_OID,MEM_TOTAL_SIZE_OID,CPU_PER,MEM_PER
+        ,DISK_PER_OID,DISK_PER,RECV_AVG_OID,SENT_AVG_OID
+	</sql>
+
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR REMARK LIKE   CONCAT(CONCAT('%',#{hostname}),'%') )]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR REMARK LIKE  CONCAT('%',#{hostname},'%') )]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="state != null">
+			<![CDATA[ AND STATE = #{state} ]]>
+		</if>
+		<if test="active != null">
+			<![CDATA[ AND ACTIVE = #{active} ]]>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND ACCOUNT = #{account} ]]>
+		</if>
+		<if test="snmpHostNames != null">
+			<![CDATA[ AND HOST_NAME IN ]]>
+			<foreach item="item" index="index" collection="snmpHostNames" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</sql>
+
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM SNMP_INFO
+		WHERE ID=#{id}
+	</select>
+
+
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM SNMP_INFO
+		WHERE ID = #{id}
+	</delete>
+
+	<update id="updateToTargetAccount"  parameterType="map">
+		UPDATE  SNMP_INFO SET ACCOUNT = #{accountTarget} WHERE ACCOUNT = #{account}
+	</update>
+
+	<update id="updateActive"  parameterType="map">
+		UPDATE  SNMP_INFO SET ACTIVE = #{active} WHERE ID IN
+		<foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		SNMP_INFO
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.SnmpInfo">
+		INSERT INTO SNMP_INFO
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" >HOST_NAME,</if>
+      		<if test="bytesRecv != null">BYTES_RECV,</if>
+      		<if test="bytesSent != null">BYTES_SENT,</if>
+			<if test="recvAvg != null">RECV_AVG,</if>
+			<if test="sentAvg != null">SENT_AVG,</if>
+			<if test="snmpUnit != null">SNMP_UNIT,</if>
+			<if test="state != null">STATE,</if>
+			<if test="active != null">ACTIVE,</if>
+			<if test="remark != null">REMARK,</if>
+			<if test="recvOID != null">RECV_OID,</if>
+			<if test="sentOID != null">SENT_OID,</if>
+			<if test="snmpCommunity != null">SNMP_COMMUNITY,</if>
+			<if test="snmpPort != null">SNMP_PORT,</if>
+			<if test="snmpVersion != null">SNMP_VERSION,</if>
+			<if test="account != null">ACCOUNT,</if>
+			<if test="cpuPerOID != null">CPU_PER_OID,</if>
+			<if test="memSizeOID != null">MEM_SIZE_OID,</if>
+			<if test="memTotalSizeOID != null">MEM_TOTAL_SIZE_OID,</if>
+			<if test="cpuPer != null">CPU_PER,</if>
+			<if test="memPer != null">MEM_PER,</if>
+			<if test="diskPerOid != null">DISK_PER_OID,</if>
+			<if test="diskPer != null">DISK_PER,</if>
+			<if test="recvAvgOid != null">RECV_AVG_OID,</if>
+			<if test="sentAvgOid != null">SENT_AVG_OID,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="bytesRecv != null" >#{bytesRecv},</if>
+      		<if test="bytesSent != null" >#{bytesSent},</if>
+			<if test="recvAvg != null" >#{recvAvg},</if>
+			<if test="sentAvg != null" >#{sentAvg},</if>
+			<if test="snmpUnit != null" >#{snmpUnit},</if>
+			<if test="state != null" >#{state},</if>
+			<if test="active != null" >#{active},</if>
+			<if test="remark != null" >#{remark},</if>
+			<if test="recvOID != null" >#{recvOID},</if>
+			<if test="sentOID != null" >#{sentOID},</if>
+			<if test="snmpCommunity != null" >#{snmpCommunity},</if>
+			<if test="snmpPort != null" >#{snmpPort},</if>
+			<if test="snmpVersion != null" >#{snmpVersion},</if>
+			<if test="account != null" >#{account},</if>
+			<if test="cpuPerOID != null" >#{cpuPerOID},</if>
+			<if test="memSizeOID != null" >#{memSizeOID},</if>
+			<if test="memTotalSizeOID != null" >#{memTotalSizeOID},</if>
+			<if test="cpuPer != null" >#{cpuPer},</if>
+			<if test="memPer != null" >#{memPer},</if>
+			<if test="diskPerOid != null" >#{diskPerOid},</if>
+			<if test="diskPer != null" >#{diskPer},</if>
+			<if test="recvAvgOid != null" >#{recvAvgOid},</if>
+			<if test="sentAvgOid != null" >#{sentAvgOid},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+
+
+	<update id="updateList" parameterType="java.util.List" >
+		<if test="_databaseId == 'oracle'">
+			begin
+		</if>
+		<foreach collection="list" item="item" index="index" separator=";" >
+			UPDATE SNMP_INFO
+			<set>
+				<if test="item.hostname != null">
+					HOST_NAME = #{item.hostname},
+				</if>
+				<if test="item.bytesRecv != null">
+					BYTES_RECV = #{item.bytesRecv},
+				</if>
+				<if test="item.bytesSent != null">
+					BYTES_SENT = #{item.bytesSent},
+				</if>
+				<if test="item.recvAvg != null">
+					RECV_AVG = #{item.recvAvg},
+				</if>
+				<if test="item.sentAvg != null">
+					SENT_AVG = #{item.sentAvg},
+				</if>
+				<if test="item.snmpUnit != null">
+					SNMP_UNIT = #{item.snmpUnit},
+				</if>
+				<if test="item.state != null">
+					STATE = #{item.state},
+				</if>
+				<if test="item.active != null">
+					ACTIVE = #{item.active},
+				</if>
+				<if test="item.remark != null">
+					REMARK = #{item.remark},
+				</if>
+				<if test="item.recvOID != null">
+					RECV_OID = #{item.recvOID},
+				</if>
+				<if test="item.sentOID != null">
+					SENT_OID = #{item.sentOID},
+				</if>
+				<if test="item.snmpCommunity != null">
+					SNMP_COMMUNITY = #{item.snmpCommunity},
+				</if>
+				<if test="item.snmpPort != null">
+					SNMP_PORT = #{item.snmpPort},
+				</if>
+				<if test="item.snmpVersion != null">
+					SNMP_VERSION = #{item.snmpVersion},
+				</if>
+				<if test="item.cpuPerOID != null">
+					CPU_PER_OID = #{item.cpuPerOID},
+				</if>
+				<if test="item.memSizeOID != null">
+					MEM_SIZE_OID = #{item.memSizeOID},
+				</if>
+				<if test="item.memTotalSizeOID != null">
+					MEM_TOTAL_SIZE_OID = #{item.memTotalSizeOID},
+				</if>
+				<if test="item.cpuPer != null">
+					CPU_PER = #{item.cpuPer},
+				</if>
+				<if test="item.memPer != null">
+					MEM_PER = #{item.memPer},
+				</if>
+				<if test="item.diskPerOid != null">
+					DISK_PER_OID = #{item.diskPerOid},
+				</if>
+				<if test="item.diskPer != null">
+					DISK_PER = #{item.diskPer},
+				</if>
+				<if test="item.recvAvgOid != null">
+					RECV_AVG_OID = #{item.recvAvgOid},
+				</if>
+				<if test="item.sentAvgOid != null">
+					SENT_AVG_OID = #{item.sentAvgOid},
+				</if>
+				<if test="item.createTime != null" >
+					CREATE_TIME= #{item.createTime}
+				</if>
+			</set>
+			WHERE ID = #{item.id};
+		</foreach>
+		<if test="_databaseId == 'oracle'">
+			end;
+		</if>
+	</update>
+
+
+	<update id="updateById" parameterType="com.wgcloud.entity.SnmpInfo">
+		UPDATE SNMP_INFO
+		<set>
+			<if test="hostname != null">
+				HOST_NAME = #{hostname},
+			</if>
+			<if test="bytesRecv != null">
+				BYTES_RECV = #{bytesRecv},
+			</if>
+			<if test="bytesSent != null">
+				BYTES_SENT = #{bytesSent},
+			</if>
+			<if test="recvAvg != null">
+				RECV_AVG = #{recvAvg},
+			</if>
+			<if test="sentAvg != null">
+				SENT_AVG = #{sentAvg},
+			</if>
+			<if test="snmpUnit != null">
+				SNMP_UNIT = #{snmpUnit},
+			</if>
+			<if test="state != null">
+				STATE = #{state},
+			</if>
+			<if test="active != null">
+				ACTIVE = #{active},
+			</if>
+			<if test="remark != null">
+				REMARK = #{remark},
+			</if>
+			<if test="recvOID != null">
+				RECV_OID = #{recvOID},
+			</if>
+			<if test="sentOID != null">
+				SENT_OID = #{sentOID},
+			</if>
+			<if test="snmpCommunity != null">
+				SNMP_COMMUNITY = #{snmpCommunity},
+			</if>
+			<if test="snmpPort != null">
+				SNMP_PORT = #{snmpPort},
+			</if>
+			<if test="snmpVersion != null">
+				SNMP_VERSION = #{snmpVersion},
+			</if>
+			<if test="cpuPerOID != null">
+				CPU_PER_OID = #{cpuPerOID},
+			</if>
+			<if test="memSizeOID != null">
+				MEM_SIZE_OID = #{memSizeOID},
+			</if>
+			<if test="memTotalSizeOID != null">
+				MEM_TOTAL_SIZE_OID = #{memTotalSizeOID},
+			</if>
+			<if test="cpuPer != null">
+				CPU_PER = #{cpuPer},
+			</if>
+			<if test="memPer != null">
+				MEM_PER = #{memPer},
+			</if>
+			<if test="diskPerOid != null">
+				DISK_PER_OID = #{diskPerOid},
+			</if>
+			<if test="diskPer != null">
+				DISK_PER = #{diskPer},
+			</if>
+			<if test="recvAvgOid != null">
+				RECV_AVG_OID = #{recvAvgOid},
+			</if>
+			<if test="sentAvgOid != null">
+				SENT_AVG_OID = #{sentAvgOid},
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME = #{createTime}
+			</if>
+		</set>
+		WHERE ID = #{id}
+	</update>
+
+	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)  FROM SNMP_INFO t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+
+	<select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM SNMP_INFO t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID DESC
+	</select>
+
+	<sql id="mysqlOrderBySql">
+		<choose>
+			<when test="_databaseId == 'mysql' and (orderBy == 'RECV_AVG' || orderBy == 'SENT_AVG')">
+				<![CDATA[ ORDER BY ${orderBy} * 1 ${orderType}]]>
+			</when>
+			<otherwise>
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM SNMP_INFO
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<include refid="mysqlOrderBySql" />
+			</when>
+			<otherwise>
+				ORDER BY ID DESC
+			</otherwise>
+		</choose>
+
+	</select>
+	
+	
+</mapper>

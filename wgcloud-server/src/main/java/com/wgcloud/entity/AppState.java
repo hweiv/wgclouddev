@@ -1,98 +1,83 @@
 package com.wgcloud.entity;
 
 import com.wgcloud.util.DateUtil;
+import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
-
-/**
- * @version v2.3
- * @ClassName:AppState.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: app状态监控
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class AppState extends BaseEntity {
+   private static final long serialVersionUID = 1L;
+   private String appInfoId;
+   private Double cpuPer;
+   private Double memPer;
+   private String threadsNum;
+   private Integer threadsNumInt;
+   private String dateStr;
+   private Date createTime;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -2913111613773445949L;
+   public Double getCpuPer() {
+      return this.cpuPer;
+   }
 
+   public void setCpuPer(Double cpuPer) {
+      this.cpuPer = cpuPer;
+   }
 
-    /**
-     * 应用信息ID
-     */
-    private String appInfoId;
+   public String getAppInfoId() {
+      return this.appInfoId;
+   }
 
+   public void setAppInfoId(String appInfoId) {
+      this.appInfoId = appInfoId;
+   }
 
-    /**
-     * %CPU
-     */
-    private Double cpuPer;
+   public Double getMemPer() {
+      return this.memPer;
+   }
 
-    /**
-     * %MEM
-     */
-    private Double memPer;
+   public void setMemPer(Double memPer) {
+      this.memPer = memPer;
+   }
 
-    /**
-     * 添加时间
-     * MM-dd hh:mm:ss
-     */
-    private String dateStr;
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 
+   public String getDateStr() {
+      String s = DateUtil.getDateTimeString(this.getCreateTime());
+      return !StringUtils.isEmpty(s) && s.length() > 16 ? s.substring(5) : this.dateStr;
+   }
 
-    public Double getCpuPer() {
-        return cpuPer;
-    }
+   public void setDateStr(String dateStr) {
+      this.dateStr = dateStr;
+   }
 
-    public void setCpuPer(Double cpuPer) {
-        this.cpuPer = cpuPer;
-    }
+   public String getThreadsNum() {
+      return this.threadsNum;
+   }
 
+   public void setThreadsNum(String threadsNum) {
+      this.threadsNum = threadsNum;
+   }
 
-    public String getAppInfoId() {
-        return appInfoId;
-    }
+   public Integer getThreadsNumInt() {
+      if (!StringUtils.isEmpty(this.threadsNum)) {
+         try {
+            this.threadsNumInt = Integer.valueOf(this.threadsNum);
+         } catch (Exception var2) {
+            var2.printStackTrace();
+         }
+      } else {
+         this.threadsNumInt = 0;
+      }
 
-    public void setAppInfoId(String appInfoId) {
-        this.appInfoId = appInfoId;
-    }
+      return this.threadsNumInt;
+   }
 
-    public Double getMemPer() {
-        return memPer;
-    }
-
-    public void setMemPer(Double memPer) {
-        this.memPer = memPer;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getDateStr() {
-        String str = DateUtil.getDateTimeString(createTime);
-        if (!StringUtils.isEmpty(str) && str.length() > 16) {
-            return str.substring(5);
-        }
-        return dateStr;
-    }
-
-    public void setDateStr(String dateStr) {
-        this.dateStr = dateStr;
-    }
-
-
+   public void setThreadsNumInt(Integer threadsNumInt) {
+      this.threadsNumInt = threadsNumInt;
+   }
 }

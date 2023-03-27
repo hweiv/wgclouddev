@@ -1,17 +1,27 @@
 <!-- /.content-wrapper -->
 <footer class="main-footer">
-	<strong>Copyright &copy;2017-2022 <a target="_blank" href="http://www.wgstart.com">www.wgstart.com</a>.</strong>
+	<input type="hidden" id="serverInfoIdentify" th:value="${application.serverInfoId}"/>
+	<th:block th:if="${application.copyRight eq 'true'}">
+	<strong>Copyright &copy;2017-<span id="copyyear">now</span> <a target="_blank" href="http://www.wgstart.com">www.wgstart.com</a>.</strong>
 	All Rights Reserved.
+	</th:block>
+	<th:block th:if="${application.copyRight eq 'false'}">&nbsp;</th:block>
 	<div class="float-right d-none d-sm-inline-block">
-		<span id="newversion"></span><b id="nowversion">Version 2.3.7(开源版)</b>
+		<th:block th:if="${application.LICENSE_STATE eq '1'}">
+			<span id="newversion"></span><b id="nowversion" data-trigger="hover"  data-container="body"
+											data-toggle="popover" data-placement="top"
+											th:data-content="'专业版到期时间：'+${application.LICENSE_DATE}+' 节点数量：'+${application.LICENSE_NUM}+' 用户：'+${application.LICENSE_NAME}">Version 3.4.5-Pro</b>
+		</th:block>
+		<th:block th:if="${application.LICENSE_STATE ne '1'}">
+			<span id="newversion"></span><b id="nowversion" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="个人版">Version 3.4.5</b>
+		</th:block>
 	</div>
 </footer>
 
-<!-- Control Sidebar -->
-<aside class="control-sidebar control-sidebar-dark">
-	<!-- Control sidebar content goes here -->
-</aside>
-<!-- /.control-sidebar -->
+<audio id="notification">
+	<source th:src="@{'/static/common/sounds/warn.mp3'}" type="audio/mpeg">
+</audio>
+
 
 <!-- jQuery -->
 <script th:src="@{'/static/AdminLTE/plugins/jquery/jquery.min.js'}"></script>
@@ -51,5 +61,119 @@
 <script th:src="@{'/static/AdminLTE/plugins/sweetalert2/sweetalert2.min.js'}"></script>
 <!-- Toastr -->
 <script th:src="@{'/static/AdminLTE/plugins/toastr/toastr.min.js'}"></script>
-<!-- AdminLTE for demo purposes -->
+<!-- Bootstrap4 Duallistbox -->
+<script th:src="@{'/static/AdminLTE/plugins/bootstrap4-duallistbox/jquery.bootstrap-duallistbox.min.js'}"></script>
+<!--jquery form是一个表单异步提交的插件-->
+<script th:src="@{'/static/js/jQuery/jquery.form.min.js'}" type="text/javascript" charset="utf-8"></script>
+<!-- AdminLTE for demo purposes
 <script th:src="@{'/static/AdminLTE/dist/js/demo.js'}"></script>
+ -->
+<!-- warn sound play -->
+<script th:src="@{'/static/js/warnSound.js?v=3.4.5'}"></script>
+<!-- form校验组件 -->
+<link rel="stylesheet" th:href="@{'/static/js/jQuery/validationEngine.jquery.css'}" type="text/css"/>
+<script th:src="@{'/static/js/jQuery/jquery.validationEngine-zh_CN.js'}" type="text/javascript" charset="utf-8"></script>
+<script th:src="@{'/static/js/jQuery/jquery.validationEngine.js'}" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+//toastr提示框延时15s后消失
+toastr.options.timeOut = 15000;
+//全选
+$("#checkall").on("click",function(){
+	if($('#checkall').is(':checked')) {
+		$("input[name='todo2']:checkbox").each(function() {
+			$(this).prop("checked", true);
+		});
+	}else{
+		$("input[name='todo2']:checkbox").each(function() {
+			$(this).prop("checked", false);
+		});
+	}
+});
+function delChecks(url) {
+	var chk_value =[];
+	$("input[name='todo2']:checkbox").each(function() {
+		if($(this).is(':checked')) {
+			chk_value.push($(this).val());
+		}
+	});
+	if(chk_value.length == 0){
+		alert("请先选择需要删除的数据");
+		return;
+	}
+	if(confirm('你确定要删除所选数据吗？')) {
+		var vals = chk_value.join(",");
+		$.ajax("/wgcloud"+url,{
+			type:"post",
+			data:{"id":vals},
+			success:function(data){
+				window.location.href = window.location.href;
+			}
+		});
+	}
+}
+
+function removeDiv(divId) {
+	$("#"+divId).remove();
+}
+
+//跳转到系统日志查询
+function goHrefLogInfo(param) {
+	window.location.href = "/wgcloud/log/list?hostname="+param;
+}
+
+//跳转url
+function hrefTopUrl(url){
+	window.location.href = url;
+}
+
+//批量开始监控
+function startMonitor(url) {
+	var chk_value =[];
+	$("input[name='todo2']:checkbox").each(function() {
+		if($(this).is(':checked')) {
+			chk_value.push($(this).val());
+		}
+	});
+	if(chk_value.length == 0){
+		alert("请先选择需要开始监控的数据");
+		return;
+	}
+	var vals = chk_value.join(",");
+	$.ajax("/wgcloud"+url,{
+		type:"post",
+		data:{"id":vals,"active":"1"},
+		success:function(data){
+			window.location.href = window.location.href;
+		}
+	});
+}
+
+//批量停止监控
+function stopMonitor(url) {
+	var chk_value =[];
+	$("input[name='todo2']:checkbox").each(function() {
+		if($(this).is(':checked')) {
+			chk_value.push($(this).val());
+		}
+	});
+	if(chk_value.length == 0){
+		alert("请先选择需要停止监控的数据");
+		return;
+	}
+	var vals = chk_value.join(",");
+	$.ajax("/wgcloud"+url,{
+		type:"post",
+		data:{"id":vals,"active":"2"},
+		success:function(data){
+			window.location.href = window.location.href;
+		}
+	});
+}
+
+function goback() {
+	history.back();
+}
+
+//启用弹出框popover
+$("[data-toggle='popover']").popover();
+</script>

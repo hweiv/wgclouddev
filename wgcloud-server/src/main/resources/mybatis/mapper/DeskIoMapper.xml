@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wgcloud.mapper.DeskIoMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.DeskIo">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="FILE_STSTEM" property="fileSystem" jdbcType="CHAR" />
+		<result column="READ_COUNT" property="readCount" jdbcType="CHAR" />
+		<result column="WRITE_OUNT" property="writeCount" jdbcType="CHAR" />
+		<result column="READ_BYTES" property="readBytes" jdbcType="CHAR" />
+		<result column="WRITE_BYTES" property="writeBytes" jdbcType="CHAR" />
+		<result column="READ_TIME" property="readTime" jdbcType="CHAR" />
+		<result column="WRITE_TIME" property="writeTime" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,HOST_NAME, FILE_STSTEM,CREATE_TIME,READ_COUNT,WRITE_OUNT,READ_BYTES,WRITE_BYTES,READ_TIME,WRITE_TIME
+	</sql>
+	
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
+		</if>
+	</sql>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO DESK_IO (ID,HOST_NAME, FILE_STSTEM,CREATE_TIME,READ_COUNT,WRITE_OUNT,READ_BYTES,WRITE_BYTES,READ_TIME,WRITE_TIME)  VALUES
+					(#{item.id},#{item.hostname},#{item.fileSystem},#{item.createTime},#{item.readCount},#{item.writeCount},#{item.readBytes},#{item.writeBytes},#{item.readTime},#{item.writeTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO DESK_IO (ID,HOST_NAME, FILE_STSTEM,CREATE_TIME,READ_COUNT,WRITE_OUNT,READ_BYTES,WRITE_BYTES,READ_TIME,WRITE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.fileSystem},#{item.createTime},#{item.readCount},#{item.writeCount},#{item.readBytes},#{item.writeBytes},#{item.readTime},#{item.writeTime})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DESK_IO
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByAccountAndDate"  parameterType="map">
+		DELETE FROM DESK_IO WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
+	</delete>
+	
+	<delete id="deleteByAccHname"  parameterType="java.util.List">
+		 DELETE FROM DESK_IO WHERE HOST_NAME IN
+		<foreach item="item" collection="list" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM DESK_IO WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		DESK_IO
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.DiskState">
+		INSERT INTO DESK_IO
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" > HOST_NAME,</if>
+      		<if test="fileSystem != null">FILE_STSTEM,</if>
+			<if test="readCount != null" >READ_COUNT,</if>
+			<if test="writeCount != null" >WRITE_OUNT,</if>
+			<if test="readBytes != null" >READ_BYTES,</if>
+			<if test="writeBytes != null" >WRITE_BYTES,</if>
+			<if test="readTime != null" >READ_TIME,</if>
+			<if test="writeTime != null" >WRITE_TIME,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="fileSystem != null" >#{fileSystem},</if>
+			<if test="readCount != null" >#{readCount},</if>
+			<if test="writeCount != null" >#{writeCount},</if>
+			<if test="readBytes != null" >#{readBytes},</if>
+			<if test="writeBytes != null" >#{writeBytes},</if>
+			<if test="readTime != null" >#{readTime},</if>
+			<if test="writeTime != null" >#{writeTime},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+	
+	
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DESK_IO t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY FILE_STSTEM ASC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DESK_IO
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY FILE_STSTEM ASC
+	</select>
+	
+</mapper>

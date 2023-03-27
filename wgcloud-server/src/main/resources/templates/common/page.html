@@ -1,4 +1,5 @@
 <div class="card-footer clearfix">
+    <div class="float-left">共<span th:text="${page.pages}"></span>页&nbsp;<span th:text="${page.total}"></span>条</div>
     <ul class="pagination pagination-sm m-0 float-right">
         <li class="page-item"><a class="page-link"  th:href="@{${pageUrl}+'&page=1'}">«</a></li>
         <th:block th:each="pageNumber : ${pageNumbers}">

@@ -5,7 +5,7 @@
 
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 <div th:replace="common/chart.html"></div>
 
 <div class="wrapper">
@@ -15,7 +15,7 @@
   <div th:replace="common/aside.html"></div>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper" style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
@@ -40,9 +40,9 @@
   <div class="col-md-12">
     <div class="card card-primary">
       <div class="card-header">
-        <h3 class="card-title" th:text="${appInfo.hostname}">进程信息</h3>(每1分钟监控)
+        <h3 class="card-title" th:text="${appInfo.hostname}">进程信息</h3>
         <div class=" float-sm-right">
-          <a th:href="@{'/appInfo/list'}">返回</a>
+          <a href="javascript:history.back()">返回</a>
         </div>
       </div>
       <!-- /.card-header -->
@@ -51,7 +51,7 @@
         <div class="card-body">
           <div class="form-group">
             <label for="exampleInputEmail1">进程</label>
-              <div  th:text="${appInfo.hostname}+'，名称：'+${appInfo.appName}+'，进程ID：'+${appInfo.appPid}"></div>
+              <div  th:text="${appInfo.hostname}+'，名称：'+${appInfo.appName}+'，进程监控：'+${appInfo.appPid}"></div>
           </div>
         </div>
         <!-- /.card-body -->
@@ -60,40 +60,63 @@
 
       <div class="row">
         <div class="col-12 table-responsive">
-          <table class="table table-striped">
-            <tbody><tr>
-              <th:block th:each="item : ${dateList}">
-                <th:block th:if="${item eq  datenow}">
-                  <td> <button type="button" title="当前已显示该日期相关图表" class="btn btn-block btn-outline-danger btn-sm" th:text="${item}">Primary</button></td>
-                </th:block>
-                <th:block th:unless="${item eq  datenow}">
-                  <td> <button type="button"  th:onclick="viewDate([[${appInfo.id}]],[[${item}]])" class="btn btn-block btn-outline-primary btn-sm" th:text="${item}">Primary</button></td>
-                </th:block>
+          <table class="table table-striped"><tbody><tr>
+            <th:block th:each="item : ${amList}">
+              <th:block th:if="${item.code eq  am}">
+                <td width="2%" style="vertical-align:bottom;"> <button type="button" style="background:#1652f0;color:#fff;border-color:#1652f0;" title="当前已显示该时间段图表" class="btn btn-block btn-outline-danger btn-sm disabled" th:text="${item.msg}">Primary</button></td>
               </th:block>
-            </tr>
-            </tbody>
-          </table>
+              <th:block th:unless="${item.code eq  am}">
+                <td width="2%" style="vertical-align:bottom;"> <button type="button"  th:onclick="viewDate([[${appInfo.id}]],[[${item.code}]])" class="btn btn-block btn-outline-primary btn-sm" th:text="${item.msg}">Primary</button></td>
+              </th:block>
+            </th:block>
+
+            <td width="10%">
+              <form class="form-inline ml-3   float-sm-right" action="/wgcloud/appInfo/view">
+                <input type="hidden" name="id" th:value="${appInfo.id}"/>
+                <div class="input-group input-group-sm">
+                  <input type="text" autocomplete="off" value="" class="validate[maxSize[50]] form-control"  th:value="${startTime}" name="startTime" id="startTime" placeholder="开始时间" style="margin-right:5px;">
+                  <label style="margin-right:5px;">至</label>
+                  <input type="text" autocomplete="off" value="" class="validate[maxSize[50]] form-control"  th:value="${endTime}" name="endTime" id="endTime" placeholder="结束时间" style="margin-right:5px;">
+                  <button type="submit" class="btn btn-primary btn-sm" style="margin-right:5px;">查询</button>
+                  <button type="button" onclick="resetParam()" class="btn bg-danger btn-sm" style="margin-right:5px;">重置</button>
+                </div>
+              </form>
+            </td>
+            <td width="2%" style="vertical-align:bottom;text-align: right"><button type="button" th:onclick="excelExport([[${appInfo.id}]],[[${am}]])" class="btn btn-primary btn-sm">导出Excel</button></td>
+            </tr></tbody></table>
         </div>
         <!-- /.col -->
-      </div>
+      </div><!-- /.row -->
 
 
-        <label style="margin-left: .9rem">cpu使用率%</label>
+        <label style="margin-left: .9rem">cpu使用率%
+          <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${cpuSubtitleDto.maxValue}">18</span></span>
+          平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${cpuSubtitleDto.avgValue}">0</span></span>
+          最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${cpuSubtitleDto.minValue}">17</span></span></label>
         <div id="cpuStateJson"></div>
 
-        <label style="margin-left: .9rem">内存使用率%</label>
+        <label style="margin-left: .9rem">内存使用率%
+          <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${memSubtitleDto.maxValue}">18</span></span>
+          平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${memSubtitleDto.avgValue}">0</span></span>
+          最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${memSubtitleDto.minValue}">17</span></span></label>
         <div id="memStateJson"></div>
+
+        <label style="margin-left: .9rem">进程使用的线程数量
+          <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${threadsSubtitleDto.maxValue}">18</span></span>
+          平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${threadsSubtitleDto.avgValue}">0</span></span>
+          最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${threadsSubtitleDto.minValue}">17</span></span></label>
+        <div id="threadsNumJson"></div>
 
     </div>
     <!-- /.card -->
 
 
-  </div>
+  </div><!-- /.col-md-12 -->
 
-        </div>
-      </div>
-    </section>
-  </div>
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 
 
   <div th:replace="common/footer.html"></div>
@@ -101,16 +124,65 @@
 </div>
 <!-- ./wrapper -->
 
-<script th:src="@{'/static/js/app.js'}"></script>
+<script th:src="@{'/static/js/app.js?v=3.4.0'}"></script>
 
 
 <script th:inline="javascript">
+  var startTimeResponse =[[${startTime}]];
+  var endTimeResponse =[[${endTime}]];
+  $(document).ready(function(){
+    var startTime = $('#startTime');
+    if(startTime!=null && startTime != undefined){
+      startTime.daterangepicker({
+        singleDatePicker: true,
+        timePicker: true,
+        timePicker24Hour : true,
+        "opens": "center",
+        "locale": {
+          format: 'YYYY-MM-DD HH:mm',
+          applyLabel: "应用",
+          cancelLabel: "取消",
+          daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+          monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        }
+      });
+      if(startTimeResponse=='' || startTimeResponse==null){
+        startTime.val("");
+      }
+    }
+
+    var endTime = $('#endTime');
+    if(endTime!=null && endTime != undefined){
+      endTime.daterangepicker({
+        singleDatePicker: true,
+        timePicker: true,
+        timePicker24Hour : true,
+        "opens": "center",
+        "locale": {
+          format: 'YYYY-MM-DD HH:mm',
+          applyLabel: "应用",
+          cancelLabel: "取消",
+          daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+          monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        }
+      });
+      if(endTimeResponse=='' || endTimeResponse==null){
+        endTime.val("");
+      }
+    }
+  });
+
+  function resetParam(){
+    $("#startTime").val("");
+    $("#endTime").val("");
+  }
+
     var appStateJson =[[${appStateList}]];
     $(function() {
       var chart = new G2.Chart({
         container: 'cpuStateJson',
         forceFit: true,
-        height: 500,
+        height: 400,
         padding: [30, 40, 70, 40]
       });
       chart.axis('dateStr', {
@@ -146,7 +218,7 @@
       var chart2 = new G2.Chart({
         container: 'memStateJson',
         forceFit: true,
-        height: 500,
+        height: 400,
         padding: [30, 40, 70, 40]
       });
       chart2.axis('dateStr', {
@@ -171,15 +243,55 @@
       });
       chart2.source(appStateJson, {
         memPer: {
-          alias: '内存占用M'
+          alias: '内存使用率'
         }
       });
       chart2.scale('dateStr', {tickCount: 12, alias: '时间'});
       chart2.line().position('dateStr*memPer').color('#1890ff');
       chart2.render();
 
+
+      var chart3 = new G2.Chart({
+        container: 'threadsNumJson',
+        forceFit: true,
+        height: 400,
+        padding: [30, 40, 70, 40]
+      });
+      chart3.axis('dateStr', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chart3.axis('threadsNumInt', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chart3.tooltip({
+        crosshairs: false
+      });
+      chart3.legend({
+        position: 'top-center'
+      });
+      chart3.source(appStateJson, {
+        threadsNumInt: {
+          alias: '线程数量'
+        }
+      });
+      chart3.scale('dateStr', {tickCount: 12, alias: '时间'});
+      chart3.line().position('dateStr*threadsNumInt').color('#8B78F6');
+      chart3.render();
+
     })
 
+  var msg = [[${msg}]];
+  if(msg!='' && msg!=null){
+    toastr.info(msg);
+  }
 </script>
 
 

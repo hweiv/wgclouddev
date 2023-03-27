@@ -1,55 +1,105 @@
 package com.wgcloud.util.staticvar;
 
-
+import com.wgcloud.dto.HostWarnDiyDto;
+import com.wgcloud.entity.AccountInfo;
 import com.wgcloud.entity.MailSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import net.jodah.expiringmap.ExpirationPolicy;
+import net.jodah.expiringmap.ExpiringMap;
 
-/**
- * @version v2.3
- * @ClassName:StaticKeys.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: StaticKeys.java
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class StaticKeys {
+   public static final String SEARCH_START_TIME = "startTime";
+   public static final String SEARCH_END_TIME = "endTime";
+   public static final String SEARCH_EXP_TIME = "expDate";
+   public static String MENU_ACTIVE = "active ";
+   public static String APP_PRO_FILE = "application.properties";
+   public static final String LOGIN_KEY = "LOGIN_KEY";
+   public static final String ROLE_ADMIN = "admin";
+   public static final String ROLE_GUEST = "guest";
+   public static final String ROLE_USER = "user";
+   public static final String HOST_LIST_HIDE_COLS_INFO = "HostListHideColsInfo";
+   public static final String DASH_VIEW_ACCOUNT = "dashView";
+   public static final String LOG_YWGJ = "1";
+   public static final String LOG_XTCZ = "2";
+   public static final String LOG_YWGJHF = "3";
+   public static final String LOG_ADD = "添加";
+   public static final String LOG_UPDATE = "修改";
+   public static final String LOG_DEL = "删除";
+   public static final String SFTP_TYPE = "SFTP";
+   public static final String FTP_TYPE = "FTP";
+   public static final String NO_SEND_WARN = "false";
+   public static final String DISK_SMART_FAILED = "FAILED";
+   public static final String TRUE_VAL = "true";
+   public static final String NAN_FLAG = "NaN";
+   public static final String SPLIT_ENTER = "\\r\\n";
+   public static final String SPLIT_BR = "</br>";
+   public static final String SPLIT_KG = " ";
+   public static final String SPLIT_DH = ",";
+   public static final String SPLIT_SXG = "//";
+   public static final String DOWN_STATE = "2";
+   public static final String ON_STATE = "1";
+   public static final String WARN_SEND = "1";
+   public static final String METHOD_GET = "GET";
+   public static final String METHOD_POST = "POST";
+   public static final String HEATH_STATUS_200 = "200";
+   public static final String HEATH_STATUS_500 = "500";
+   public static final String SHELL_STATE_1 = "1";
+   public static final String SHELL_STATE_2 = "2";
+   public static final String SHELL_STATE_3 = "3";
+   public static final String SHELL_RUN_STATE_1 = "1";
+   public static final String SHELL_RUN_STATE_4 = "4";
+   public static final String SHELL_RUN_STATE_2 = "2";
+   public static final String SHELL_RUN_STATE_3 = "3";
+   public static final String SHELL_TYPE_1 = "1";
+   public static final String SHELL_TYPE_2 = "2";
+   public static MailSet mailSet = null;
+   public static final String NODE_MASTER = "master";
+   public static final String NODE_SLAVE = "slave";
+   public static final long DELAY_TIME = 360000L;
+   public static final int OUT_TIME_MARK = -1;
+   public static final String PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCJgRaOg/qygEtsVWTl+35+RN77mmT6Pjl2v/UZExxH4LmVMFx2U2vHz53tSfWJ0sshuPbn2Y5QOst6BEwrKHNL4/w/Iqc/Rv4Q8hiUIQZtd/M1Yq82+uRKsdmIi6gXLZXQmoUjRTmssGutNonRcnyeowpE4LX6YV1B8Dh8vdgXuwIDAQAB";
+   public static String LICENSE_STATE = "0";
+   public static final String LICENSE_OK = "1";
+   public static final String LICENSE_NO = "0";
+   public static final String LICENSE_OUT = "2";
+   public static final String LICENSE_OUTNUM = "3";
+   public static int LICENSE_NUM = 10;
+   public static String LICENSE_DATE = "";
+   public static int LICENSE_PAGE = 1;
+   public static final int LICENSE_FREE_NUM = 10;
+   public static String LICENSE_NAME = "";
+   public static String LICENSE_LICE_FLAGE = "liceFlage";
+   public static int PAGE_SIZE = 20;
+   public static Map<String, String> HOST_MAP = Collections.synchronizedMap(new HashMap());
+   public static Map<String, String> HOST_ACCOUNT_MAP = Collections.synchronizedMap(new HashMap());
+   public static Map<String, AccountInfo> ACCOUNT_INFO_MAP = Collections.synchronizedMap(new HashMap());
+   public static Map<String, HostWarnDiyDto> HOST_WARN_MAP = Collections.synchronizedMap(new HashMap());
+   public static final String WARN_YES = "yes";
+   public static final String WARN_NO = "no";
+   public static final String TOKEN_ERROR = "token is error";
+   public static final String MUST_PRO_INFO = "The module needs to wgcloud-pro version. Please contact us at www.wgstart.com";
+   public static final String OPEN_DATA_API_NO = "API is no open";
+   public static final String REQUIRE_PARAM_ERROR = "Missing require parameters";
+   public static final String BYTES_STR = "byte";
+   public static final String HOST_GROUP_1 = "1";
+   public static final String HOST_GROUP_2 = "2";
+   public static String JAR_PATH = "";
+   public static boolean WARN_CRON_TIME_SIGN = true;
+   public static ExpiringMap<String, String> LOGIN_BLOCK_MAP;
+   public static ExpiringMap<String, Integer> LOGIN_ERROR_MAP;
+   public static final String SNMP_CPU_MEM_BLOCK = "block";
+   public static final String WARN_RECOVERED_CHAR = "已恢复";
+   public static final String SHELL_SPLIT_CHAR = " ; ";
+   public static final String CMD_SPLIT_CHAR = " & ";
+   public static final String REPORT_MON = "2";
+   public static final String REPORT_WEEK = "1";
+   public static final String DOCKER_EXITED = "exited";
 
-    public static final String ADMIN_ACCOUNT = "admin";//管理员帐号
-
-    public static final String SEARCH_START_TIME = "startTime";//日期查询开始时间条件
-
-    public static final String SEARCH_END_TIME = "endTime";//日期查询结束时间条件
-
-    public static final String SEARCH_EXP_TIME = "expDate";//日期查询过期时间
-
-    public static String MENU_ACTIVE = "active ";//菜单高亮显示
-
-    public static String APP_PRO_FILE = "application.properties";//配置信息文件
-
-    //session中存贮的验证码key
-    public static final String SESSION_CODE = "valcode";
-
-    //session存贮登录信息的标识
-    public static String LOGIN_KEY = "LOGIN_KEY";
-
-    public static String DASH_VIEW_ACCOUNT = "dashView";
-
-
-    //日志失败标记
-    public static final String LOG_ERROR = "1";
-
-    //不发送报警短信邮件标识
-    public static final String NO_SEND_WARN = "false";
-
-    public static String SPLIT_BR = "</br>";//换行标识
-
-    public static String SPLIT_KG = " ";//空格
-
-    public static String SPLIT_DH = ",";//逗号
-
-    public static String SPLIT_SXG = "//";//双反斜杠
-
-    public static String DOWN_STATE = "2";
-
-    public static MailSet mailSet = null;
-
+   static {
+      LOGIN_BLOCK_MAP = ExpiringMap.builder().expiration(600L, TimeUnit.SECONDS).expirationPolicy(ExpirationPolicy.CREATED).build();
+      LOGIN_ERROR_MAP = ExpiringMap.builder().expiration(60L, TimeUnit.SECONDS).expirationPolicy(ExpirationPolicy.CREATED).build();
+   }
 }

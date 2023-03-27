@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header" style="height:38px">
+      <div class="container-fluid">
+        <div class="row mb-2" style="margin-top: -7px;">
+          <div class="col-sm-6"></div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><strong>下发时间：<code class="highlighter-rouge" style="font-size:100%">
+          <th:block th:if="${shellInfo.shellType  != '2'}">立即下发</th:block>
+          <th:block th:if="${shellInfo.shellType  == '2'}"><span  th:text="${shellInfo.shellTime}" class="badge bg-primary" ></span></th:block>
+        </code></strong></h3>
+        <div class=" float-sm-right">
+          <!-- SEARCH FORM -->
+          <form class="form-inline ml-3" >
+            <div class="input-group input-group-sm">
+             <!--   <button type="button" onclick="cancel()" class="btn btn-block btn-primary btn-sm">返回</button>-->
+            </div>
+          </form>
+
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12 table-responsive">
+            <textarea class="form-control" name="shell" id="shell" th:text="${shellInfo.shell}"  rows="5"></textarea>
+          </div>
+        </div>
+        <table class="table table-bordered table-hover">
+          <thead>
+          <tr>
+            <th style="width: 60px">序号</th>
+            <th>IP</th>
+            <th>下发指令状态</th>
+            <th>更新时间</th>
+          </tr>
+          </thead>
+          <tbody>
+          <th:block th:each="item,iterStat : ${shellStateList}">
+            <tr>
+              <td th:text="${iterStat.index+1}">1</td>
+              <td th:text="${item.hostname}">Update software</td>
+              <th:block th:switch="${item.state}">
+                <th:block th:case="'1'">
+                  <td th:title="${item.state}"><span class="badge bg-primary">下发中</span>
+                </th:block>
+                <th:block th:case="'4'">
+                  <td th:title="${item.state}"><span class="badge bg-primary">已下发</span>
+                </th:block>
+                <th:block th:case="'2'">
+                  <td th:title="${item.state}"><span class="badge bg-warning">已取消</span>
+                </th:block>
+                <th:block th:case="'3'">
+                  <td th:title="${item.state}"><span class="badge bg-success">已执行成功</span>
+                </th:block>
+                <th:block th:case="*">
+                  <td th:title="${item.state}"><span th:text="${item.state}" class="badge bg-danger">准备</span>
+                </th:block>
+              </th:block>
+              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+            </tr>
+          </th:block>
+
+          </tbody>
+        </table>
+      </div>
+      <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-12 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<div th:replace="common/codemirror.html"></div>
+<script th:inline="javascript">
+  var editor = CodeMirror.fromTextArea(document.getElementById("shell"), {
+    lineNumbers: true,
+    styleActiveLine: true,
+    matchBrackets: true,
+    readOnly: true,
+    mode: 'shell'
+  });
+  editor.setOption("theme", "dracula");
+  editor.setSize('auto','auto');
+</script>
+
+</body>
+</html>

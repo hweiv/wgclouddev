@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WGCLOUD公众看板/主机列表/主机报表(请收藏)</title>
+    <title th:text="${application.wgName}">WGClOUD监控系统</title>
   <div  th:replace="common/header.html"></div>
 
 
@@ -14,22 +14,34 @@
 
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem;margin-left: 10px">
+  <div class="content-wrapper" style="margin-left: 10px;font-size:0.92rem">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
 
-            <div class="col-sm-6" id="fuwuqixinxi">
-                <a href="http://www.wgstart.com"  target="_blank">
-                    <img th:src="@{'/static/logincss/logo.png'}" style="height:25px;width:25px;opacity: .8" class="brand-image img-circle elevation-3">&nbsp;<span style="vertical-align:bottom;">WGCLOUD</span>
+            <div class="col-sm-6">
+                <a href="javascript:location.reload();">
+                    <img th:src="${application.logoUrl}" style="height:25px;width:25px;opacity: .8" class="brand-image img-circle elevation-3">&nbsp;<span  style="vertical-align:bottom;" th:text="${application.wgName}">WGCLOUD</span>
                 </a>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item ">
+                        <th:block  th:if="${session.timerWarnSound ne '1' }">
+                          <span style="cursor:pointer;margin-right: 10px" id="timerWarnSoundDiv" title="当前已关闭页面告警声音提示，点击可开启" value="2" data-toggle="dropdown" onclick="javascript:playSound();">
+                            <i class="far fa-bell-slash"></i>
+                          </span>
+                        </th:block>
+                        <th:block  th:if="${session.timerWarnSound eq '1' }">
+                          <span style="cursor:pointer;margin-right: 10px" id="timerWarnSoundDiv" title="当前已开启页面告警声音提示，点击可关闭" value="1" data-toggle="dropdown" onclick="javascript:playSound();">
+                            <i style="margin-right:3px" class="far fa-bell"></i>
+                          </span>
+                        </th:block>
+                    </li>
                     <li class="breadcrumb-item "><a href="/wgcloud/dash/main?dashView=1">监控概要</a></li>
-                    <li class="breadcrumb-item "><a href="/wgcloud/dash/systemInfoList?dashView=1">主机列表</a></li>
-                    <li class="breadcrumb-item active"><a  target="_blank" href="https://www.wgstart.com/elasticsearch-head/index.html">ES监控工具</a></li>
+                    <li class="breadcrumb-item "><a href="/wgcloud/systemInfo/systemInfoList?dashView=1">主机列表</a></li>
+                   <!-- <li class="breadcrumb-item active"><a  target="_blank" href="https://www.wgstart.com/elasticsearch-head/index.html">ES监控工具</a></li>-->
                 </ol>
             </div>
         </div>
@@ -44,75 +56,122 @@
   <div class="col-md-12">
     <div class="card card-primary">
       <div class="card-header">
-        <h3 class="card-title" th:text="${systemInfo.hostname}">详细信息</h3>(每2分钟监控)
+        <h3 class="card-title" ><span th:text="${systemInfo.hostname}"></span>
+            <th:block th:if="${systemInfo.remark ne '' && systemInfo.remark ne null}">
+                (备注：<span th:text="${systemInfo.remark}"></span>)
+            </th:block>
+        </h3>
           <div class=" float-sm-right">
-              <a th:href="@{'/dash/systemInfoList?dashView=1'}">返回</a>
+              <a href="javascript:history.back()">返回</a>
           </div>
       </div>
 
 
         <div class="row">
             <div class="col-12 table-responsive">
-                <table class="table table-striped">
-                    <tbody><tr>
-                    <th:block th:each="item : ${dateList}">
-                        <th:block th:if="${item eq  datenow}">
-                            <td> <button type="button" title="当前已显示该日期相关图表" class="btn btn-block btn-outline-danger btn-sm" th:text="${item}">Primary</button></td>
+                <table class="table table-striped"><tbody><tr>
+                    <th:block th:each="item : ${amList}">
+                        <th:block th:if="${item.code eq  am}">
+                            <td width="2%" style="vertical-align:bottom;"> <button type="button" style="background:#1652f0;color:#fff;border-color:#1652f0;" title="当前已显示该时间段图表" class="btn btn-block btn-outline-danger btn-sm disabled" th:text="${item.msg}">Primary</button></td>
                         </th:block>
-                        <th:block th:unless="${item eq  datenow}">
-                            <td> <button type="button"  th:onclick="viewDatetDashView([[${systemInfo.id}]],[[${item}]])" class="btn btn-block btn-outline-primary btn-sm" th:text="${item}">Primary</button></td>
+                        <th:block th:unless="${item.code eq  am}">
+                            <td width="2%" style="vertical-align:bottom;"> <button type="button"  th:onclick="viewDatetDashView([[${systemInfo.id}]],[[${item.code}]])" class="btn btn-block btn-outline-primary btn-sm" th:text="${item.msg}">Primary</button></td>
                         </th:block>
                     </th:block>
-                    </tr>
-                    </tbody>
-                </table>
+
+
+                    </tr></tbody></table>
+
             </div>
             <!-- /.col -->
         </div>
-        <label style="margin-left: .9rem">cpu使用率%</label>
+        <label style="margin-left: .9rem">cpu使用率%
+            <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${cpuSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${cpuSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${cpuSubtitleDto.minValue}">17</span></span></label>
         <div id="cpuStateJson"></div>
 
-        <label style="margin-left: .9rem">内存使用率%</label>
+        <label style="margin-left: .9rem">内存使用率%
+            <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${memSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${memSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${memSubtitleDto.minValue}">17</span></span></label>
         <div id="memStateJson"></div>
 
-        <label style="margin-left: .9rem">系统负载</label>
-        <div id="ysLoadSstateJson"></div>
-
-        <label style="margin-left: .9rem">网络接收/发送总KB</label>
+        <label style="margin-left: .9rem">网络下行/上行传输速率，KB/秒
+            <span style="margin-left:20px">下行最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${rxbytSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${rxbytSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${rxbytSubtitleDto.minValue}">17</span></span>
+            上行最高<span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${txbytSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${txbytSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${txbytSubtitleDto.minValue}">17</span></span></label>
         <div id="netIoStateByt"></div>
 
-        <label style="margin-left: .9rem">网络接收/发送总包数</label>
+        <label style="margin-left: .9rem">网络接收/发送，包数/秒
+            <span style="margin-left:20px">接收最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${rxpckSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${rxpckSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${rxpckSubtitleDto.minValue}">17</span></span>
+            发送最高<span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${txpckSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${txpckSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${txpckSubtitleDto.minValue}">17</span></span></label>
         <div id="netIoStatePck"></div>
+
+        <label style="margin-left: .9rem">网络传入/传出，丢弃包数/秒</label>
+        <div id="netIoStateDropPck"></div>
+
+        <label style="margin-left: .9rem">系统负载
+            <span style="margin-left:20px">1分钟最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${oneLoadSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${oneLoadSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${oneLoadSubtitleDto.minValue}">17</span></span>
+            5分钟最高<span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${fiveLoadSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${fiveLoadSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${fiveLoadSubtitleDto.minValue}">17</span></span>
+            15分钟最高<span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${fifteenLoadSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${fifteenLoadSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${fifteenLoadSubtitleDto.minValue}">17</span></span></label>
+        <div id="sysLoadStateJson"></div>
+
+        <label style="margin-left: .9rem">主机连接数（包括tcp、udp、inet）
+            <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${connsSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${connsSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${connsSubtitleDto.minValue}">17</span></span></label>
+        <div id="netConnectionsJson"></div>
     </div>
     <!-- /.card -->
 
 
-  </div>
+  </div><!-- /.col-md-12 -->
 
-        </div>
-      </div>
-    </section>
-  </div>
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 
 
-  <div th:replace="common/dashViewFooter.html"></div>
+  <div th:replace="common/footerDashView.html"></div>
 
 </div>
 <!-- ./wrapper -->
 
-<script th:src="@{'/static/js/host.js'}"></script>
+<script th:src="@{'/static/js/host.js?v=3.4.0'}"></script>
 
 
 <script th:inline="javascript">
+
+
     var cpuStateJson =[[${cpuStateList}]];
     var memStateJson =[[${memStateList}]];
-    var ysLoadSstateJson =[[${ysLoadSstateList}]];
+    var sysLoadStateJson =[[${sysLoadStateList}]];
     var netIoStateJson =[[${netIoStateList}]];
+    var cpuWarnVal =[[${cpuWarnVal}]];
+    var memWarnVal =[[${memWarnVal}]];
+    var downSpeedVal =[[${downSpeedVal}]];
+    var upSpeedVal =[[${upSpeedVal}]];
+    var sysLoadWarnVal =[[${sysLoadWarnVal}]];
     $(function(){
         var chart = new G2.Chart({
             container: 'cpuStateJson',
             forceFit: true,
-            height: 500,
+            height: 400,
             padding: [30, 40, 70, 40]
         });
 
@@ -123,8 +182,6 @@
                 }
             }
         });
-        chart.axis('iowait', false);
-        chart.axis('idle', false);
         chart.tooltip({
             crosshairs: false
         });
@@ -134,31 +191,36 @@
 
         chart.source(cpuStateJson, {
             sys: {
-                alias: '使用率',
-                min: 0,
-                max: [[${cpuStateMaxVal}]]
-            },
-            idle: {
-                alias: '空闲率',
-                min: 0,
-                max: [[${cpuStateMaxVal}]]
-            },
-            iowait: {
-                alias: '等待率',
-                min: 0,
-                max: [[${cpuStateMaxVal}]]
+                alias: 'cpu使用率'
             }
         });
         chart.scale('dateStr',{tickCount: 12,alias: '时间'});
-        chart.line().position('dateStr*sys').color('#2fc25b');
-        chart.line().position('dateStr*idle').color('#1890ff');
-        chart.line().position('dateStr*iowait').color('#ffca0b');
+        chart.line().position('dateStr*sys').color('#1890ff');
+        chart.guide().line({
+            start: [ 'min', cpuWarnVal ],
+            end: [ 'max', cpuWarnVal ],
+            lineStyle: {
+                stroke: '#dc3545',
+                lineWidth: 1,
+                lineDash: [ 3, 3 ]
+            },
+            text: {
+                position: 'start',
+                style: {
+                    fill: '#dc3545',
+                    fontSize: 12,
+                    fontWeight: 'normal'
+                },
+                content: '告警线 '+cpuWarnVal+'%',
+                offsetY: -5
+            }
+        });
         chart.render();
 
         var chart2 = new G2.Chart({
             container: 'memStateJson',
             forceFit: true,
-            height: 500,
+            height: 400,
             padding: [30, 40, 70, 40]
         });
         chart2.axis('dateStr', {
@@ -183,17 +245,36 @@
         });
         chart2.source(memStateJson, {
             usePer: {
-                alias: '使用率'
+                alias: '内存使用率'
             }
         });
         chart2.scale('dateStr',{tickCount: 12,alias: '时间'});
         chart2.line().position('dateStr*usePer').color('#1890ff');
+        chart2.guide().line({
+            start: [ 'min', memWarnVal ],
+            end: [ 'max', memWarnVal ],
+            lineStyle: {
+                stroke: '#dc3545',
+                lineWidth: 1,
+                lineDash: [ 3, 3 ]
+            },
+            text: {
+                position: 'start',
+                style: {
+                    fill: '#dc3545',
+                    fontSize: 12,
+                    fontWeight: 'normal'
+                },
+                content: '告警线 '+memWarnVal+'%',
+                offsetY: -5
+            }
+        });
         chart2.render();
 
         var chart3 = new G2.Chart({
-            container: 'ysLoadSstateJson',
+            container: 'sysLoadStateJson',
             forceFit: true,
-            height: 500,
+            height: 400,
             padding: [30, 40, 70, 40]
         });
         chart3.axis('dateStr', {
@@ -211,33 +292,52 @@
         chart3.legend({
             position: 'top-center'
         });
-        chart3.source(ysLoadSstateJson, {
+        chart3.source(sysLoadStateJson, {
             oneLoad: {
-                alias: '1分钟',
+                alias: '1分钟负载',
                 min: 0,
-                max: [[${ysLoadSstateMaxVal}]]
+                max: [[${sysLoadStateMaxVal}]]
             },
             fiveLoad: {
-                alias: '5分钟',
+                alias: '5分钟负载',
                 min: 0,
-                max: [[${ysLoadSstateMaxVal}]]
+                max: [[${sysLoadStateMaxVal}]]
             },
             fifteenLoad: {
-                alias: '15分钟',
+                alias: '15分钟负载',
                 min: 0,
-                max: [[${ysLoadSstateMaxVal}]]
+                max: [[${sysLoadStateMaxVal}]]
             }
         });
         chart3.scale('dateStr',{tickCount: 12,alias: '时间'});
         chart3.line().position('dateStr*oneLoad').color('#1890ff');
         chart3.line().position('dateStr*fiveLoad').color('#2fc25b');
         chart3.line().position('dateStr*fifteenLoad').color('#ffca0b');
+        chart3.guide().line({
+            start: [ 'min', sysLoadWarnVal ],
+            end: [ 'max', sysLoadWarnVal ],
+            lineStyle: {
+                stroke: '#dc3545',
+                lineWidth: 1,
+                lineDash: [ 3, 3 ]
+            },
+            text: {
+                position: 'start',
+                style: {
+                    fill: '#dc3545',
+                    fontSize: 12,
+                    fontWeight: 'normal'
+                },
+                content: '5分钟负载告警线 '+sysLoadWarnVal,
+                offsetY: -5
+            }
+        });
         chart3.render();
 
         var chart4 = new G2.Chart({
             container: 'netIoStateByt',
             forceFit: true,
-            height: 500,
+            height: 400,
             padding: [30, 40, 70, 48]
         });
         chart4.axis('dateStr', {
@@ -256,32 +356,64 @@
         });
         chart4.source(netIoStateJson, {
             rxbyt: {
-                alias: '接收总KB',
+                alias: '下行KB/秒',
                 min: 0,
-                max: [[${netIoStateBytMaxVal}]],
-                formatter: val => {    // 设置坐标轴和提示框的文字
-                        return val/1000 + 'K';
-                }
+                max: [[${netIoStateBytMaxVal}]]
             },
             txbyt: {
-                alias: '发送总KB',
+                alias: '上行KB/秒',
                 min: 0,
-                max: [[${netIoStateBytMaxVal}]],
-                formatter: val => {
-                    return val/1000 + 'K';
-                }
+                max: [[${netIoStateBytMaxVal}]]
             }
         });
         chart4.scale('dateStr',{tickCount: 12,alias: '时间'});
         chart4.line().position('dateStr*rxbyt').color('#1890ff');
         chart4.line().position('dateStr*txbyt').color('#2fc25b');
+        chart4.guide().line({
+            start: [ 'min', downSpeedVal ],
+            end: [ 'max', downSpeedVal ],
+            lineStyle: {
+                stroke: '#dc3545',
+                lineWidth: 1,
+                lineDash: [ 3, 3 ]
+            },
+            text: {
+                position: 'start',
+                style: {
+                    fill: '#dc3545',
+                    fontSize: 12,
+                    fontWeight: 'normal'
+                },
+                content: '下行速率告警线 '+downSpeedVal+'KB/秒',
+                offsetY: -5
+            }
+        });
+        chart4.guide().line({
+            start: [ 'min', upSpeedVal ],
+            end: [ 'max', upSpeedVal ],
+            lineStyle: {
+                stroke: '#dc3545',
+                lineWidth: 1,
+                lineDash: [ 3, 3 ]
+            },
+            text: {
+                position: 'end',
+                style: {
+                    fill: '#dc3545',
+                    fontSize: 12,
+                    fontWeight: 'normal'
+                },
+                content: '上行速率告警线 '+upSpeedVal+'KB/秒',
+                offsetY: -5
+            }
+        });
         chart4.render();
 
 
         var chart5 = new G2.Chart({
             container: 'netIoStatePck',
             forceFit: true,
-            height: 500,
+            height: 400,
             padding: [30, 40, 70, 48]
         });
         chart5.axis('dateStr', {
@@ -300,26 +432,92 @@
         });
         chart5.source(netIoStateJson, {
             rxpck: {
-                alias: '接收总包数',
+                alias: '接收包数/秒',
                 min: 0,
-                max: [[${netIoStatePckMaxVal}]],
-                formatter: val => {
-                            return val/1000 + 'K';
-                }
+                max: [[${netIoStatePckMaxVal}]]
             },
             txpck: {
-                alias: '发送总包数',
+                alias: '发送包数/秒',
                 min: 0,
-                max: [[${netIoStatePckMaxVal}]],
-                formatter: val => {
-                    return val/1000 + 'K';
-                }
+                max: [[${netIoStatePckMaxVal}]]
             }
         });
         chart5.scale('dateStr',{tickCount: 12,alias: '时间'});
         chart5.line().position('dateStr*rxpck').color('#1890ff');
         chart5.line().position('dateStr*txpck').color('#2fc25b');
         chart5.render();
+
+        var chart6 = new G2.Chart({
+            container: 'netIoStateDropPck',
+            forceFit: true,
+            height: 400,
+            padding: [30, 40, 70, 48]
+        });
+        chart6.axis('dateStr', {
+            label: {
+                textStyle: {
+                    fill: '#aaaaaa'
+                }
+            }
+        });
+        chart6.axis('dropin', false);
+        chart6.tooltip({
+            crosshairs: false
+        });
+        chart6.legend({
+            position: 'top-center'
+        });
+        chart6.source(netIoStateJson, {
+            dropin: {
+                alias: '传入丢弃包数/秒',
+                min: 0,
+                max: [[${netIoStateDropPckMaxVal}]]
+            },
+            dropout: {
+                alias: '传出丢弃包数/秒',
+                min: 0,
+                max: [[${netIoStateDropPckMaxVal}]]
+            }
+        });
+        chart6.scale('dateStr',{tickCount: 12,alias: '时间'});
+        chart6.line().position('dateStr*dropin').color('#FFD22F');
+        chart6.line().position('dateStr*dropout').color('#FF5371');
+        chart6.render();
+
+        var chart7 = new G2.Chart({
+            container: 'netConnectionsJson',
+            forceFit: true,
+            height: 400,
+            padding: [30, 40, 70, 40]
+        });
+        chart7.axis('dateStr', {
+            label: {
+                textStyle: {
+                    fill: '#aaaaaa'
+                }
+            }
+        });
+        chart7.axis('netConnections', {
+            label: {
+                textStyle: {
+                    fill: '#aaaaaa'
+                }
+            }
+        });
+        chart7.tooltip({
+            crosshairs: false
+        });
+        chart7.legend({
+            position: 'top-center'
+        });
+        chart7.source(netIoStateJson, {
+            netConnections: {
+                alias: '连接数'
+            }
+        });
+        chart7.scale('dateStr',{tickCount: 12,alias: '时间'});
+        chart7.line().position('dateStr*netConnections');
+        chart7.render();
     })
 
 </script>

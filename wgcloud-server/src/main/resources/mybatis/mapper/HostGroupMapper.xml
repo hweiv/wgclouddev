@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wgcloud.mapper.HostGroupMapper">
+<resultMap id="resultMap" type="com.wgcloud.entity.HostGroup">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="GROUP_NAME" property="groupName" jdbcType="CHAR" />
+	    <result column="REMARK" property="remark" jdbcType="CHAR" />
+	    <result column="GROUP_TYPE" property="groupType" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,GROUP_NAME,REMARK,CREATE_TIME,GROUP_TYPE
+	</sql>
+
+	<sql id="queryByParams">
+		<if test="groupType != null">
+			<![CDATA[ AND GROUP_TYPE = #{groupType} ]]>
+		</if>
+		<if test="groupName != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND GROUP_NAME LIKE  CONCAT(CONCAT('%',#{groupName}),'%') ]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND GROUP_NAME LIKE  CONCAT('%',#{groupName},'%') ]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="groupIds != null">
+			<![CDATA[ AND ID IN ]]>
+			<foreach item="item" index="index" collection="groupIds" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</sql>
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM HOST_GROUP 
+		WHERE ID=#{id} 
+	</select>
+
+	
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM HOST_GROUP 
+		WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		HOST_GROUP 
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+
+	<insert id="save" parameterType="com.wgcloud.entity.HostGroup">
+		INSERT INTO HOST_GROUP 
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="groupName != null" >GROUP_NAME,</if>
+			<if test="remark != null" >REMARK,</if>
+			<if test="groupType != null" >GROUP_TYPE,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="groupName != null" >#{groupName},</if>
+			<if test="remark != null" >#{remark},</if>
+			<if test="groupType != null" >#{groupType},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+	
+	
+	<update id="updateById" parameterType="com.wgcloud.entity.HostGroup">
+		UPDATE HOST_GROUP
+		<set>
+			<if test="groupName != null">
+				GROUP_NAME = #{groupName},
+			</if>
+			<if test="remark != null">
+				REMARK = #{remark},
+			</if>
+			<if test="groupType != null">
+				GROUP_TYPE = #{groupType},
+			</if>
+		</set>
+		WHERE ID = #{id}
+	</update>
+
+	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)  FROM HOST_GROUP t
+	</select>
+	
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM HOST_GROUP t
+		  <where>
+			  <include refid="queryByParams" />
+		  </where>
+		 ORDER BY ID ASC
+	</select>
+
+	
+	<select id="selectByParams" parameterType="com.wgcloud.entity.HostGroup" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM HOST_GROUP
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID DESC
+	</select>
+</mapper>

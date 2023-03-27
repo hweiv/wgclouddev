@@ -1,0 +1,26 @@
+<style>
+    select option:hover,select option:focus,select option:active,select option:checked {
+        background: linear-gradient(#FFC894,#FFC894);
+        background-color: #FFC894 !important; /* for IE */
+    }
+</style>
+<select class="duallistbox"  style="height:300px" name="hostnames" multiple="multiple">
+    <th:block th:each="item,iterStat : ${systemInfoList}">
+        <th:block th:if="${item.remark} == null or ${item.remark} == ''">
+            <th:block th:if="${item.selected} == null or ${item.selected} == ''">
+                <option  th:value="${item.hostname}" th:text="${item.hostname}+' ('+${item.platForm}+')'">Alabama</option>
+            </th:block>
+            <th:block th:if="${item.selected} == 'selected'">
+                <option  th:value="${item.hostname}" selected th:text="${item.hostname}+' ('+${item.platForm}+')'">Alabama</option>
+            </th:block>
+        </th:block>
+        <th:block th:if="${item.remark} != null and ${item.remark} != ''">
+            <th:block th:if="${item.selected} == null or ${item.selected} == ''">
+                <option  th:value="${item.hostname}" th:text="${item.hostname}+' ('+${item.remark}+'，'+${item.platForm}+')'">Alabama</option>
+            </th:block>
+            <th:block th:if="${item.selected} == 'selected'">
+                <option  th:value="${item.hostname}" selected th:text="${item.hostname}+' ('+${item.remark}+'，'+${item.platForm}+')'">Alabama</option>
+            </th:block>
+        </th:block>
+    </th:block>
+</select>

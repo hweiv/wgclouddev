@@ -1,124 +1,99 @@
 package com.wgcloud.dto;
 
 import com.wgcloud.entity.BaseEntity;
+import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
-
-/**
- * @version v2.3
- * @ClassName:NetIoState.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: 网络设备的吞吐率
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class NetIoStateDto extends BaseEntity {
+   private static final long serialVersionUID = -8314012397341825158L;
+   private String hostname;
+   private Double rxpck;
+   private Double txpck;
+   private Double rxbyt;
+   private Double txbyt;
+   private Double dropin;
+   private Double dropout;
+   private Integer netConnections;
+   private String dateStr;
+   private Date createTime;
 
+   public Double getRxpck() {
+      return this.rxpck;
+   }
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -8314012397341825158L;
+   public void setRxpck(Double rxpck) {
+      this.rxpck = rxpck;
+   }
 
+   public Double getTxpck() {
+      return this.txpck;
+   }
 
-    /**
-     * host名称
-     */
-    private String hostname;
+   public void setTxpck(Double txpck) {
+      this.txpck = txpck;
+   }
 
-    /**
-     * 每秒钟接收的数据包,rxpck/s
-     */
-    private Integer rxpck;
+   public Double getRxbyt() {
+      return this.rxbyt;
+   }
 
-    /**
-     * 每秒钟发送的数据包,txpck/s
-     */
-    private Integer txpck;
+   public void setRxbyt(Double rxbyt) {
+      this.rxbyt = rxbyt;
+   }
 
+   public Double getTxbyt() {
+      return this.txbyt;
+   }
 
-    /**
-     * 每秒钟接收的KB数,rxkB/s
-     */
-    private Integer rxbyt;
+   public void setTxbyt(Double txbyt) {
+      this.txbyt = txbyt;
+   }
 
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
-    /**
-     * 每秒钟发送的KB数,txkB/s
-     */
-    private Integer txbyt;
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 
+   public String getDateStr() {
+      return !StringUtils.isEmpty(this.dateStr) && this.dateStr.length() > 16 ? this.dateStr.substring(5) : this.dateStr;
+   }
 
-    /**
-     * 添加时间
-     * yyyy-MM-dd hh:mm:ss
-     */
-    private String dateStr;
+   public void setDateStr(String dateStr) {
+      this.dateStr = dateStr;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+   public String getHostname() {
+      return this.hostname;
+   }
 
-    public Integer getRxpck() {
-        return rxpck;
-    }
+   public void setHostname(String hostname) {
+      this.hostname = hostname;
+   }
 
-    public void setRxpck(Integer rxpck) {
-        this.rxpck = rxpck;
-    }
+   public Double getDropin() {
+      return this.dropin;
+   }
 
-    public Integer getTxpck() {
-        return txpck;
-    }
+   public void setDropin(Double dropin) {
+      this.dropin = dropin;
+   }
 
-    public void setTxpck(Integer txpck) {
-        this.txpck = txpck;
-    }
+   public Double getDropout() {
+      return this.dropout;
+   }
 
-    public Integer getRxbyt() {
-        return rxbyt;
-    }
+   public void setDropout(Double dropout) {
+      this.dropout = dropout;
+   }
 
-    public void setRxbyt(Integer rxbyt) {
-        this.rxbyt = rxbyt;
-    }
+   public Integer getNetConnections() {
+      return this.netConnections;
+   }
 
-    public Integer getTxbyt() {
-        return txbyt;
-    }
-
-    public void setTxbyt(Integer txbyt) {
-        this.txbyt = txbyt;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getDateStr() {
-        if (!StringUtils.isEmpty(dateStr) && dateStr.length() > 16) {
-            return dateStr.substring(5);
-        }
-        return dateStr;
-    }
-
-    public void setDateStr(String dateStr) {
-        this.dateStr = dateStr;
-    }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-
+   public void setNetConnections(Integer netConnections) {
+      this.netConnections = netConnections;
+   }
 }

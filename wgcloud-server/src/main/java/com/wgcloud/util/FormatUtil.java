@@ -1,218 +1,278 @@
 package com.wgcloud.util;
 
+import com.googlecode.aviator.AviatorEvaluator;
+import com.googlecode.aviator.Expression;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-
-/**
- * @version v2.3
- * @ClassName:FormatUtil.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: FormatUtil.java
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class FormatUtil {
+   private static Logger logger = LoggerFactory.getLogger(FormatUtil.class);
 
-    /**
-     * 格式化文件大小
-     * 形式如：2.22 K, 2.22 M, 2222 Bytes，长度保留4位
-     *
-     * @param size 文件大小
-     * @return 格式化后的字串
-     */
-    public static String formatSize(long size) {
-        String sizeStr = "";
-        //小于1024字节
-        if (size < 1024) {
-            sizeStr = size + " Bytes";
-        }
-        //大于1M
-        else if (size > 1024000) {
-            sizeStr = Float.toString((float) size / 1024000);
-            if (sizeStr.length() > 4) {
-                sizeStr = sizeStr.substring(0, 4);
+   public static String timesToDay(Long l) {
+      if (l == null) {
+         return "";
+      } else {
+         StringBuffer sb = new StringBuffer();
+         long seconds = 1L;
+         long minutes = 60L * seconds;
+         long hours = 60L * minutes;
+         long days = 24L * hours;
+         if (l / days >= 1L) {
+            sb.append((int)(l / days) + "天");
+         }
+
+         if (l % days / hours >= 1L) {
+            sb.append((int)(l % days / hours) + "小时");
+         }
+
+         if (l % days % hours / minutes >= 1L) {
+            sb.append((int)(l % days % hours / minutes) + "分钟");
+         }
+
+         if (l % days % hours % minutes / seconds >= 1L) {
+            sb.append((int)(l % days % hours % minutes / seconds) + "秒");
+         }
+
+         return sb.toString();
+      }
+   }
+
+   public static String secondsToDays(Long l) {
+      if (l == null) {
+         return "";
+      } else {
+         StringBuffer sb = new StringBuffer();
+         long seconds = 1L;
+         long minutes = 60L * seconds;
+         long hours = 60L * minutes;
+         long days = 24L * hours;
+         if (l / days >= 1L) {
+            sb.append((int)(l / days) + "天");
+         }
+
+         return sb.toString();
+      }
+   }
+
+   public static String getString(String str, int len) {
+      if (StringUtils.isEmpty(str)) {
+         return "";
+      } else {
+         return str.length() <= len ? str : str.substring(0, len);
+      }
+   }
+
+   public static String kbToM(String str) {
+      if (StringUtils.isEmpty(str)) {
+         return "0KB";
+      } else {
+         double result = 0.0D;
+         double mod = 1024.0D;
+
+         try {
+            double strDouble = Double.valueOf(str);
+            if (strDouble > 1024.0D) {
+               result = strDouble / mod;
+               return formatDouble((Double)result, 2) + "MB";
             }
-            if (sizeStr.endsWith(".")) {
-                sizeStr = sizeStr.substring(0, sizeStr.length() - 1);
+         } catch (Exception var7) {
+            logger.error("kb转为M错误：", var7);
+            return str + "KB";
+         }
+
+         return str + "KB";
+      }
+   }
+
+   public static String mToG(String str) {
+      if (StringUtils.isEmpty(str)) {
+         return "0M";
+      } else {
+         double result = 0.0D;
+         double mod = 1024.0D;
+
+         try {
+            double strDouble = Double.valueOf(str);
+            if (strDouble > 1024.0D) {
+               result = strDouble / mod;
+               return formatDouble((Double)result, 2) + "G";
             }
-            sizeStr += " M";
-        } else {
-            sizeStr = Float.toString((float) size / 1024);
-            if (sizeStr.length() > 4) {
-                sizeStr = sizeStr.substring(0, 4);
+         } catch (Exception var7) {
+            logger.error("m转为g错误：", var7);
+            return str + "M";
+         }
+
+         return str + "M";
+      }
+   }
+
+   public static String gToT(String str) {
+      if (StringUtils.isEmpty(str)) {
+         return "0G";
+      } else {
+         double result = 0.0D;
+         double mod = 1024.0D;
+
+         try {
+            double strDouble = Double.valueOf(str);
+            if (strDouble > 1024.0D) {
+               result = strDouble / mod;
+               return formatDouble((Double)result, 1) + "T";
             }
-            if (sizeStr.endsWith(".")) {
-                sizeStr = sizeStr.substring(0, sizeStr.length() - 1);
+         } catch (Exception var7) {
+            logger.error("G转为T错误：", var7);
+            return str + "G";
+         }
+
+         return formatDouble((Double)Double.valueOf(str), 1) + "G";
+      }
+   }
+
+   public static String bytesFormatUnit(String str, String snmpUnit) {
+      if (!StringUtils.isEmpty(str) && !"0".equals(str)) {
+         if (str.indexOf(".") > -1) {
+            str = str.substring(0, str.indexOf("."));
+         }
+
+         try {
+            long bytes = Long.valueOf(str);
+            if (!"byte".equals(snmpUnit)) {
+               bytes *= 1024L;
             }
-            sizeStr += " K";
-        }
-        return sizeStr;
-    }
 
-    public static String formatPath(String pathStr, boolean isEndWithSeparator) {
-        pathStr = formatPath(pathStr);
-        pathStr = pathStr + File.separator;
-        return pathStr;
-    }
-
-    public static String formatPath(String pathStr) {
-        pathStr = pathStr.replace('/', File.separatorChar);
-        pathStr = pathStr.replace('\\', File.separatorChar);
-        if (pathStr.endsWith(File.separator)) {
-            pathStr = pathStr.substring(0, pathStr.length() - 1);
-            pathStr = formatPath(pathStr);
-        }
-        return pathStr;
-    }
-
-
-    /**
-     * 对字串进行处理，防止空字串产生错误
-     *
-     * @param String
-     * @return String 格式化后的字串
-     */
-    public static String formatNullString(String str) {
-        if (str == null || str.trim().equals("")) {
-            str = "";
-        }
-        return str;
-    }
-
-
-    /**
-     * 如果字符串为空，设成默认值
-     *
-     * @param String 字符串
-     * @param String 默认字符串
-     * @return String 格式化后的字串
-     */
-    public static String formatNullString(String str, String defaultStr) {
-        if (str == null || str.trim().equals("")) {
-            str = defaultStr;
-        }
-        return str;
-    }
-
-
-    /**
-     * 判断是否是数字
-     *
-     * @param String 字符串
-     * @return boolean
-     */
-    public static boolean isNumeric(String str) {
-        if (str != null && !"".equals(str) && !str.startsWith("0")) {
-            for (int i = str.length(); --i >= 0; ) {
-                int chr = str.charAt(i);
-                if (chr < 48 || chr > 57)
-                    return false;
+            int k = 1024;
+            String[] sizes = new String[]{"B", "KB", "M", "G", "T", "P", "E", "Z", "Y"};
+            int i = (int)Math.floor(Math.log((double)bytes) / Math.log((double)k));
+            if (i > sizes.length - 1) {
+               i = sizes.length - 1;
             }
-            return true;
-        } else
-            return false;
-    }
 
+            return formatDouble((Double)((double)bytes / Math.pow((double)k, (double)i)), 2) + sizes[i];
+         } catch (Exception var7) {
+            logger.error("bytesFormatUnit错误", var7);
+            return str + "B";
+         }
+      } else {
+         return "0B";
+      }
+   }
 
-    /**
-     * 判断是否是中文
-     *
-     * @param char c
-     * @return boolean
-     */
-    public static boolean isLetter(char c) {
-        int k = 0x80;
-        return c / k == 0 ? true : false;
-    }
+   public static String byteToM(String str, String snmpUnit) {
+      if (StringUtils.isEmpty(str)) {
+         return "0B";
+      } else {
+         double result = 0.0D;
+         double mod = 1024.0D;
 
+         try {
+            double strDouble = Double.valueOf(str);
+            if (!"byte".equals(snmpUnit)) {
+               strDouble *= 1024.0D;
+            }
 
-    /**
-     * 将字符串中的多个空格，替换成一个
-     *
-     * @param str
-     * @return
-     */
-    public static String replaceKg(String str) {
-        Pattern p = Pattern.compile("\\s+");
-        Matcher m = p.matcher(str);
-        return m.replaceAll(" ");
-    }
+            result = strDouble / mod / mod;
+            return formatDouble((Double)result, 2) + "MB";
+         } catch (Exception var8) {
+            logger.error("kb转为M错误：", var8);
+            return str + "KB";
+         }
+      }
+   }
 
-    /**
-     * 根据url截取域名
-     *
-     * @param String url
-     * @return String
-     */
-    public static String getDomainForUrl(String url) {
-        return url.replaceAll("http://([^/|:]+)[/|:].*", "$1");
-    }
+   public static double formatDouble(Double str, int num) {
+      if (str == null) {
+         return 0.0D;
+      } else {
+         BigDecimal b = new BigDecimal(str);
+         double myNum3 = b.setScale(num, 4).doubleValue();
+         return myNum3;
+      }
+   }
 
-    /**
-     * m转为g
-     *
-     * @param str
-     * @return
-     */
-    public static double mToG(String str) {
-        double result = 0;
-        double mod = 1024;
-        if (str.contains("M")) {
-            double f = Double.valueOf(str.replace("M", ""));
-            result = f / mod;
-        } else if (str.contains("K")) {
-            double f = Double.valueOf(str.replace("K", ""));
-            result = (f / mod) / mod;
-        } else if (str.contains("T")) {
-            double f = Double.valueOf(str.replace("T", ""));
-            result = f * 1024;
-        } else if (str.contains("G")) {
-            result = Double.valueOf(str.replace("G", ""));
-        }
-        return formatDouble(result, 2);
-    }
+   public static double formatDouble(String str, int num) {
+      if (StringUtils.isEmpty(str)) {
+         return 0.0D;
+      } else {
+         Double strDou = Double.valueOf(str);
+         BigDecimal b = new BigDecimal(strDou);
+         double myNum3 = b.setScale(num, 4).doubleValue();
+         return myNum3;
+      }
+   }
 
+   public static String toLowerStr(String str) {
+      return StringUtils.isEmpty(str) ? "" : str.toLowerCase();
+   }
 
-    // 按map中的value排序 -- 降序
-    public static List<String> sortMapValueDouble(Map<String, Integer> maps) {
-        List<Map.Entry<String, Integer>> info = new ArrayList<Map.Entry<String, Integer>>(maps.entrySet());
-        List<String> desc = new ArrayList<String>();
-        Collections.sort(info, new DoubleComparator());
-        for (Map.Entry<String, Integer> map : info) {
-            desc.add(map.getKey());
-        }
-        return desc;
-    }
+   public static String haveSqlDanger(String sql, String sqlInKeys) {
+      if (StringUtils.isEmpty(sql)) {
+         return "";
+      } else {
+         sql = sql.toLowerCase();
+         sqlInKeys = sqlInKeys.toLowerCase();
+         String[] sqlinkeys = sqlInKeys.split(",");
+         String[] var3 = sqlinkeys;
+         int var4 = sqlinkeys.length;
 
-    // 自定义比较器：按相似度来排序
-    static class DoubleComparator implements Comparator {
-        public int compare(Object object1, Object object2) {// 实现接口中的方法  
-            Map.Entry<String, Integer> p1 = (Map.Entry<String, Integer>) object1; // 强制转换
-            Map.Entry<String, Integer> p2 = (Map.Entry<String, Integer>) object2;
-            return p2.getValue().compareTo(p1.getValue());
-        }
-    }
+         for(int var5 = 0; var5 < var4; ++var5) {
+            String sqlinkey = var3[var5];
+            if (sql.indexOf(sqlinkey) > -1) {
+               return sqlinkey;
+            }
+         }
 
+         return "";
+      }
+   }
 
-    /**
-     * 格式化double数据，截取小数点后数字
-     *
-     * @param str
-     * @param num
-     * @return
-     */
-    public static double formatDouble(double str, int num) {
-        java.math.BigDecimal b = new java.math.BigDecimal(str);
-        double myNum3 = b.setScale(num, java.math.BigDecimal.ROUND_HALF_UP).doubleValue();
-        return myNum3;
-    }
+   public static String haveBlockDanger(String shell, String linuxBlock, String winBlock) {
+      if (StringUtils.isEmpty(shell)) {
+         return "";
+      } else if (StringUtils.isEmpty(linuxBlock) && StringUtils.isEmpty(winBlock)) {
+         return "";
+      } else {
+         shell = shell.toLowerCase();
+         String[] blocks = linuxBlock.split(",");
+         String[] var4 = blocks;
+         int var5 = blocks.length;
 
-    public static void main(String[] args) {
-        System.out.println(formatDouble(96.36, 1));
-    }
+         int var6;
+         String blockStr;
+         for(var6 = 0; var6 < var5; ++var6) {
+            blockStr = var4[var6];
+            if (shell.indexOf(blockStr) > -1) {
+               return blockStr;
+            }
+         }
 
+         blocks = winBlock.split(",");
+         var4 = blocks;
+         var5 = blocks.length;
+
+         for(var6 = 0; var6 < var5; ++var6) {
+            blockStr = var4[var6];
+            if (shell.indexOf(blockStr) > -1) {
+               return blockStr;
+            }
+         }
+
+         return "";
+      }
+   }
+
+   public static boolean validateExpression(String expression, Object value) {
+      if (!StringUtils.isEmpty(expression) && null != value) {
+         Expression compiledExp = AviatorEvaluator.compile(expression);
+         Map<String, Object> env = new HashMap();
+         env.put("result", value);
+         Boolean result = (Boolean)compiledExp.execute(env);
+         return result;
+      } else {
+         return false;
+      }
+   }
 }

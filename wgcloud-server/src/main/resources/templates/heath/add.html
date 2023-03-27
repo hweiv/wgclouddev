@@ -5,7 +5,7 @@
 
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 <div th:replace="common/chart.html"></div>
 
 <div class="wrapper">
@@ -15,7 +15,7 @@
   <div th:replace="common/aside.html"></div>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper"  style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
@@ -40,9 +40,9 @@
   <div class="col-md-10">
     <div class="card card-primary">
       <div class="card-header">
-        <h3 class="card-title">添加服务接口检测(响应状态码200即为成功)</h3>
+        <h3 class="card-title">添加服务接口（响应状态码200即为成功）</h3>
           <div class=" float-sm-right">
-              <a th:href="@{'/heathMonitor/list'}">返回</a>
+              <a href="javascript:history.back()">返回</a>
           </div>
       </div>
       <!-- /.card-header -->
@@ -51,49 +51,219 @@
             <input type="hidden" name="id" th:value="${heathMonitor.id}"/>
             <div class="card-body">
                 <div class="form-group">
-                    <label for="fromMailName"><font color="red">*</font>服务名称</label>
-                    <input type="text" autocomplete="off"  th:value="${heathMonitor.appName}" class="validate[required,maxSize[50]] form-control" name="appName" id="appName" placeholder="输入应用服务名称">
+                    <label><font color="red">*</font>服务接口名称</label>
+                    <input type="text" autocomplete="off"  th:value="${heathMonitor.appName}" class="validate[required,maxSize[50]] form-control" name="appName" id="appName" placeholder="输入服务接口名称">
                 </div>
                 <div class="form-group">
-                    <label for="fromPwd"><font color="red">*</font>服务接口URL（必须为http，get请求方式，返回状态码为200即为正常）</label>
+                    <label><font color="red">*</font>服务接口URL<span class="text-muted">（URL需为http或https接口）</span></label>
                     <input type="text" autocomplete="off"  th:value="${heathMonitor.heathUrl}" class="validate[required,maxSize[255]] form-control" name="heathUrl" id="heathUrl" placeholder="如http://192.168.1.1:9999/wgcloud/heath">
+                </div>
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>接口请求方式</label></br>
+                    <th:block th:if="${#strings.isEmpty(heathMonitor.method)}" >
+                        <div class="icheck-turquoise d-inline">
+                            <input type="radio"  id="radioPrimary2" name="method" value="GET" checked>
+                            <label for="radioPrimary2"> GET </label>
+                        </div>
+                        <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                            <input type="radio"  id="radioPrimary4" value="POST" name="method" >
+                            <label for="radioPrimary4">POST</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${heathMonitor.method  == 'GET'}">
+                        <div class="icheck-turquoise d-inline">
+                            <input type="radio" id="radioPrimary2" name="method" value="GET" checked>
+                            <label for="radioPrimary2"> GET </label>
+                        </div>
+                        <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                            <input type="radio" id="radioPrimary4" value="POST" name="method" >
+                            <label for="radioPrimary4">POST</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${heathMonitor.method  == 'POST'}">
+                        <div class="icheck-turquoise d-inline">
+                            <input type="radio"   id="radioPrimary2" value="GET"  name="method" >
+                            <label for="radioPrimary2"> GET </label>
+                        </div>
+                        <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                            <input type="radio"  id="radioPrimary4" value="POST"  name="method" checked>
+                            <label for="radioPrimary4">POST</label>
+                        </div>
+                    </th:block>
+                </div>
+                <div class="form-group">
+                    <div class="card card-primary card-tabs">
+                        <div class="card-header p-0 pt-1">
+                            <ul class="nav nav-tabs" id="custom-tabs-one-tab" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" id="custom-tabs-one-home-tab" data-toggle="pill" href="#custom-tabs-one-home" role="tab" aria-controls="custom-tabs-one-home" aria-selected="true">Headers<span th:text="${heathMonitor.headerSize}"></span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="custom-tabs-one-profile-tab" data-toggle="pill" href="#custom-tabs-one-profile" role="tab" aria-controls="custom-tabs-one-profile" aria-selected="false">POST提交Body内容</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" id="custom-tabs-one-messages-tab" data-toggle="pill" href="#custom-tabs-one-messages" role="tab" aria-controls="custom-tabs-one-messages" aria-selected="false">POST提交表单<span th:text="${heathMonitor.formDataSize}"></span></a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="custom-tabs-one-tabContent">
+                                <div class="tab-pane fade show active" id="custom-tabs-one-home" role="tabpanel" aria-labelledby="custom-tabs-one-home-tab">
+                                    <label><font color="red"></font>Header<span class="text-muted">（GET和POST方式都可以添加Header，也可以为空）</span></label>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerKey}" class="validate[maxSize[50]] form-control" name="headerKey" id="headerKey" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerValue}" class="validate[maxSize[500]] form-control" name="headerValue" id="headerValue" placeholder="value"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerKey2}" class="validate[maxSize[50]] form-control" name="headerKey2" id="headerKey2" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerValue2}" class="validate[maxSize[500]] form-control" name="headerValue2" id="headerValue2" placeholder="value"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerKey3}" class="validate[maxSize[50]] form-control" name="headerKey3" id="headerKey3" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerValue3}" class="validate[maxSize[500]] form-control" name="headerValue3" id="headerValue3" placeholder="value"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerKey4}" class="validate[maxSize[50]] form-control" name="headerKey4" id="headerKey4" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerValue4}" class="validate[maxSize[500]] form-control" name="headerValue4" id="headerValue4" placeholder="value"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerKey5}" class="validate[maxSize[50]] form-control" name="headerKey5" id="headerKey5" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.headerValue5}" class="validate[maxSize[500]] form-control" name="headerValue5" id="headerValue5" placeholder="value"></div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="custom-tabs-one-profile" role="tabpanel" aria-labelledby="custom-tabs-one-profile-tab">
+                                    <label><font color="red"></font>POST方式提交Body内容<span class="text-muted">（一般为json字符串，也可以为空）</span><font color="red">编辑时点击下方文本域展示内容</font></label>
+                                    <textarea class="validate[maxSize[2000]] form-control"   name="postStr" id="postStr" th:text="${heathMonitor.postStr}"  placeholder=''></textarea>
+                                </div>
+                                <div class="tab-pane fade" id="custom-tabs-one-messages" role="tabpanel" aria-labelledby="custom-tabs-one-messages-tab">
+                                    <label><font color="red"></font>POST方式提交表单<span class="text-muted">（若填写提交表单，监控就只会使用表单数据，不再使用提交Body内容，也可以为空）</span></label>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formKey}" class="validate[maxSize[50]] form-control" name="formKey" id="formKey" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formValue}" class="validate[maxSize[500]] form-control" name="formValue" id="formValue" placeholder="value"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formKey2}" class="validate[maxSize[50]] form-control" name="formKey2" id="formKey2" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formValue2}" class="validate[maxSize[500]] form-control" name="formValue2" id="formValue2" placeholder="value"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formKey3}" class="validate[maxSize[50]] form-control" name="formKey3" id="formKey3" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formValue3}" class="validate[maxSize[500]] form-control" name="formValue3" id="formValue3" placeholder="value"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formKey4}" class="validate[maxSize[50]] form-control" name="formKey4" id="formKey4" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formValue4}" class="validate[maxSize[500]] form-control" name="formValue4" id="formValue4" placeholder="value"></div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-1"><label class="col-form-label">Key：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formKey5}" class="validate[maxSize[50]] form-control" name="formKey5" id="formKey5" placeholder="key"></div>
+                                        <div class="col-1"><label class="col-form-label">&nbsp;Value：</label></div>
+                                        <div class="col-5"><input type="text" autocomplete="off"  th:value="${heathMonitor.formValue5}" class="validate[maxSize[500]] form-control" name="formValue5" id="formValue5" placeholder="value"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.card -->
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label><font color="red"></font>响应内容需包含的关键字<span class="text-muted">（含此关键字才判定接口正常，否则返回500错误，请尽量用字母数字标识）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${heathMonitor.resKeyword}" class="validate[maxSize[200]] form-control" name="resKeyword" id="resKeyword" placeholder="响应内容需包含的关键字，可以为空">
+                </div>
+                <div class="form-group">
+                    <label><font color="red"></font>响应内容不能包含的关键字<span class="text-muted">（含此关键字则返回500错误，多个关键字用英文逗号隔开，请尽量用字母数字标识）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${heathMonitor.resNoKeyword}" class="validate[maxSize[200]] form-control" name="resNoKeyword" id="resNoKeyword" placeholder="响应内容不能包含的关键字，可以为空">
+                </div>
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>监控状态</label></br>
+                    <th:block th:if="${#strings.isEmpty(heathMonitor.active)}" >
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${heathMonitor.active  == '1'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${heathMonitor.active  == '2'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" value="1"  name="active" >
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2"  name="active" checked>
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
                 </div>
             </div>
             <!-- /.card-body -->
 
             <div class="card-footer">
-                <button type="submit" class="btn btn-primary btn-sm">保存</button>
-                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返回</button>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
             </div>
 
         </form>
-      <!-- /.card-body -->
     </div>
     <!-- /.card -->
 
 
-  </div>
+  </div><!-- /.col-md-10 -->
 
-        </div>
-      </div>
-    </section>
-  </div>
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 
 
   <div th:replace="common/footer.html"></div>
 
 </div>
 <!-- ./wrapper -->
-<link rel="stylesheet" th:href="@{'/static/js/jQuery/validationEngine.jquery.css'}" type="text/css"/>
-<script th:src="@{'/static/js/jQuery/jquery.validationEngine-zh_CN.js'}" type="text/javascript" charset="utf-8"></script>
-<script th:src="@{'/static/js/jQuery/jquery.validationEngine.js'}" type="text/javascript" charset="utf-8"></script>
+<div th:replace="common/codemirror.html"></div>
+<script th:src="@{'/static/js/heath.js?v=3.4.5'}"></script>
 <script th:inline="javascript">
     $(document).ready(function(){
         $("#form1").validationEngine();
+        var editor = CodeMirror.fromTextArea(document.getElementById("postStr"), {
+            lineNumbers: true,
+            styleActiveLine: true,
+            matchBrackets: true,
+            mode: "application/json"
+        });
+        editor.setOption("theme", "dracula");
+        editor.setSize('auto','350px');
     });
-    function goback() {
-        window.location.href = "/wgcloud/heathMonitor/list";
-    }
 </script>
 </body>
 </html>

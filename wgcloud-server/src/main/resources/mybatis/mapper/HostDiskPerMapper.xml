@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wgcloud.mapper.HostDiskPerMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.HostDiskPer">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="DISK_SUM_PER" property="diskSumPer" jdbcType="DOUBLE" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,HOST_NAME, DISK_SUM_PER,CREATE_TIME
+	</sql>
+	
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
+		</if>
+		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+			<if test="_databaseId == 'mysql'">
+				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			</if>
+			<if test="_databaseId == 'postgresql'">
+				<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+			</if>
+			<if test="_databaseId == 'oracle'">
+				<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+			</if>
+		</if>
+	</sql>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO HOST_DISK_PER (ID,HOST_NAME, DISK_SUM_PER,CREATE_TIME)  VALUES
+					(#{item.id},#{item.hostname},#{item.diskSumPer},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO HOST_DISK_PER (ID,HOST_NAME, DISK_SUM_PER,CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.diskSumPer},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM HOST_DISK_PER
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByAccountAndDate"  parameterType="map">
+		DELETE FROM HOST_DISK_PER WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
+	</delete>
+	
+	<delete id="deleteByAccHname"  parameterType="java.util.List">
+			DELETE FROM HOST_DISK_PER WHERE  HOST_NAME  IN
+			<foreach item="item" collection="list" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM HOST_DISK_PER WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		HOST_DISK_PER
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.DiskState">
+		INSERT INTO HOST_DISK_PER
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" > HOST_NAME,</if>
+      		<if test="diskSumPer != null">DISK_SUM_PER,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="diskSumPer != null" >#{diskSumPer},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+	
+	
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM HOST_DISK_PER t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY CREATE_TIME ASC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM HOST_DISK_PER
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY CREATE_TIME ASC
+	</select>
+	
+</mapper>

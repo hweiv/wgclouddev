@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper"  style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active"></li>
+                </ol>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-10">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">编辑成员账号（添加后可登录）</h3>
+          <div class=" float-sm-right">
+              <a href="javascript:history.back()">返回</a>
+          </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+        <form role="form" id="form1" th:action="@{'/accountInfo/save'}">
+            <input type="hidden" name="id" th:value="${accountInfo.id}"/>
+            <div class="card-body">
+                <div class="form-group">
+                    <label><font color="red">*</font>登录账号 <span class="text-muted">（登录账号应该唯一，不能重复，也不能和管理员、只读账号重复）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${accountInfo.account}" class="validate[required,maxSize[30]] form-control" name="account" id="account" placeholder="请输入登录账号">
+                </div>
+                <div th:if="${accountInfo.id == null}" class="form-group">
+                    <label><font color="red">*</font>登录密码 <span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="显示密码" onclick="javascript:showPasswd();" style="cursor:pointer;margin-left: 5px"><i id="eyeSwitch" class="fa fa-eye"></i></span></label>
+                    <input type="password" autocomplete="off"  th:value="${accountInfo.passwd}" class="validate[required,maxSize[30]] form-control" name="passwd" id="passwd" placeholder="请输入登录密码">
+                </div>
+                <div class="form-group">
+                    <label>成员邮箱 <span class="text-muted">（若配置过邮箱告警，系统会自动给该成员发送所属资源的告警邮件）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${accountInfo.email}" class="validate[maxSize[50]] form-control" name="email" id="email" placeholder="请输入登录账号">
+                </div>
+                <div class="form-group">
+                    <label>成员标识 <span class="text-muted">（一般填写第三方用户ID，若配置过告警脚本，脚本中获取第二个参数即是成员标识值，第一个参数即该成员所属资源的告警内容）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${accountInfo.accountKey}" class="validate[maxSize[50]] form-control" name="accountKey" id="accountKey" placeholder="请输入成员标识">
+                </div>
+                <div class="form-group">
+                    <label><font color="red"></font>该账号管理的监控主机<span class="text-muted">（请将该账号管理的主机移到右侧）</span></label>
+                    <div th:replace="common/multiSelectHost.html"></div>
+                </div>
+                <div class="form-group">
+                    <label>备注 </label>
+                    <input type="text" autocomplete="off"  th:value="${accountInfo.remark}" class="validate[maxSize[200]] form-control" name="remark" id="remark" placeholder="请输入备注">
+                </div>
+            </div>
+            <!-- /.card-body -->
+
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
+            </div>
+
+        </form>
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-10 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+<script th:src="@{'/static/js/accountInfo.js?v=3.3.9'}"></script>
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#form1").validationEngine();
+        $('.duallistbox').bootstrapDualListbox({
+            nonSelectedListLabel: '未选监控主机',
+            selectedListLabel: '已选监控主机',
+            filterPlaceHolder: '过滤条件',
+            moveAllLabel: '添加全部',
+            removeAllLabel: '移除全部',
+            infoText: '当前列表共 {0} 项',
+            infoTextEmpty: '列表为空',
+        });
+    });
+
+</script>
+</body>
+</html>

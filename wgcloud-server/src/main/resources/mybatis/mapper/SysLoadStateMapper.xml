@@ -8,12 +8,11 @@
 		<result column="FIVE_LOAD" property="fiveLoad" jdbcType="DOUBLE" />
 		<result column="FIFTEEN_LOAD" property="fifteenLoad" jdbcType="DOUBLE" />
 		<result column="USERS" property="users" jdbcType="CHAR" />
-		<result column="DATE_STR" property="dateStr" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,HOST_NAME, ONE_LOAD, FIVE_LOAD, FIFTEEN_LOAD,USERS,DATE_STR,CREATE_TIME
+		ID,HOST_NAME, ONE_LOAD, FIVE_LOAD, FIFTEEN_LOAD,USERS,CREATE_TIME
 	</sql>
 	
 	<sql id="queryByParams">
@@ -21,9 +20,62 @@
 			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
 		</if>
 		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-			<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			<if test="_databaseId == 'mysql'">
+				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			</if>
+			<if test="_databaseId == 'postgresql'">
+				<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+			</if>
+			<if test="_databaseId == 'oracle'">
+				<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+			</if>
 		</if>
 	</sql>
+
+	<select id="selectMaxByHostname" resultType="com.wgcloud.entity.SysLoadState" parameterType="map">
+		SELECT MAX(ONE_LOAD) as oneLoad,MAX(FIVE_LOAD) as fiveLoad,MAX(FIFTEEN_LOAD) as fifteenLoad
+		FROM SYS_LOAD_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+	<select id="selectAvgByHostname" resultType="com.wgcloud.entity.SysLoadState" parameterType="map">
+		SELECT AVG(ONE_LOAD) as oneLoad,AVG(FIVE_LOAD) as fiveLoad,AVG(FIFTEEN_LOAD) as fifteenLoad
+		FROM SYS_LOAD_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+	<select id="selectMinByHostname" resultType="com.wgcloud.entity.SysLoadState" parameterType="map">
+		SELECT MIN(ONE_LOAD) as oneLoad,MIN(FIVE_LOAD) as fiveLoad,MIN(FIFTEEN_LOAD) as fifteenLoad
+		FROM SYS_LOAD_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+	<select id="selectMaxByDate" resultType="com.wgcloud.entity.SysLoadState" parameterType="map">
+		SELECT MAX(ONE_LOAD) as oneLoad,MAX(FIVE_LOAD) as fiveLoad,MAX(FIFTEEN_LOAD) as fifteenLoad
+		FROM SYS_LOAD_STATE
+		<where>
+			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+				<if test="_databaseId == 'mysql'">
+					<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+				</if>
+				<if test="_databaseId == 'postgresql'">
+					<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+				</if>
+				<if test="_databaseId == 'oracle'">
+					<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+				</if>
+			</if>
+			<if test="account != null">
+				<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+			</if>
+		</where>
+	</select>
 	
 	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
 		SELECT
@@ -40,7 +92,16 @@
 	
 	
 	<delete id="deleteByAccountAndDate"  parameterType="map">
-		DELETE FROM SYS_LOAD_STATE WHERE   <![CDATA[  CREATE_TIME <=#{endTime}]]>
+		DELETE FROM SYS_LOAD_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
 	</delete>
 	
 	<delete id="deleteById" parameterType="java.lang.String">
@@ -61,7 +122,6 @@
       		<if test="fiveLoad != null" >FIVE_LOAD,</if>
       		<if test="fifteenLoad != null" >FIFTEEN_LOAD,</if>
       		<if test="users != null" >USERS,</if>
-      		<if test="dateStr != null" >DATE_STR,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -71,18 +131,28 @@
       		<if test="fiveLoad != null" >#{fiveLoad},</if>
       		<if test="fifteenLoad != null" >#{fifteenLoad},</if>
       		<if test="users != null" >#{users},</if>
-      		<if test="dateStr != null" >#{dateStr},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
 	
 	
 	<insert id="insertList" parameterType="java.util.List" >
-	      INSERT INTO SYS_LOAD_STATE (ID,HOST_NAME,ONE_LOAD,FIVE_LOAD,FIFTEEN_LOAD,USERS,DATE_STR,CREATE_TIME)  VALUES
-	      <foreach collection="list" item="item" index="index" separator="," >  
-	        (#{item.id},#{item.hostname},#{item.oneLoad},#{item.fiveLoad},#{item.fifteenLoad},#{item.users},
-	        #{item.dateStr},#{item.createTime})  
-	      </foreach>
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO SYS_LOAD_STATE (ID,HOST_NAME,ONE_LOAD,FIVE_LOAD,FIFTEEN_LOAD,USERS,CREATE_TIME)  VALUES
+					(#{item.id},#{item.hostname},#{item.oneLoad},#{item.fiveLoad},#{item.fifteenLoad},#{item.users},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO SYS_LOAD_STATE (ID,HOST_NAME,ONE_LOAD,FIVE_LOAD,FIFTEEN_LOAD,USERS,CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.oneLoad},#{item.fiveLoad},#{item.fifteenLoad},#{item.users},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
 	 </insert>
 	
 	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
@@ -102,7 +172,14 @@
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		 ORDER BY CREATE_TIME DESC
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</when>
+			<otherwise>
+				ORDER BY CREATE_TIME DESC
+			</otherwise>
+		</choose>
 	</select>
 	
 </mapper>

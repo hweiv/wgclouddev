@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper"  style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active"></li>
+                </ol>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-10">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">修改成员账号密码</h3>
+          <div class=" float-sm-right">
+              <a href="javascript:history.back()">返回</a>
+          </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+        <form role="form" id="form1" th:action="@{'/accountInfo/savePasswd'}">
+            <input type="hidden" name="id" th:value="${accountInfo.id}"/>
+            <input type="hidden" name="account" th:value="${accountInfo.account}"/>
+            <input type="hidden" name="remark" th:value="${accountInfo.remark}"/>
+            <div class="card-body">
+                <div class="form-group">
+                    <label><font color="red">*</font>登录新密码 <span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="显示密码" onclick="javascript:showPasswd();" style="cursor:pointer;margin-left: 5px"><i id="eyeSwitch" class="fa fa-eye"></i></span></label>
+                    <input type="password" autocomplete="off"  value="" class="validate[required,maxSize[30]] form-control" name="passwd" id="passwd" placeholder="请输入新的登录密码">
+                </div>
+            </div>
+            <!-- /.card-body -->
+
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
+            </div>
+
+        </form>
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-10 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+<script th:src="@{'/static/js/accountInfo.js?v=3.3.9'}"></script>
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#form1").validationEngine();
+    });
+
+</script>
+</body>
+</html>

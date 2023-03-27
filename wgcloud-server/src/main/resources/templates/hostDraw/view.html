@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper" style="font-size:0.90rem">
+
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+
+                        <h5 class="m-0 text-dark">
+                           <span  th:text="${systemInfo.hostname}"></span>
+                            <th:block th:if="${systemInfo.remark ne '' && systemInfo.remark ne null}">
+                                (备注：<span th:text="${systemInfo.remark}"></span>)
+                            </th:block>
+                            ，<small  style="background: #4be69d;" class="badge badge-danger" title="更新时间"><i class="far fa-clock" ></i> <span th:text="${#dates.format(systemInfo.createTime,'yyyy-MM-dd HH:mm:ss')}">10 Feb. 2014</span></small>
+                        </h5>
+
+                    </div><!-- /.col -->
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="javascript:history.back()">返回</a></li>
+                        </ol>
+                    </div><!-- /.col -->
+                </div><!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+
+            <div class="row">
+                <div class="col-12">
+
+                    <div class="callout callout-info">
+                        <h6><i class="fas fa-info"></i> <strong>系统信息</strong>:</h6>
+                        <div><strong>主机名：</strong><span th:text="${systemInfo.hostnameExt}"></span>，<strong>系统描述：</strong><span th:text="${systemInfo.platForm}"></span>，<strong>版本：</strong><span th:text="${systemInfo.platformVersion}"></span>，<strong>cpu核数：</strong><span th:text="${systemInfo.cpuCoreNum}"></span>
+                            ，<strong>cpu型号：</strong><span th:text="${systemInfo.cpuXh}"></span> ，<strong>运行进程数量：</strong><span th:text="${systemInfo.procs}"></span>，<strong>物理总内存：</strong><span th:text="${systemInfo.totalMem}"></span>
+                            ，<strong>交换区总内存：</strong><span th:text="${systemInfo.totalSwapMem}"></span>，<strong>交换区内存已使用：</strong><span th:text="${systemInfo.swapMemPer}"></span>%
+                            ，<strong>启动时间：</strong><span th:text="${systemInfo.bootTimeStr}"></span>，<strong>运行时间：</strong><span th:text="${systemInfo.uptimeStr}"></span>
+                            ，<strong>累计接收流量：</strong><span th:text="${systemInfo.bytesRecv}+'G'"></span>，<strong>累计发送流量：</strong><span th:text="${systemInfo.bytesSent}+'G'"></span>
+                            ，<strong>agent版本：</strong><span th:text="${systemInfo.agentVer}"></span>，<strong>agent上报时间(秒)：</strong><span th:text="${systemInfo.submitSeconds}"></span>
+                            ，<strong th:if="${systemInfo.account ne '' && systemInfo.account ne null}">用户账号：</strong><span th:text="${systemInfo.account}"></span></div>
+                    </div>
+                </div></div>
+
+            <div th:replace="common/cpuTemperatures.html"></div>
+
+            <!-- Info boxes -->
+            <div class="row">
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-info elevation-1"><i class="fa fa-microchip"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">当前CPU使用率</span>
+                            <span class="info-box-number"><span th:text="${systemInfo.cpuPer}">10</span><small>%</small>
+                </span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+                </div>
+                <!-- /.col -->
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-danger elevation-1"><i class="fa fa-memory"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">当前内存使用率</span>
+                            <span class="info-box-number"><span th:text="${systemInfo.memPer}">41,410</span><small>%</small></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+                </div>
+                <!-- /.col -->
+
+                <!-- fix for small devices only -->
+                <div class="clearfix hidden-md-up"></div>
+
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-success elevation-1"><i class="fa fa-ethernet"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">当前主机连接数量</span>
+                            <span class="info-box-number"><span th:text="${systemInfo.netConnections}"></span></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+                </div>
+                <!-- /.col -->
+                <div class="col-12 col-sm-6 col-md-3">
+                    <div class="info-box mb-3">
+                        <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-database"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">当前所有磁盘总使用率%</span>
+                            <span class="info-box-number"><span th:text="${systemInfo.diskPer}"></span></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+
+            <!-- Main row -->
+            <div class="row">
+                <!-- Left col -->
+                <div class="col-md-8">
+                    <!-- MAP & BOX PANE -->
+                    <!-- TABLE: LATEST ORDERS -->
+                    <div class="card">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title"><strong>系统指标</strong></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            <table class="table m-0 table-striped">
+                                <thead>
+                                <tr>
+                                    <th>指标</th>
+                                    <th>当前值</th>
+                                    <th>最近7天最低</th>
+                                    <th>最近7天平均</th>
+                                    <th>最近7天最高</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>系统负载1分钟</td>
+                                    <td><span class="badge badge-success"  th:text="${sysLoadState.oneLoad}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${minOneLoad}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${avgOneLoad}">Shipped</span></td>
+                                    <td><span class="badge badge-danger"  th:text="${maxOneLoad}">Shipped</span></td>
+                                </tr>
+                                <tr>
+                                    <td>系统负载5分钟</td>
+                                    <td><span class="badge badge-success" th:text="${sysLoadState.fiveLoad}">Pending</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${minFiveLoad}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${avgFiveLoad}">Shipped</span></td>
+                                    <td><span class="badge badge-danger"  th:text="${maxFiveLoad}">Shipped</span></td>
+                                </tr>
+                                <tr>
+                                    <td>系统负载15分钟</td>
+                                    <td><span class="badge badge-success"  th:text="${sysLoadState.fifteenLoad}">Delivered</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${minFifteenLoad}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${avgFifteenLoad}">Shipped</span></td>
+                                    <td><span class="badge badge-danger"  th:text="${maxFifteenLoad}">Shipped</span></td>
+                                </tr>
+                                <tr>
+                                    <td>下行传输速率</td>
+                                    <td><span class="badge badge-info" th:text="${netIoState.rxbyt}">Processing</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${minRxbyt}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${avgRxbyt}">Shipped</span></td>
+                                    <td><span class="badge badge-danger"  th:text="${maxRxbyt}">Shipped</span></td>
+                                </tr>
+                                <tr>
+                                    <td>上行传输速率</td>
+                                    <td><span class="badge badge-info" th:text="${netIoState.txbyt}">Pending</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${minTxbyt}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${avgTxbyt}">Shipped</span></td>
+                                    <td><span class="badge badge-danger"  th:text="${maxTxbyt}">Shipped</span></td>
+                                </tr>
+                                <tr>
+                                    <td>网络接收，包数/秒</td>
+                                    <td><span class="badge badge-info" th:text="${netIoState.rxpck}">Delivered</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${minRxpck}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${avgRxpck}">Shipped</span></td>
+                                    <td><span class="badge badge-danger"  th:text="${maxRxpck}">Shipped</span></td>
+                                </tr>
+                                <tr>
+                                    <td>网络发送，包数/秒</td>
+                                    <td><span class="badge badge-info" th:text="${netIoState.txpck}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${minTxpck}">Shipped</span></td>
+                                    <td><span class="badge bg-primary"  th:text="${avgTxpck}">Shipped</span></td>
+                                    <td><span class="badge badge-danger"  th:text="${maxTxpck}">Shipped</span></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                        <div class="card-footer clearfix">
+                            <button type="button"  th:onclick="viewChart([[${systemInfo.id}]])"  class="btn btn-sm btn-info float-left">查看图表</button>
+                        </div>
+                        <!-- /.card-footer -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+
+                <div class="col-md-4">
+                    <!-- Info Boxes Style 2 -->
+                    <div class="info-box mb-3 bg-warning">
+                        <span class="info-box-icon"><i class="fa fa-microchip"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">最近7天cpu使用率</span>
+                            <span class="info-box-number">最高<span  th:text="${maxCpuState}"></span><small>%</small>，平均<span  th:text="${avgCpuState}"></span><small>%</small>，最低<span  th:text="${minCpuState}"></span><small>%</small></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+                    <div class="info-box mb-3 bg-success">
+                        <span class="info-box-icon"><i class="fa fa-memory"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">最近7天内存使用率</span>
+                            <span class="info-box-number" >最高<span th:text="${maxMemState}"></span><small>%</small>，平均<span th:text="${avgMemState}"></span><small>%</small>，最低<span th:text="${minMemState}"></span><small>%</small></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+                    <div class="info-box mb-3 bg-danger">
+                        <span class="info-box-icon"><i class="fas fa-cloud-download-alt"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">最近7天下线次数</span>
+                            <span class="info-box-number"  th:text="${hostDownSize}"></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+                    <div class="info-box mb-3 bg-info">
+                        <span class="info-box-icon"><i class="far fa-clock"></i></span>
+                        <div class="info-box-content">
+                            <span class="info-box-text">上报数据频率(秒)</span>
+                            <span class="info-box-number" th:text="${systemInfo.submitSeconds}"></span>
+                        </div>
+                        <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+
+
+                </div>
+                <!-- /.col -->
+            </div>
+            <!-- /.row -->
+
+            <!-- Main row -->
+            <div class="row">
+                <!-- Left col -->
+                <div class="col-md-12">
+                    <!-- MAP & BOX PANE -->
+                    <!-- TABLE: LATEST ORDERS -->
+                    <div class="card">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title"><strong>磁盘空间信息</strong></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            <div th:replace="common/disk.html"></div>
+                        </div>
+                        <!-- /.card-body -->
+
+                        <!-- /.card-footer -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+
+            </div>
+            <!-- /.row -->
+
+            <div th:if="${not #lists.isEmpty(deskIoList)}">
+            <!-- Main row -->
+            <div class="row">
+                <!-- Left col -->
+                <div class="col-md-12">
+                    <!-- MAP & BOX PANE -->
+                    <!-- TABLE: LATEST ORDERS -->
+                    <div class="card">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title"><strong>磁盘IO信息</strong></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            <div th:replace="common/deskio.html"></div>
+                        </div>
+                        <!-- /.card-body -->
+
+                        <!-- /.card-footer -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+
+            </div>
+            <!-- /.row -->
+            </div>
+
+            <div th:if="${not #lists.isEmpty(diskSmartList)}">
+            <!-- Main row -->
+            <div class="row">
+                <!-- Left col -->
+                <div class="col-md-12">
+                    <!-- MAP & BOX PANE -->
+                    <!-- TABLE: LATEST ORDERS -->
+                    <div class="card">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title"><strong>磁盘SMART信息</strong></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            <div th:replace="common/disksmart.html"></div>
+                        </div>
+                        <!-- /.card-body -->
+                        <!-- /.card-footer -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+
+            </div>
+            <!-- /.row -->
+            </div>
+
+
+            <div th:if="${not #lists.isEmpty(appInfoList)}">
+            <!-- Main row -->
+            <div class="row">
+                <!-- Left col -->
+                <div class="col-md-12">
+                    <!-- MAP & BOX PANE -->
+                    <!-- TABLE: LATEST ORDERS -->
+                    <div class="card">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title"><strong>进程列表</strong></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            <table class="table m-0 table-striped">
+                                <thead>
+                                <tr>
+                                    <th style="width: 80px">序号</th>
+                                    <th>进程名称</th>
+                                    <th>PID</th>
+                                    <th>内存使用率%</th>
+                                    <th>CPU使用率%</th>
+                                    <th>启动时间</th>
+                                    <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="从磁盘累计读取数据">读取</th>
+                                    <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="从磁盘累计写入数据">写入</th>
+                                    <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="进程当前使用的线程数量">线程数</th>
+                                    <th>监控状态</th>
+                                    <th  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="若已下线，显示最后在线时间，但监控仍在继续">更新时间</th>
+                                    <th th:if="${application.hostGroup == 'true'}">标签</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <th:block th:each="item,iterStat : ${appInfoList}">
+                                    <tr>
+                                        <td th:text="${iterStat.index+1}">1</td>
+                                            <th:block th:if="${item.state  == '2'}">
+                                                <td title="可能已下线"  ><span class="badge bg-danger"  th:text="${item.appName}"></span>
+                                            </th:block>
+                                            <th:block th:if="${item.state  != '2'}">
+                                                <td><span   th:text="${item.appName}"></span>
+                                            </th:block>
+                                        </td>
+                                        <td th:text="${item.gatherPid}"></td>
+                                        <td>
+                                            <th:block th:if="${item.memPer >= 90}">
+                                                <span class="badge bg-danger" th:text="${item.memPer}"></span>
+                                            </th:block>
+                                            <th:block th:if="${item.memPer < 90 && item.memPer >= 70  }">
+                                                <span class="badge bg-warning" th:text="${item.memPer}"></span>
+                                            </th:block>
+                                            <th:block th:if="${item.memPer < 70  }">
+                                                <span class="badge bg-primary" th:text="${item.memPer}"></span>
+                                            </th:block>
+                                        </td>
+                                        <td>
+                                            <th:block th:if="${item.cpuPer >= 90}">
+                                                <span class="badge bg-danger" th:text="${item.cpuPer}"></span>
+                                            </th:block>
+                                            <th:block th:if="${item.cpuPer < 90 && item.cpuPer >= 70  }">
+                                                <span class="badge bg-warning" th:text="${item.cpuPer}"></span>
+                                            </th:block>
+                                            <th:block th:if="${item.cpuPer < 70  }">
+                                                <span class="badge bg-primary" th:text="${item.cpuPer}"></span>
+                                            </th:block>
+                                        </td>
+                                        <td th:text="${item.appTimes}"></td>
+                                        <td th:text="${item.readBytes}"></td>
+                                        <td th:text="${item.writesBytes}"></td>
+                                        <td th:text="${item.threadsNum}"></td>
+                                        <td>
+                                            <th:block th:if="${item.active  == '1'}">
+                                                <span class="badge bg-primary">监控中</span>
+                                            </th:block>
+                                            <th:block th:if="${item.active  != '1'}">
+                                                <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                                            </th:block>
+                                        </td>
+                                        <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+                                        <td th:text="${item.groupId}" th:if="${application.hostGroup == 'true'}"></td>
+                                        <td>
+                                            <button type="button"  th:onclick="viewAppInfo([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">图表</button></td>
+                                    </tr>
+                                </th:block>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                        <!-- /.card-footer -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+
+            </div>
+            <!-- /.row -->
+            </div>
+
+
+            <div th:if="${not #lists.isEmpty(portInfoList)}">
+            <!-- Main row -->
+            <div class="row">
+                <!-- Left col -->
+                <div class="col-md-12">
+                    <!-- MAP & BOX PANE -->
+                    <!-- TABLE: LATEST ORDERS -->
+                    <div class="card">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title"><strong>端口监控列表</strong></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            <table class="table m-0 table-striped">
+                                <thead>
+                                <tr>
+                                    <th style="width: 80px">序号</th>
+                                    <th>Telnet IP</th>
+                                    <th>Telnet端口</th>
+                                    <th>名称</th>
+                                    <th>端口状态</th>
+                                    <th>监控状态</th>
+                                    <th>更新时间</th>
+                                    <th th:if="${application.hostGroup == 'true'}">标签</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <th:block th:each="item,iterStat : ${portInfoList}">
+                                    <tr>
+                                        <td th:text="${iterStat.index+1}">1</td>
+                                        <td data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.telnetIp}" th:text="${#strings.abbreviate(item.telnetIp,60)}">Update software</td>
+                                        <th:block th:if="${item.state  == '2'}">
+                                            <td title="可能已下线"><span class="badge bg-danger"  th:text="${item.port}"></span>
+                                        </th:block>
+                                        <th:block th:if="${item.state  != '2'}">
+                                            <td><span   th:text="${item.port}"></span>
+                                        </th:block>
+                                        </td>
+                                        <td th:text="${item.portName}">Update software</td>
+                                        <td>
+                                            <th:block th:if="${item.state  == '2'}">
+                                                <span class="badge bg-danger">失败</span>
+                                            </th:block>
+                                            <th:block th:if="${item.state  != '2'}">
+                                                <span  class="badge bg-primary">正常</span>
+                                            </th:block>
+                                        </td>
+                                        <td>
+                                            <th:block th:if="${item.active  == '1'}">
+                                                <span class="badge bg-primary">监控中</span>
+                                            </th:block>
+                                            <th:block th:if="${item.active  == '2'}">
+                                                <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                                            </th:block>
+                                        </td>
+                                        <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+                                        <td th:text="${item.groupId}" th:if="${application.hostGroup == 'true'}"></td>
+                                    </tr>
+                                </th:block>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+
+                        <!-- /.card-footer -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+
+            </div>
+            <!-- /.row -->
+            </div>
+
+
+            <div th:if="${not #lists.isEmpty(fileWarnInfoList)}">
+            <!-- Main row -->
+            <div class="row">
+                <!-- Left col -->
+                <div class="col-md-12">
+                    <!-- MAP & BOX PANE -->
+                    <!-- TABLE: LATEST ORDERS -->
+                    <div class="card">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title"><strong>日志监控列表</strong></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            <table class="table m-0 table-striped">
+                                <thead>
+                                <tr>
+                                    <th style="width: 80px">序号</th>
+                                    <th>日志文件</th>
+                                    <th>告警记录</th>
+                                    <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="日志文件的体积大小">体积</th>
+                                    <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="最后扫描日志文件结束的行数">行数</th>
+                                    <th>监控状态</th>
+                                    <th>更新时间</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <th:block th:each="item,iterStat : ${fileWarnInfoList}">
+                                    <tr>
+                                        <td th:text="${iterStat.index+1}">1</td>
+                                        <td data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.filePath}" th:text="${#strings.abbreviate(item.filePath,60)}">Update software</td>
+                                        <td th:onclick="stateList([[${item.id}]])" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="'点击查看告警记录，告警关键字：'+${item.warnChars}" style="cursor: pointer"><span class="badge bg-danger" th:text="${item.warnDatas}"></span></td>
+                                        <td th:text="${item.fileSize}">Update software</td>
+                                        <td th:text="${item.warnRows}">Update software</td>
+                                        <td>
+                                            <th:block th:if="${item.active  == '1'}">
+                                                <span class="badge bg-primary">监控中</span>
+                                            </th:block>
+                                            <th:block th:if="${item.active  != '1'}">
+                                                <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                                            </th:block>
+                                        </td>
+                                        <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+                                        <td>
+                                            <button type="button"  th:onclick="viewFileWarnInfo([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">查看</button>
+                                        </td>
+                                    </tr>
+                                </th:block>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                        <!-- /.card-footer -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+
+            </div>
+            <!-- /.row -->
+            </div>
+
+
+            <div th:if="${not #lists.isEmpty(dockerInfoList)}">
+            <!-- Main row -->
+            <div class="row">
+                <!-- Left col -->
+                <div class="col-md-12">
+                    <!-- MAP & BOX PANE -->
+                    <!-- TABLE: LATEST ORDERS -->
+                    <div class="card">
+                        <div class="card-header border-transparent">
+                            <h3 class="card-title"><strong>DOCKER容器监控列表</strong></h3>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body p-0">
+                            <table class="table m-0 table-striped">
+                                <thead>
+                                <tr>
+                                    <th style="width: 80px">序号</th>
+                                    <th>DOCKER名称</th>
+                                    <th>内存使用M</th>
+                                    <th>容器NAMES</th>
+                                    <th>创建时间</th>
+                                    <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="容器中所有文件的总大小(以MB为单位)">容器大小</th>
+                                    <th>容器端口</th>
+                                    <th>监控状态</th>
+                                    <th>更新时间</th>
+                                    <th th:if="${application.hostGroup == 'true'}">标签</th>
+                                    <th>操作</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <th:block th:each="item,iterStat : ${dockerInfoList}">
+                                    <tr>
+                                        <td th:text="${iterStat.index+1}">1</td>
+                                            <th:block th:if="${item.state  == '2'}">
+                                                <td title="可能已下线" ><span  class="badge bg-danger"  th:text="${item.dockerName}"></span>
+                                            </th:block>
+                                            <th:block th:if="${item.state  != '2'}">
+                                                <td><span   th:text="${item.dockerName}"></span>
+                                            </th:block>
+                                        </td>
+                                        <td th:text="${item.memPer}">Update software</td>
+                                        <td th:text="${item.gatherDockerNames}"></td>
+                                        <td th:text="${item.dockerCreated}"></td>
+                                        <td th:text="${item.dockerSize}+'M'"></td>
+                                        <td data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.dockerPort}"  th:text="${#strings.abbreviate(item.dockerPort,40)}"></td>
+                                        <td>
+                                            <th:block th:if="${item.active  == '1'}">
+                                                <span class="badge bg-primary">监控中</span>
+                                            </th:block>
+                                            <th:block th:if="${item.active  != '1'}">
+                                                <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                                            </th:block>
+                                        </td>
+                                        <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+                                        <td th:text="${item.groupId}" th:if="${application.hostGroup == 'true'}"></td>
+                                        <td>
+                                            <button type="button"  th:onclick="viewDocker([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">图表</button></td>
+                                    </tr>
+                                </th:block>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+
+                        <!-- /.card-footer -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+                <!-- /.col -->
+
+            </div>
+            <!-- /.row -->
+            </div>
+
+
+            <div th:if="${not #lists.isEmpty(fileSafeInfoList)}">
+                <!-- Main row -->
+                <div class="row">
+                    <!-- Left col -->
+                    <div class="col-md-12">
+                        <!-- MAP & BOX PANE -->
+                        <!-- TABLE: LATEST ORDERS -->
+                        <div class="card">
+                            <div class="card-header border-transparent">
+                                <h3 class="card-title"><strong>文件防篡改监控列表</strong></h3>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body p-0">
+                                <table class="table m-0 table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 80px">序号</th>
+                                        <th>文件名称</th>
+                                        <th>文件路径</th>
+                                        <th>文件状态</th>
+                                        <th>监控状态</th>
+                                        <th>更新时间</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <th:block th:each="item,iterStat : ${fileSafeInfoList}">
+                                        <tr>
+                                            <td th:text="${iterStat.index+1}">1</td>
+                                            <th:block th:if="${item.state  == '2'}">
+                                                <td><span data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="文件可能已经被篡改，请检查" class="badge bg-danger"  th:text="${item.fileName}"></span>
+                                            </th:block>
+                                            <th:block th:if="${item.state  != '2'}">
+                                                <td><span   th:text="${item.fileName}"></span>
+                                            </th:block>
+                                            </td>
+                                            <td data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.filePath}"  th:text="${#strings.abbreviate(item.filePath,60)}">Update software</td>
+                                            <td>
+                                                <th:block th:if="${item.state  == '2'}">
+                                                    <span class="badge bg-danger">失败</span>
+                                                </th:block>
+                                                <th:block th:if="${item.state  != '2'}">
+                                                    <span  class="badge bg-primary">正常</span>
+                                                </th:block>
+                                            </td>
+
+                                            <td>
+                                                <th:block th:if="${item.active  == '1'}">
+                                                    <span class="badge bg-primary">监控中</span>
+                                                </th:block>
+                                                <th:block th:if="${item.active  == '2'}">
+                                                    <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                                                </th:block>
+                                            </td>
+                                            <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+                                        </tr>
+                                    </th:block>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.card-body -->
+
+                            <!-- /.card-footer -->
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                    <!-- /.col -->
+
+                </div>
+                <!-- /.row -->
+            </div>
+
+
+            <div th:if="${not #lists.isEmpty(customInfoList)}">
+                <!-- Main row -->
+                <div class="row">
+                    <!-- Left col -->
+                    <div class="col-md-12">
+                        <!-- MAP & BOX PANE -->
+                        <!-- TABLE: LATEST ORDERS -->
+                        <div class="card">
+                            <div class="card-header border-transparent">
+                                <h3 class="card-title"><strong>自定义监控项列表</strong></h3>
+                            </div>
+                            <!-- /.card-header -->
+                            <div class="card-body p-0">
+                                <table class="table m-0 table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 80px">序号</th>
+                                        <th>监控项名称</th>
+                                        <th>监控项指令</th>
+                                        <th>告警表达式</th>
+                                        <th>结果值</th>
+                                        <th>监控项状态</th>
+                                        <th>监控状态</th>
+                                        <th>更新时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <th:block th:each="item,iterStat : ${customInfoList}">
+                                        <tr>
+                                            <td th:text="${iterStat.index+1}">1</td>
+                                            <td th:text="${item.customName}"></td>
+                                            <td data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.customShell}"><code class="highlighter-rouge"  style="font-size:100%" th:text="${#strings.abbreviate(item.customShell,50)}">result</code></td>
+                                            <td  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.resultExp}"><code class="highlighter-rouge"  style="font-size:100%" th:text="${#strings.abbreviate(item.resultExp,50)}">result</code></td>
+                                            <td th:text="${item.customValue}"></td>
+                                            <td>
+                                                <th:block th:if="${item.state == '2'}">
+                                                    <span class="badge bg-danger">失败</span>
+                                                </th:block>
+                                                <th:block th:if="${item.state == '1'}">
+                                                    <span class="badge  bg-primary" >正常</span>
+                                                </th:block>
+                                            </td>
+                                            <td>
+                                                <th:block th:if="${item.active  == '1'}">
+                                                    <span class="badge bg-primary">监控中</span>
+                                                </th:block>
+                                                <th:block th:if="${item.active  != '1'}">
+                                                    <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                                                </th:block>
+                                            </td>
+                                            <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+                                            <td>
+                                                <button type="button"  th:onclick="viewCustomInfo([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">图表</button>
+                                            </td>
+                                        </tr>
+                                    </th:block>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.card-body -->
+
+                            <!-- /.card-footer -->
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                    <!-- /.col -->
+
+                </div>
+                <!-- /.row -->
+            </div>
+
+
+        </div><!--/. container-fluid -->
+    </section>
+    <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<script th:src="@{'/static/js/draw.js?v=3.4.1'}"></script>
+
+</body>
+</html>

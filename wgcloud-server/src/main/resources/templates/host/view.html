@@ -3,9 +3,8 @@
 <head>
   <div  th:replace="common/header.html"></div>
 
-
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 <div th:replace="common/chart.html"></div>
 
 <div class="wrapper">
@@ -15,7 +14,7 @@
   <div th:replace="common/aside.html"></div>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper"  style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
@@ -40,9 +39,12 @@
   <div class="col-md-12">
     <div class="card card-primary">
       <div class="card-header">
-        <h3 class="card-title" th:text="${systemInfo.hostname}">主机信息</h3>
+        <h3 class="card-title" ><span th:text="${systemInfo.hostname}"></span>
+            <th:block th:if="${systemInfo.remark ne '' && systemInfo.remark ne null}">
+                (备注：<span th:text="${systemInfo.remark}"></span>)
+            </th:block></h3>
           <div class=" float-sm-right">
-              <a th:href="@{'/dash/systemInfoList'}">返回</a>
+              <a href="javascript:history.back()">返回</a>
           </div>
       </div>
       <!-- /.card-header -->
@@ -50,56 +52,68 @@
       <form role="form">
         <div class="card-body">
           <div class="form-group">
-            <label for="exampleInputEmail1">系统信息</label>
-              <div>系统描述：<span th:text="${systemInfo.versionDetail}"></span>，版本：<span th:text="${systemInfo.version}"></span>，cpu核数：<span th:text="${systemInfo.cpuCoreNum}"></span>
-                  ，cpu型号：<span th:text="${systemInfo.cpuXh}"></span></div>
+            <label>系统信息</label>
+              <div><strong>主机名：</strong><span th:text="${systemInfo.hostnameExt}"></span>，<strong>系统描述：</strong><span th:text="${systemInfo.platForm}"></span>，<strong>版本：</strong><span th:text="${systemInfo.platformVersion}"></span>，<strong>cpu核数：</strong><span th:text="${systemInfo.cpuCoreNum}"></span>
+                  ，<strong>cpu型号：</strong><span th:text="${systemInfo.cpuXh}"></span> ，<strong>运行进程数量：</strong><span th:text="${systemInfo.procs}"></span>，<strong>物理总内存：</strong><span th:text="${systemInfo.totalMem}"></span>
+                  ，<strong>交换区总内存：</strong><span th:text="${systemInfo.totalSwapMem}"></span>，<strong>交换区内存已使用：</strong><span th:text="${systemInfo.swapMemPer}"></span>%
+                  ，<strong>启动时间：</strong><span th:text="${systemInfo.bootTimeStr}"></span>，<strong>运行时间：</strong><span th:text="${systemInfo.uptimeStr}"></span>，<strong>备注：</strong><span th:text="${systemInfo.remark}"></span>
+                  ，<strong>累计接收流量：</strong><span th:text="${systemInfo.bytesRecv}+'G'"></span>，<strong>累计发送流量：</strong><span th:text="${systemInfo.bytesSent}+'G'"></span>
+                  ，<strong>agent版本：</strong><span th:text="${systemInfo.agentVer}"></span>，<strong>agent上报时间(秒)：</strong><span th:text="${systemInfo.submitSeconds}"></span>
+                  ，<strong th:if="${systemInfo.account ne '' && systemInfo.account ne null}">用户账号：</strong><span th:text="${systemInfo.account}"></span></div>
           </div>
         </div>
         <!-- /.card-body -->
       </form>
       <!-- /.card-body -->
 
-        <label style="margin-left: .9rem">磁盘信息</label>
+        <div th:replace="common/cpuTemperatures.html"></div>
+
+
+        <label style="margin-left: .9rem">磁盘空间信息</label>
         <div class="row">
             <div class="col-12 table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>盘符名称</th>
-                        <th>磁盘空间</th>
-                        <th>已使用</th>
-                        <th>可用</th>
-                        <th>已使用%</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <th:block th:each="item : ${deskStateList}">
-                        <tr>
-                            <td th:text="${item.fileSystem}"></td>
-                            <td th:text="${item.size}"></td>
-                            <td th:text="${item.used}"></td>
-                            <td th:text="${item.avail}"></td>
-                            <td th:text="${item.usePer}"></td>
-                        </tr>
-                    </th:block>
-
-                    </tbody>
-                </table>
+                <div th:replace="common/disk.html"></div>
             </div>
             <!-- /.col -->
         </div>
+
+        <div th:if="${not #lists.isEmpty(deskIoList)}">
+            <label style="margin-left: .9rem">磁盘IO信息</label>
+            <div class="row">
+                <div class="col-12 table-responsive">
+                    <div th:replace="common/deskio.html"></div>
+                </div>
+                <!-- /.col -->
+            </div>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(diskSmartList)}">
+            <label style="margin-left: .9rem">磁盘SMART信息<span class="text-muted">（此功能需要在监控主机安装smartmontools，不支持虚拟机）</span></label>
+            <div class="row">
+                <div class="col-12 table-responsive">
+                    <div th:replace="common/disksmart.html"></div>
+                </div>
+                <!-- /.col -->
+            </div>
+        </div>
+
+        <label style="margin-left: .9rem">磁盘空间总使用率%<span class="text-muted">（统计时间截至到昨天）</span>
+            <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${hostDiskPerSubtitleDto.maxValue}">18</span></span>
+            平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${hostDiskPerSubtitleDto.avgValue}">0</span></span>
+            最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${hostDiskPerSubtitleDto.minValue}">17</span></span></label>
+        <div id="hostDiskPerJson"></div>
 
 
     </div>
     <!-- /.card -->
 
 
-  </div>
+  </div><!-- /.col-md-12 -->
 
-        </div>
-      </div>
-    </section>
-  </div>
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 
 
   <div th:replace="common/footer.html"></div>
@@ -108,7 +122,41 @@
 <!-- ./wrapper -->
 
 <script th:src="@{'/static/js/host.js'}"></script>
+<script th:inline="javascript">
+    var hostDiskPerJson =[[${hostDiskPerList}]];
+    $(function() {
+        var chart = new G2.Chart({
+            container: 'hostDiskPerJson',
+            forceFit: true,
+            height: 400,
+            padding: [30, 40, 70, 40]
+        });
 
+        chart.axis('dateStr', {
+            label: {
+                textStyle: {
+                    fill: '#aaaaaa'
+                }
+            }
+        });
+        chart.tooltip({
+            crosshairs: false
+        });
+        chart.legend({
+            position: 'top-center'
+        });
+
+        chart.source(hostDiskPerJson, {
+            diskSumPer: {
+                alias: '使用率%'
+            }
+        });
+        chart.scale('dateStr', {tickCount: 12, alias: '时间'});
+        chart.area().position('dateStr*diskSumPer').color('#1890ff');
+        // chart.line().position('dateStr*diskSumPer').color('#1890ff');
+        chart.render();
+    });
+</script>
 
 </body>
 </html>

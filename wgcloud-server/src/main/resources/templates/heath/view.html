@@ -5,7 +5,7 @@
 
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 <div th:replace="common/chart.html"></div>
 
 <div class="wrapper">
@@ -15,7 +15,7 @@
   <div th:replace="common/aside.html"></div>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper"  style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
@@ -37,45 +37,77 @@
       <div class="container-fluid">
         <div class="row">
 
-          <div class="col-md-10">
-            <div class="card card-primary">
-              <div class="card-header">
-                <h3 class="card-title">服务接口检测(响应状态码200即为成功)</h3>
-                <div class=" float-sm-right">
-                  <a th:href="@{'/heathMonitor/list'}">返回</a>
-                </div>
-              </div>
-              <!-- /.card-header -->
-              <!-- form start -->
-              <form role="form" id="form1" th:action="@{'/heathMonitor/save'}">
-                <input type="hidden" name="id" th:value="${heathMonitor.id}"/>
-                <div class="card-body">
-                  <div class="form-group">
-                    <label for="fromMailName">服务名称</label><br>
-                    <span th:text="${heathMonitor.appName}"></span>
-                  </div>
-                  <div class="form-group">
-                    <label for="fromPwd">服务接口URL</label><br>
-                    <span th:text="${heathMonitor.heathUrl}"></span>
-                  </div>
-                  <div class="form-group">
-                    <label for="fromPwd">响应状态</label><br>
-                    <span th:text="${heathMonitor.heathStatus}"></span>
-                  </div>
-                  <div class="form-group">
-                    <label for="fromPwd">更新时间</label><br>
-                    <span  th:text="${#dates.format(heathMonitor.createTime,'yyyy-MM-dd HH:mm:ss')}"></span>
-                  </div>
-                </div>
-                <!-- /.card-body -->
-
-              </form>
-              <!-- /.card-body -->
-            </div>
-            <!-- /.card -->
-
+  <div class="col-md-12">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title" th:text="${heathMonitor.appName}">服务监控信息</h3>
+        <div class=" float-sm-right">
+          <a href="javascript:history.back()">返回</a>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+      <form role="form">
+        <div class="card-body">
+          <div class="form-group">
+            <label for="exampleInputEmail1">服务接口URL</label>
+            <th:block th:if="${heathMonitor.method == 'POST'}">
+              <div  th:text="${heathMonitor.heathUrl}+'，请求方式：'+${heathMonitor.method}+'，POST提交内容：'+${heathMonitor.postStr}+'，POST提交Header：'+${heathMonitor.headerJson}+
+              '，响应内容需包含的关键字：'+${heathMonitor.resKeyword}+'，响应内容不能包含的关键字：'+${heathMonitor.resNoKeyword}"></div>
+            </th:block>
+            <th:block th:if="${heathMonitor.method != 'POST'}">
+              <div  th:text="${heathMonitor.heathUrl}+'，请求方式：'+${heathMonitor.method}+'，响应内容需包含的关键字：'+${heathMonitor.resKeyword}+
+              '，响应内容不能包含的关键字：'+${heathMonitor.resNoKeyword}"></div>
+            </th:block>
 
           </div>
+        </div>
+        <!-- /.card-body -->
+      </form>
+      <!-- /.card-body -->
+
+      <div class="row">
+        <div class="col-12 table-responsive">
+          <table class="table table-striped"><tbody><tr>
+            <th:block th:each="item : ${amList}">
+              <th:block th:if="${item.code eq  am}">
+                <td width="2%" style="vertical-align:bottom;"> <button type="button" style="background:#1652f0;color:#fff;border-color:#1652f0;" title="当前已显示该时间段图表" class="btn btn-block btn-outline-danger btn-sm disabled" th:text="${item.msg}">Primary</button></td>
+              </th:block>
+              <th:block th:unless="${item.code eq  am}">
+                <td width="2%" style="vertical-align:bottom;"> <button type="button"  th:onclick="viewDate([[${heathMonitor.id}]],[[${item.code}]])" class="btn btn-block btn-outline-primary btn-sm" th:text="${item.msg}">Primary</button></td>
+              </th:block>
+            </th:block>
+
+            <td width="10%">
+              <form class="form-inline ml-3   float-sm-right" action="/wgcloud/heathMonitor/view">
+                <input type="hidden" name="id" th:value="${heathMonitor.id}"/>
+                <div class="input-group input-group-sm">
+                  <input type="text" autocomplete="off" value="" class="validate[maxSize[50]] form-control"  th:value="${startTime}" name="startTime" id="startTime" placeholder="开始时间" style="margin-right:5px;">
+                  <label style="margin-right:5px;">至</label>
+                  <input type="text" autocomplete="off" value="" class="validate[maxSize[50]] form-control"  th:value="${endTime}" name="endTime" id="endTime" placeholder="结束时间" style="margin-right:5px;">
+                  <button type="submit" class="btn btn-primary btn-sm" style="margin-right:5px;">查询</button>
+                  <button type="button" onclick="resetParam()" class="btn bg-danger btn-sm" style="margin-right:5px;">重置</button>
+                </div>
+              </form>
+            </td>
+            <td width="2%" style="vertical-align:bottom;text-align: right"><button type="button" th:onclick="excelExport([[${heathMonitor.id}]],[[${am}]])" class="btn btn-primary btn-sm">导出Excel</button></td>
+          </tr></tbody></table>
+        </div>
+        <!-- /.col -->
+      </div>
+
+
+      <label style="margin-left: .9rem">响应时间ms
+        <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${heathStateSubtitleDto.maxValue}">18</span></span>
+        平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${heathStateSubtitleDto.avgValue}">0</span></span>
+        最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${heathStateSubtitleDto.minValue}">17</span></span></label>
+        <div id="heathStateJson"></div>
+
+    </div>
+    <!-- /.card -->
+
+
+  </div>
 
         </div>
       </div>
@@ -87,13 +119,105 @@
 
 </div>
 <!-- ./wrapper -->
-<link rel="stylesheet" th:href="@{'/static/js/jQuery/validationEngine.jquery.css'}" type="text/css"/>
-<script th:src="@{'/static/js/jQuery/jquery.validationEngine-zh_CN.js'}" type="text/javascript" charset="utf-8"></script>
-<script th:src="@{'/static/js/jQuery/jquery.validationEngine.js'}" type="text/javascript" charset="utf-8"></script>
+
+<script th:src="@{'/static/js/heath.js?v=3.4.1'}"></script>
+
+
 <script th:inline="javascript">
+  var startTimeResponse =[[${startTime}]];
+  var endTimeResponse =[[${endTime}]];
   $(document).ready(function(){
-    $("#form1").validationEngine();
+    var startTime = $('#startTime');
+    if(startTime!=null && startTime != undefined){
+      startTime.daterangepicker({
+        singleDatePicker: true,
+        timePicker: true,
+        timePicker24Hour : true,
+        "opens": "center",
+        "locale": {
+          format: 'YYYY-MM-DD HH:mm',
+          applyLabel: "应用",
+          cancelLabel: "取消",
+          daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+          monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        }
+      });
+      if(startTimeResponse=='' || startTimeResponse==null){
+        startTime.val("");
+      }
+    }
+
+    var endTime = $('#endTime');
+    if(endTime!=null && endTime != undefined){
+      endTime.daterangepicker({
+        singleDatePicker: true,
+        timePicker: true,
+        timePicker24Hour : true,
+        "opens": "center",
+        "locale": {
+          format: 'YYYY-MM-DD HH:mm',
+          applyLabel: "应用",
+          cancelLabel: "取消",
+          daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+          monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        }
+      });
+      if(endTimeResponse=='' || endTimeResponse==null){
+        endTime.val("");
+      }
+    }
   });
+
+  function resetParam(){
+    $("#startTime").val("");
+    $("#endTime").val("");
+  }
+
+    var appStateJson =[[${heathStateList}]];
+    $(function() {
+      var chart = new G2.Chart({
+        container: 'heathStateJson',
+        forceFit: true,
+        height: 400,
+        padding: [30, 40, 70, 40]
+      });
+      chart.axis('dateStr', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chart.axis('resTimes', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chart.tooltip({
+        crosshairs: false
+      });
+      chart.legend({
+        position: 'top-center'
+      });
+      chart.source(appStateJson, {
+        resTimes: {
+          alias: '响应时间ms'
+        }
+      });
+      chart.scale('dateStr',{tickCount: 12,alias: '时间'});
+      chart.line().position('dateStr*resTimes').color('#1890ff');
+      chart.render();
+
+    })
+
+  var msg = [[${msg}]];
+  if(msg!='' && msg!=null){
+    toastr.info(msg);
+  }
 </script>
+
+
 </body>
 </html>

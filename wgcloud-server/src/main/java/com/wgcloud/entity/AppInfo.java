@@ -2,128 +2,168 @@ package com.wgcloud.entity;
 
 import java.util.Date;
 
-/**
- * @version v2.3
- * @ClassName:AppInfo.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: app端口信息
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class AppInfo extends BaseEntity {
+   private static final long serialVersionUID = 1L;
+   private String hostname;
+   private String appPid;
+   private String appType;
+   private String appName;
+   private String threadsNum;
+   private Double memPer;
+   private Double cpuPer;
+   private String state;
+   private String active;
+   private String readBytes;
+   private String writesBytes;
+   private Integer warnCount;
+   private String warnQueryWd;
+   private String account;
+   private Date createTime;
+   private String gatherPid;
+   private String groupId;
+   private String appTimes;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -2913111613773445949L;
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 
-    /**
-     * host名称
-     */
-    private String hostname;
+   public String getAppPid() {
+      return this.appPid;
+   }
 
-    /**
-     * 应用进程ID
-     */
-    private String appPid;
+   public void setAppPid(String appPid) {
+      this.appPid = appPid;
+   }
 
-    /**
-     * 进程获取途径，1进程id号，2进程pid文件
-     */
-    private String appType;
+   public String getHostname() {
+      return this.hostname;
+   }
 
-    /**
-     * 进程名称
-     */
-    private String appName;
+   public void setHostname(String hostname) {
+      this.hostname = hostname;
+   }
 
-    /**
-     * 内存使用率%
-     */
-    private Double memPer;
+   public String getAppName() {
+      return this.appName;
+   }
 
-    /**
-     * cpu使用率%
-     */
-    private Double cpuPer;
+   public void setAppName(String appName) {
+      this.appName = appName;
+   }
 
+   public Double getMemPer() {
+      return this.memPer;
+   }
 
-    /**
-     * 进程状态，1正常，2下线
-     */
-    private String state;
+   public void setMemPer(Double memPer) {
+      this.memPer = memPer;
+   }
 
+   public Double getCpuPer() {
+      return this.cpuPer;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+   public void setCpuPer(Double cpuPer) {
+      this.cpuPer = cpuPer;
+   }
 
+   public String getAppType() {
+      return this.appType;
+   }
 
-    public Date getCreateTime() {
-        return createTime;
-    }
+   public void setAppType(String appType) {
+      this.appType = appType;
+   }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
+   public String getState() {
+      return this.state;
+   }
 
+   public void setState(String state) {
+      this.state = state;
+   }
 
-    public String getAppPid() {
-        return appPid;
-    }
+   public String getActive() {
+      return this.active;
+   }
 
-    public void setAppPid(String appPid) {
-        this.appPid = appPid;
-    }
+   public void setActive(String active) {
+      this.active = active;
+   }
 
+   public String getReadBytes() {
+      return this.readBytes;
+   }
 
-    public String getHostname() {
-        return hostname;
-    }
+   public void setReadBytes(String readBytes) {
+      this.readBytes = readBytes;
+   }
 
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
+   public String getWritesBytes() {
+      return this.writesBytes;
+   }
 
-    public String getAppName() {
-        return appName;
-    }
+   public void setWritesBytes(String writesBytes) {
+      this.writesBytes = writesBytes;
+   }
 
-    public void setAppName(String appName) {
-        this.appName = appName;
-    }
+   public Integer getWarnCount() {
+      return this.warnCount;
+   }
 
-    public Double getMemPer() {
-        return memPer;
-    }
+   public void setWarnCount(Integer warnCount) {
+      this.warnCount = warnCount;
+   }
 
-    public void setMemPer(Double memPer) {
-        this.memPer = memPer;
-    }
+   public String getThreadsNum() {
+      return this.threadsNum;
+   }
 
-    public Double getCpuPer() {
-        return cpuPer;
-    }
+   public void setThreadsNum(String threadsNum) {
+      this.threadsNum = threadsNum;
+   }
 
-    public void setCpuPer(Double cpuPer) {
-        this.cpuPer = cpuPer;
-    }
+   public String getGatherPid() {
+      return this.gatherPid;
+   }
 
-    public String getAppType() {
-        return appType;
-    }
+   public void setGatherPid(String gatherPid) {
+      this.gatherPid = gatherPid;
+   }
 
-    public void setAppType(String appType) {
-        this.appType = appType;
-    }
+   public String getWarnQueryWd() {
+      return this.warnQueryWd;
+   }
 
-    public String getState() {
-        return state;
-    }
+   public void setWarnQueryWd(String warnQueryWd) {
+      this.warnQueryWd = warnQueryWd;
+   }
 
-    public void setState(String state) {
-        this.state = state;
-    }
+   public String getGroupId() {
+      return this.groupId;
+   }
+
+   public void setGroupId(String groupId) {
+      this.groupId = groupId;
+   }
+
+   public String getAccount() {
+      return this.account;
+   }
+
+   public void setAccount(String account) {
+      this.account = account;
+   }
+
+   public String getAppTimes() {
+      return this.appTimes;
+   }
+
+   public void setAppTimes(String appTimes) {
+      this.appTimes = appTimes;
+   }
 }

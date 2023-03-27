@@ -1,0 +1,14 @@
+<div th:if="${not #lists.isEmpty(cpuTemperaturesList)}">
+    <label style="margin-left: .9rem">CPU温度</label>
+    <div class="row">
+        <div class="col-12 table-responsive">
+            <div style="line-height:0.9" class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight">
+                <code>
+<th:block th:each="item : ${cpuTemperaturesList}">
+<span th:text="${item.core_index}"></span>： 当前：<span class="na" th:text="${item.input}"></span>℃，最高：<span class="s" th:text="${item.max}"></span>℃，临界值：<span class="nt" th:text="${item.crit}"></span>℃
+</th:block>
+                </code></pre></div></div>
+            <!-- /.col -->
+        </div>
+    </div>
+</div>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wgcloud.mapper.AccountInfoMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.AccountInfo">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="ACCOUNT" property="account" jdbcType="CHAR" />
+		<result column="EMAIL" property="email" jdbcType="CHAR" />
+		<result column="PASSWD" property="passwd" jdbcType="CHAR" />
+		<result column="ACCOUNT_KEY" property="accountKey" jdbcType="CHAR" />
+		<result column="REMARK" property="remark" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<sql id="tableColumnList">
+		ID,ACCOUNT,EMAIL,PASSWD,ACCOUNT_KEY,REMARK,CREATE_TIME
+	</sql>
+
+	<sql id="queryByParams">
+		<if test="account != null">
+			<![CDATA[ AND ACCOUNT = #{account} ]]>
+		</if>
+		<if test="passwd != null">
+			<![CDATA[ AND PASSWD = #{passwd} ]]>
+		</if>
+		<if test="email != null">
+			<![CDATA[ AND EMAIL = #{email} ]]>
+		</if>
+		<if test="accountKey != null">
+			<![CDATA[ AND ACCOUNT_KEY = #{accountKey} ]]>
+		</if>
+	</sql>
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM ACCOUNT_INFO
+		WHERE ID=#{id}
+	</select>
+
+
+
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM ACCOUNT_INFO
+		WHERE ID = #{id}
+	</delete>
+
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		ACCOUNT_INFO
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+
+	<insert id="save" parameterType="com.wgcloud.entity.AccountInfo">
+		INSERT INTO ACCOUNT_INFO
+		<trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="id != null" >ID,</if>
+			<if test="account != null" >ACCOUNT,</if>
+			<if test="email != null" >EMAIL,</if>
+			<if test="passwd != null" >PASSWD,</if>
+			<if test="accountKey != null" >ACCOUNT_KEY,</if>
+			<if test="remark != null" >REMARK,</if>
+			<if test="createTime != null" >CREATE_TIME</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="id != null" >#{id},</if>
+			<if test="account != null" >#{account},</if>
+			<if test="email != null" >#{email},</if>
+			<if test="passwd != null" >#{passwd},</if>
+			<if test="accountKey != null" >#{accountKey},</if>
+			<if test="remark != null" >#{remark},</if>
+			<if test="createTime != null" >#{createTime}</if>
+		</trim>
+	</insert>
+
+
+	<update id="updateById" parameterType="com.wgcloud.entity.AccountInfo">
+		UPDATE ACCOUNT_INFO
+		<set>
+			<if test="account != null">
+				ACCOUNT = #{account},
+			</if>
+			<if test="email != null">
+				EMAIL = #{email},
+			</if>
+			<if test="passwd != null">
+				PASSWD = #{passwd},
+			</if>
+			<if test="accountKey != null">
+				ACCOUNT_KEY = #{accountKey},
+			</if>
+			<if test="remark != null">
+				REMARK = #{remark},
+			</if>
+		</set>
+		WHERE ID = #{id}
+	</update>
+
+	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)  FROM ACCOUNT_INFO t
+	</select>
+
+	<select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM ACCOUNT_INFO t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		ORDER BY ID ASC
+	</select>
+
+
+	<select id="selectByParams" parameterType="com.wgcloud.entity.AccountInfo" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM ACCOUNT_INFO
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		ORDER BY ID DESC
+	</select>
+</mapper>

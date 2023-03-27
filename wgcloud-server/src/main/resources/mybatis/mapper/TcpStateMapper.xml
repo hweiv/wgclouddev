@@ -20,7 +20,12 @@
 			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
 		</if>
 		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-			<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			<if test="_databaseId == 'mysql'">
+				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			</if>
+			<if test="_databaseId == 'postgresql'">
+				<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+			</if>
 		</if>
 	</sql>
 	
@@ -33,7 +38,13 @@
 	
 	
 	<delete id="deleteByAccountAndDate"  parameterType="map">
-		DELETE FROM TCP_STATE WHERE  <![CDATA[  CREATE_TIME <=#{endTime}]]>
+		DELETE FROM TCP_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
 	</delete>
 	
 	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">

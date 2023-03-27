@@ -5,7 +5,7 @@
 
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 <div th:replace="common/chart.html"></div>
 
 <div class="wrapper">
@@ -15,17 +15,25 @@
   <div th:replace="common/aside.html"></div>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper"  style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1></h1>
-          </div>
-        </div>
-      </div><!-- /.container-fluid -->
-    </section>
+      <section class="content-header" style="height:38px">
+          <div class="container-fluid">
+              <div class="row mb-2" style="margin-top: -7px;">
+                  <div class="col-sm-6"></div>
+                  <div class="col-sm-6">
+                      <ol class="breadcrumb float-sm-right">
+                          <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
+                          <li class="breadcrumb-item">
+                              <a data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="请选择需要隐藏的列，退出登录后失效" data-widget="control-sidebar" data-slide="true" href="#">
+                                  <i class="fas fa-th-large"></i>
+                              </a>
+                          </li>
+                      </ol>
+                  </div>
+              </div>
+          </div><!-- /.container-fluid -->
+      </section>
 
     <!-- Main content -->
     <section class="content">
@@ -35,57 +43,257 @@
   <div class="col-md-12">
     <div class="card">
       <div class="card-header">
-        <h3 class="card-title">主机列表</h3>
+        <h3 class="card-title"><i class="fas fa-desktop nav-icon"></i>&nbsp;主机列表</h3>
+          <span id="timeDiv" style="display: none"><i class="far fa-clock" style="margin-left:5px;margin-top:5px"></i><span id="startTime" style="margin-left:5px;"></span></span>
+          <div class="card-tools">
+              <div class="float-sm-right">
+                  <!-- SEARCH FORM -->
+                  <form class="form-inline ml-3" th:action="@{'/systemInfo/systemInfoList'}">
+                      <a th:href="@{'/tuopu/tuopuListHost'}" class="btn btn-sm bg-teal" style="margin-right:5px;"><i class="fas fa-network-wired"></i> 拓扑图</a>
+                      <button type="button" onclick="searchAll()" title="显示所有主机，不分页" class="btn btn-primary btn-sm" style="margin-right:5px;">显示所有主机</button>
+                      <button type="button" id="startTaskBtn" th:onclick="startTask()" title="自动刷新当前页面主机列表的指标数据" class="btn btn-primary btn-sm" style="margin-right: 5px;">自动刷新</button>
+                      <button type="button" onclick="searchByOnline('')" class="btn btn-primary btn-sm" style="margin-right:5px;">全部</button>
+                      <button type="button" onclick="searchByOnline('1')" class="btn btn-success btn-sm" style="margin-right:5px;">在线</button>
+                      <button type="button" onclick="searchByOnline('2')" class="btn bg-danger btn-sm" style="margin-right:5px;">已下线</button>
+                      <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+                       <button type="button" onclick="delChecks('/systemInfo/del')"  class="btn bg-danger btn-sm" style="margin-right:5px;">删除</button>
+                       <th:block th:if="${application.hostGroup == 'true'}"><button type="button" th:onclick="showSetGroupId()" class="btn btn-primary btn-sm" style="margin-right:5px;">设置标签</button></th:block>
+                       <button type="button" th:onclick="excelExportHostList()" class="btn bg-maroon btn-sm" style="margin-right:5px;">导出Excel</button>
+                      </th:block>
+                      <div class="input-group input-group-sm" th:if="${application.hostGroup == 'true'}"><select style="width:150px;margin-right:5px;" class="form-control" onchange="searchByGroupId()" name="groupId" id="groupId">
+                          <option value="">选择标签</option>
+                          <th:block th:each="item,iterStat : ${hostGroupList}">
+                              <option  th:value="${item.id}"  th:text="${item.groupName}">Alabama</option>
+                          </th:block>
+                      </select></div>
+                      <div th:replace="common/accountSelect.html"></div>
+                      <div class="input-group input-group-sm">
+                          <input class="form-control"  name="hostname" autocomplete="off" th:value="${systemInfo.hostname}" type="text" placeholder="输入IP或备注">
+                          <div class="input-group-append">
+                              <button class="btn btn-primary" type="submit">
+                                  <i class="fas fa-search"></i>
+                              </button>
+                          </div>
+                      </div>
+                  </form>
+              </div>
+          </div>
       </div>
       <!-- /.card-header -->
       <div class="card-body">
-        <table class="table table-bordered">
+        <table class="table table-bordered table-hover">
           <thead>
           <tr>
-            <th style="width: 80px">序号</th>
-            <th>IP</th>
-            <th>内存%</th>
-            <th>CPU%</th>
-            <th title="所有磁盘已使用%">磁盘%</th>
-            <th>更新时间</th>
+              <th style="width: 20px"> <input type="checkbox" value="" name="checkall" id="checkall"></th>
+              <th style="width: 60px">序号</th>
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'00') > -1 }">
+              <th>系统</th>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'01') > -1 }">
+              <th:block th:if="${systemInfo.orderBy  == 'HOST_NAME'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th style="cursor:pointer" onclick="searchByOrder('HOST_NAME','DESC')">IP<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th style="cursor:pointer" onclick="searchByOrder('HOST_NAME','ASC')">IP<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'HOST_NAME'}">
+                  <th style="cursor:pointer" onclick="searchByOrder('HOST_NAME','ASC')">IP<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'02') > -1 }">
+                <th:block th:if="${systemInfo.orderBy  == 'MEM_PER'}">
+                    <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                        <th style="cursor:pointer" title="内存使用率%" onclick="searchByOrder('MEM_PER','DESC')">内存%<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                    </th:block>
+                    <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                        <th style="cursor:pointer" title="内存使用率%" onclick="searchByOrder('MEM_PER','ASC')">内存%<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                    </th:block>
+                </th:block>
+                <th:block th:if="${systemInfo.orderBy  ne 'MEM_PER'}">
+                    <th style="cursor:pointer" title="内存使用率%" onclick="searchByOrder('MEM_PER','ASC')">内存%<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+                </th:block>
+                </th>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'03') > -1 }">
+                <th:block th:if="${systemInfo.orderBy  == 'CPU_PER'}">
+                    <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                        <th style="cursor:pointer" title="CPU使用率%" onclick="searchByOrder('CPU_PER','DESC')">CPU%<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                    </th:block>
+                    <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                        <th style="cursor:pointer" title="CPU使用率%" onclick="searchByOrder('CPU_PER','ASC')">CPU%<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                    </th:block>
+                </th:block>
+                <th:block th:if="${systemInfo.orderBy  ne 'CPU_PER'}">
+                    <th style="cursor:pointer" title="CPU使用率%" onclick="searchByOrder('CPU_PER','ASC')">CPU%<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+                </th:block>
+                </th>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'04') > -1 }">
+              <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="所有磁盘已使用%">磁盘%</th>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'05') > -1 }">
+              <th:block th:if="${systemInfo.orderBy  == 'CPU_CORE_NUM'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="CPU核数" style="cursor:pointer" onclick="searchByOrder('CPU_CORE_NUM','DESC')">CPU核数<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="CPU核数" style="cursor:pointer" onclick="searchByOrder('CPU_CORE_NUM','ASC')">CPU核数<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'CPU_CORE_NUM'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="CPU核数" style="cursor:pointer" onclick="searchByOrder('CPU_CORE_NUM','ASC')">CPU核数<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'06') > -1 }">
+              <th:block th:if="${systemInfo.orderBy  == 'TOTAL_MEM'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="内存" style="cursor:pointer" onclick="searchByOrder('TOTAL_MEM','DESC')">内存<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="内存" style="cursor:pointer" onclick="searchByOrder('TOTAL_MEM','ASC')">内存<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'TOTAL_MEM'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="内存" style="cursor:pointer" onclick="searchByOrder('TOTAL_MEM','ASC')">内存<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'07') > -1 }">
+              <th:block th:if="${systemInfo.orderBy  == 'RXBYT'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="下行数据传输速率" style="cursor:pointer" onclick="searchByOrder('RXBYT','DESC')">下行速率<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="下行数据传输速率" style="cursor:pointer" onclick="searchByOrder('RXBYT','ASC')">下行速率<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'RXBYT'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="下行数据传输速率" style="cursor:pointer" onclick="searchByOrder('RXBYT','ASC')">下行速率<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'08') > -1 }">
+              <th:block th:if="${systemInfo.orderBy  == 'TXBYT'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="上行数据传输速率" style="cursor:pointer" onclick="searchByOrder('TXBYT','DESC')">上行速率<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="上行数据传输速率" style="cursor:pointer" onclick="searchByOrder('TXBYT','ASC')">上行速率<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'TXBYT'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="上行数据传输速率" style="cursor:pointer" onclick="searchByOrder('TXBYT','ASC')">上行速率<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'09') > -1 }">
+              <th:block th:if="${systemInfo.orderBy  == 'FIVE_LOAD'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="5分钟系统负载" style="cursor:pointer" onclick="searchByOrder('FIVE_LOAD','DESC')">系统负载<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="5分钟系统负载" style="cursor:pointer" onclick="searchByOrder('FIVE_LOAD','ASC')">系统负载<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'FIVE_LOAD'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="5分钟系统负载" style="cursor:pointer" onclick="searchByOrder('FIVE_LOAD','ASC')">系统负载<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th>
+              </th:block>
+
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'11') > -1 }">
+              <th th:if="${application.showWarnCount == 'true'}" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="主机及其监控资源(进程端口docker日志等)累积告警次数">告警次数</th>
+              </th:block>
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'10') > -1 }">
+                  <th:block th:if="${systemInfo.orderBy  == 'NET_CONNECTIONS'}">
+                      <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                          <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="主机连接数量包括tcp、udp、inet" style="cursor:pointer" onclick="searchByOrder('NET_CONNECTIONS','DESC')">连接数量<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                      </th:block>
+                      <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                          <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="主机连接数量包括tcp、udp、inet" style="cursor:pointer" onclick="searchByOrder('NET_CONNECTIONS','ASC')">连接数量<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                      </th:block>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderBy  ne 'NET_CONNECTIONS'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="主机连接数量包括tcp、udp、inet" style="cursor:pointer" onclick="searchByOrder('NET_CONNECTIONS','ASC')">连接数量<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+                  </th:block>
+                  </th>
+              </th:block>
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'14') > -1 }">
+              <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="若已下线，显示最后在线时间，但监控仍在继续">更新时间</th>
+              </th:block>
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'12') > -1 }">
+                  <th th:if="${application.hostGroup == 'true'}">标签</th>
+              </th:block>
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'13') > -1 }">
+              <th th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}">账号</th>
+              </th:block>
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'15') > -1 }">
               <th>备注</th>
+              </th:block>
+              <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'16') > -1 }">
               <th>操作</th>
+              </th:block>
           </tr>
           </thead>
           <tbody>
           <th:block th:each="item,iterStat : ${page.list}">
             <tr>
-              <td th:text="${iterStat.index+1}">1</td>
-              <td>
+                <td><input type="checkbox" th:value="${item.id}" name="todo2" th:id="${item.id}+'_check'"/></td>
+                <td th:text="${iterStat.index+1}"></td>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'00') > -1 }">
+                <td>
+                    <image data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.platForm}+'，'+${item.platformVersion}+'，'+${item.hostnameExt}+'，已运行'+${item.uptimeStr}+'，agent版本'+${item.agentVer}" th:src="${item.image}"></image>
+                </td>
+                </th:block>
+
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'01') > -1 }">
                   <th:block th:if="${item.state  == '2'}">
-                      <span title="超过10分钟未上报状态，可能已下线" style="color:red;font-weight: 500;"  th:text="${item.hostname}"></span>
+                      <td th:id="${item.id}+'_state'"><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.hostname}+'可能已下线'" class="badge bg-danger"    th:text="${#strings.abbreviate(item.hostname,20)}"></span>
                   </th:block>
                   <th:block th:if="${item.state  != '2'}">
-                      <span   th:text="${item.hostname}"></span>
+                      <td th:id="${item.id}+'_state'"><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.hostname}" th:text="${#strings.abbreviate(item.hostname,20)}"></span>
                   </th:block>
-              </td>
-              <td>
-                  <th:block th:if="${item.memPer >= 90}">
-                      <span class="badge bg-danger" th:text="${item.memPer}"></span>
-                  </th:block>
-                  <th:block th:if="${item.memPer < 90 && item.memPer >= 70  }">
-                      <span class="badge bg-warning" th:text="${item.memPer}"></span>
-                  </th:block>
-                  <th:block th:if="${item.memPer < 70  }">
-                      <span class="badge bg-primary" th:text="${item.memPer}"></span>
-                  </th:block>
-              </td>
-              <td>
-                  <th:block th:if="${item.cpuPer >= 90}">
-                      <span class="badge bg-danger" th:text="${item.cpuPer}"></span>
-                  </th:block>
-                  <th:block th:if="${item.cpuPer < 90 && item.cpuPer >= 70  }">
-                      <span class="badge bg-warning" th:text="${item.cpuPer}"></span>
-                  </th:block>
-                  <th:block th:if="${item.cpuPer < 70  }">
-                      <span class="badge bg-primary" th:text="${item.cpuPer}"></span>
-                  </th:block>
-              </td>
+                  </td>
+                </th:block>
+
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'02') > -1 }">
+                  <td th:id="${item.id}+'_memPer'">
+                      <th:block th:if="${item.memPer >= 90}">
+                          <span class="badge bg-danger" th:text="${item.memPer}"></span>
+                      </th:block>
+                      <th:block th:if="${item.memPer < 90 && item.memPer >= 70  }">
+                          <span class="badge bg-warning" th:text="${item.memPer}"></span>
+                      </th:block>
+                      <th:block th:if="${item.memPer < 70  }">
+                          <span class="badge bg-primary" th:text="${item.memPer}"></span>
+                      </th:block>
+                  </td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'03') > -1 }">
+                  <td th:id="${item.id}+'_cpuPer'">
+                      <th:block th:if="${item.cpuPer >= 90}">
+                          <span class="badge bg-danger" th:text="${item.cpuPer}"></span>
+                      </th:block>
+                      <th:block th:if="${item.cpuPer < 90 && item.cpuPer >= 70  }">
+                          <span class="badge bg-warning" th:text="${item.cpuPer}"></span>
+                      </th:block>
+                      <th:block th:if="${item.cpuPer < 70  }">
+                          <span class="badge bg-primary" th:text="${item.cpuPer}"></span>
+                      </th:block>
+                  </td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'04') > -1 }">
                 <td>
                     <th:block th:if="${item.diskPer >= 90}">
                         <span class="badge bg-danger" th:text="${item.diskPer}"></span>
@@ -97,16 +305,61 @@
                         <span class="badge bg-primary" th:text="${item.diskPer}"></span>
                     </th:block>
                 </td>
-              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
-                <td th:text="${item.remark}"></td>
-              <td>
-                  <button type="button" class="btn btn-default btn-sm" data-toggle="modal" th:onclick="setHostRemark([[${item.id}]],[[${item.remark}]])" data-target="#modal-default">
-                     备注
-                  </button>
-                  <button type="button"  th:onclick="view([[${item.id}]])"  class="btn btn-primary btn-sm">系统信息</button>
-                  <button type="button"  th:onclick="viewChart([[${item.id}]])"  class="btn btn-primary btn-sm">图表</button>
-                  <button type="button"  th:onclick="viewApps([[${item.hostname}]])"  class="btn btn-primary btn-sm">进程</button>
-                  <button type="button"  th:onclick="del([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'05') > -1 }">
+                <td th:text="${item.cpuCoreNum}"></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'06') > -1 }">
+                <td th:text="${item.totalMem}"></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'07') > -1 }">
+                <td th:id="${item.id}+'_rxbyt'"><span th:text="${item.rxbyt}"></span></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'08') > -1 }">
+                <td th:id="${item.id}+'_txbyt'"><span th:text="${item.txbyt}"></span></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'09') > -1 }">
+                <td th:id="${item.id}+'_fiveLoad'" title="5分钟系统负载"><span th:text="${item.fiveLoad}"></span></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'11') > -1 }">
+                <td th:if="${application.showWarnCount == 'true'}"><span style="cursor:pointer;color:#007bff;font-weight:bold" th:onclick="goHrefLogInfo([[${item.warnQueryWd}]])" th:text="${item.warnCount}"></span></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'10') > -1 }">
+                <td th:id="${item.id}+'_netConnections'"><span th:text="${item.netConnections}"></span></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'14') > -1 }">
+                <td th:id="${item.id}+'_createTime'" th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'12') > -1 }">
+                <td th:if="${application.hostGroup == 'true'}"><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.groupId}" th:text="${#strings.abbreviate(item.groupId,60)}"></span></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'13') > -1 }">
+                <th th:text="${item.account}" th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}"></th>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'15') > -1 }">
+                <td th:id="${item.id}+'_remark'" th:text="${item.remark}"></td>
+                </th:block>
+                <th:block  th:unless="${#strings.indexOf(session.HostListHideColsInfo ,'16') > -1 }">
+                  <td>
+                      <button type="button"  th:onclick="view([[${item.id}]])"  class="btn btn-primary btn-sm">系统</button>
+                      <button type="button"  th:onclick="viewChart([[${item.id}]])"  class="btn btn-primary btn-sm">图表</button>
+                      <button type="button"  th:onclick="viewImage([[${item.id}]])"  style="color:#fff;"  class="btn btn-warning btn-sm">画像</button>
+                      <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+                          <button type="button" class="btn btn-default btn-sm" data-toggle="modal" th:onclick="setHostRemark([[${item.id}]],[[${item.remark}]])" data-target="#modal-default">
+                              备注
+                          </button>
+                          <button type="button"  th:onclick="del([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button>
+                          <th:block th:if="${application.webSsh == 'true'}">
+                              <th:block th:if="${#strings.indexOf(item.image,'windows') > -1 }">
+                                <button type="button"  data-toggle="modal" th:onclick="setWinConsole([[${item.id}]],[[${item.winConsole}]])"  class="btn btn-success btn-sm" data-target="#modal-default2">服务</button>
+                              </th:block>
+                              <th:block th:unless="${#strings.indexOf(item.image,'windows') > -1 }">
+                                  <button type="button"  th:onclick="viewWebSSH([[${item.hostname}]])"  class="btn btn-success btn-sm">SSH</button>
+                              </th:block>
+                          </th:block>
+                      </th:block>
+                  </td>
+                </th:block>
 
             </tr>
           </th:block>
@@ -120,21 +373,21 @@
     <!-- /.card -->
 
 
-  </div>
+  </div><!-- /.col-md-12 -->
 
-        </div>
-      </div>
-    </section>
-  </div>
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 
 
 
     <div class="modal fade" id="modal-default">
         <div class="modal-dialog">
-            <form method="post" id="form2" th:action="@{'/host/save'}">
-            <div class="modal-content">
+            <form method="post" id="form2" th:action="@{'/systemInfo/save'}">
+            <div class="modal-content" style="font-size:0.90rem">
                 <div class="modal-header">
-                    <h4 class="modal-title">编辑机组</h4>
+                    <h4 class="modal-title">编辑主机备注</h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -142,26 +395,108 @@
                 <div class="modal-body">
                     <p>
                         <input type="hidden" id="id" name="id"/>
-                        <input type="text"  autocomplete="off" class="validate[required,maxSize[40] form-control" name="remark" id="remark" placeholder="华南区">
+                        <input type="text"  autocomplete="off" class="validate[required,maxSize[40] form-control" name="remark" id="remark" placeholder="如：数据清洗服务器。输入完成请点击保存">
                     </p>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                    <button type="button" onclick="ajaxSaveRemark()" class="btn btn-primary">保存</button>
+                    <button type="button" class="btn btn-default  btn-sm" data-dismiss="modal">关闭</button>
+                    <button type="button" onclick="ajaxSaveRemark()" class="btn btn-primary btn-sm">保存</button>
                 </div>
             </div>
+            </form>
             <!-- /.modal-content -->
         </div>
         <!-- /.modal-dialog -->
     </div>
 
+    <div class="modal fade" id="modal-default2">
+        <div class="modal-dialog">
+            <form method="post" id="form3" th:action="@{'/systemInfo/saveWinConsole'}">
+                <div class="modal-content" style="font-size:0.90rem">
+                    <div class="modal-header">
+                        <h4 class="modal-title">windows服务http地址</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            <input type="hidden" id="id2" name="id"/>
+                            <input type="text"  autocomplete="off" class="validate[required,maxSize[255] form-control" name="winConsole" id="winConsole" placeholder="http://10.102.11.2:9000">
+                        </p>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-default  btn-sm" data-dismiss="modal">关闭</button>
+                        <button type="button" onclick="ajaxSaveWinConsole()" class="btn btn-primary btn-sm">保存 & 连接</button>
+                        <button type="button" onclick="viewWinConsole()" class="btn btn-primary btn-sm">连接</button>
+                    </div>
+                </div>
+            </form>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+    <div class="modal fade" id="modal-default3">
+        <div class="modal-dialog">
+            <form method="post" id="form4" th:action="@{'/systemInfo/saveGroupId'}">
+                <div class="modal-content" style="font-size:0.90rem">
+                    <div class="modal-header">
+                        <h4 class="modal-title">设置主机标签<span class="text-muted">（可多选，在系统管理中维护标签）</span></h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>
+                            <input type="hidden" id="id3" name="ids"/>
+                            <select class="select2" multiple="multiple" data-placeholder="请选择" style="width: 100%;" name="groupId">
+                                <option  value="">请选择</option>
+                                <th:block th:each="item,iterStat : ${hostGroupList}">
+                                    <option  th:value="${item.id}"  th:text="${item.groupName}">Alabama</option>
+                                </th:block>
+                            </select>
+                        </p>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="button" class="btn btn-default  btn-sm" data-dismiss="modal">关闭</button>
+                        <button type="button" onclick="ajaxSaveGroupId()" class="btn btn-primary btn-sm">保存</button>
+                    </div>
+                </div>
+            </form>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
   <div th:replace="common/footer.html"></div>
-    <script th:src="@{'/static/js/jQuery/jquery.form.min.js'}" type="text/javascript" charset="utf-8"></script>
+
+  <div th:replace="common/controlSidebarHostList.html"></div>
+
 
 </div>
 <!-- ./wrapper -->
+<script th:src="@{'/static/js/host.js?v=3.4.5'}"></script>
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#groupId").val([[${systemInfo.groupId}]]);
+        $("#account").val([[${systemInfo.account}]]);
+        $('.select2').select2();
+    });
 
-<script th:src="@{'/static/js/host.js'}"></script>
+    $("#remark").keydown( function(e) {
+        var key = window.event?e.keyCode:e.which;
+        if(key.toString() == "13"){
+            return false;
+        }
+    });
+
+    var msg = [[${msg}]];
+    if(msg!='' && msg!=null){
+        toastr.info(msg);
+    }
+</script>
 
 </body>
 </html>

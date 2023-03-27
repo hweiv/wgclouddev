@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper"  style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active"></li>
+                </ol>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-10">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">添加SNMP设备监测（比如交换机）</h3>
+          <div class=" float-sm-right">
+              <a href="javascript:history.back()">返回</a>
+          </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+        <form role="form" id="form1" th:action="@{'/snmpInfo/save'}">
+            <input type="hidden" name="id" th:value="${snmpInfo.id}"/>
+            <div class="card-body">
+                <div class="form-group">
+                    <label><font color="red">*</font>设备IP</label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.hostname}" class="validate[required,maxSize[50]] form-control" name="hostname" id="hostname" placeholder="输入IP">
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>SNMP端口</label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.snmpPort}" class="validate[custom[number],required,maxSize[50]] form-control" name="snmpPort" id="snmpPort" placeholder="如161">
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>SNMP版本</label>
+                    <select class="validate[required] form-control"  name="snmpVersion" id="snmpVersion">
+                        <option value="1">version2c</option>
+                        <option value="0">version1</option>
+                        <option value="3">version3</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>SNMP团体名称（community）</label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.snmpCommunity}" class="validate[maxSize[50]] form-control" name="snmpCommunity" id="snmpCommunity" placeholder="如public">
+                </div>
+                <div class="form-group">
+                    <label>出口流量的OID<span class="text-muted">（OID一般为1.3.6.1.2.1.2.2.1.16.X，其中X一般为接口序号，多个请换行填写）</span></label>
+                    <textarea class="validate[maxSize[2000]] form-control"   name="sentOID" id="sentOID"
+                              th:text="${snmpInfo.sentOID}"  rows="12" placeholder='1.3.6.1.2.1.2.2.1.16.1
+1.3.6.1.2.1.2.2.1.16.2
+1.3.6.1.2.1.2.2.1.16.3'></textarea>
+                </div>
+                <div class="form-group">
+                    <label>入口流量的OID<span class="text-muted">（OID一般为1.3.6.1.2.1.2.2.1.10.X，其中X一般为接口序号，多个请换行填写）</span></label>
+                    <textarea class="validate[maxSize[2000]] form-control"   name="recvOID" id="recvOID"
+                              th:text="${snmpInfo.recvOID}"  rows="12" placeholder='1.3.6.1.2.1.2.2.1.10.1
+1.3.6.1.2.1.2.2.1.10.2
+1.3.6.1.2.1.2.2.1.10.3'></textarea>
+                </div>
+                <div class="form-group">
+                    <label>每秒发送字节OID<span class="text-muted">（如果填写此值，就不用间隔3秒取出口流量的差值来计算出口速率）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.sentAvgOid}" class="validate[maxSize[100]] form-control" name="sentAvgOid" id="sentAvgOid" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label>每秒接收字节OID<span class="text-muted">（如果填写此值，就不用间隔3秒取入口流量的差值来计算入口速率）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.recvAvgOid}" class="validate[maxSize[100]] form-control" name="recvAvgOid" id="recvAvgOid" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label>磁盘占用率OID<span class="text-muted">（%）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.diskPerOid}" class="validate[maxSize[100]] form-control" name="diskPerOid" id="diskPerOid" placeholder="">
+                </div>
+                <div class="form-group clearfix">
+                    <label><font color="red"></font>获取cpu、内存使用率</label></br>
+                    <th:block th:if="${snmpInfo.memTotalSizeOID  != 'block'}">
+                        <div class="icheck-turquoise d-inline">
+                            <input type="radio" onclick="hideBlcokInfo()" id="radioPrimary2" name="methodBlock" value="1" checked>
+                            <label for="radioPrimary2"> 方式1（计算获取） </label>
+                        </div>
+                        <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                            <input type="radio" onclick="showBlcokInfo()" id="radioPrimary4" name="methodBlock" value="2" >
+                            <label for="radioPrimary4">方式2（直接获取）</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${snmpInfo.memTotalSizeOID  == 'block'}">
+                        <div class="icheck-turquoise d-inline">
+                        <input type="radio" onclick="hideBlcokInfo()" id="radioPrimary2" name="methodBlock" value="1" >
+                        <label for="radioPrimary2"> 方式1（计算获取） </label>
+                        </div>
+                        <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                            <input type="radio" onclick="showBlcokInfo()" id="radioPrimary4" name="methodBlock" value="2" checked>
+                            <label for="radioPrimary4">方式2（直接获取）</label>
+                        </div>
+                    </th:block>
+                </div>
+                <div class="form-group">
+                    <label id="cpuLabel">空闲CPU使用率OID<span class="text-muted">（用于计算CPU使用率% = 100 - 空闲CPU使用率%）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.cpuPerOID}" class="validate[maxSize[100]] form-control" name="cpuPerOID" id="cpuPerOID" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label id="memLabel">已使用内存大小OID<span class="text-muted">（用于计算内存使用率% = 已使用内存/内存总大小）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.memSizeOID}" class="validate[maxSize[100]] form-control" name="memSizeOID" id="memSizeOID" placeholder="">
+                </div>
+                <div class="form-group" id="memTotalDiv">
+                    <label>内存总大小OID</label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.memTotalSizeOID}" class="validate[maxSize[100]] form-control" name="memTotalSizeOID" id="memTotalSizeOID" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label>备注</label>
+                    <input type="text" autocomplete="off"  th:value="${snmpInfo.remark}" class="validate[maxSize[50]] form-control" name="remark" id="remark" placeholder="如交换机01">
+                </div>
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>监控状态</label></br>
+                    <th:block th:if="${#strings.isEmpty(snmpInfo.active)}" >
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${snmpInfo.active  == '1'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${snmpInfo.active  == '2'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" value="1"  name="active" >
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2"  name="active" checked>
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+            <!-- /.card-body -->
+
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
+            </div>
+
+        </form>
+      <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-12 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#form1").validationEngine();
+        $("#snmpVersion").val([[${snmpInfo.snmpVersion}]]);
+        var memTotalSizeOID = [[${snmpInfo.memTotalSizeOID}]];
+        if("block"==memTotalSizeOID){
+            showBlcokInfo();
+        }else{
+            hideBlcokInfo();
+        }
+    });
+    function hideBlcokInfo(){
+        $("#cpuLabel").html('空闲CPU使用率OID<span class="text-muted">（用于计算CPU使用率% = 100 - 空闲CPU使用率%）</span>');
+        $("#memLabel").html('已使用内存大小OID<span class="text-muted">（用于计算内存使用率% = 已使用内存/内存总大小）');
+        $("#memTotalDiv").show();
+    }
+    function showBlcokInfo(){
+        $("#cpuLabel").html('CPU使用率OID');
+        $("#memLabel").html('内存使用率OID');
+        $("#memTotalDiv").hide();
+    }
+</script>
+</body>
+</html>

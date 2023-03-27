@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header" style="height:38px">
+      <div class="container-fluid">
+        <div class="row mb-2" style="margin-top: -7px;">
+          <div class="col-sm-6"></div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="nav-icon fas fa-server"></i>&nbsp;资产列表</h3>
+        <div class=" float-sm-right">
+          <!-- SEARCH FORM -->
+          <form class="form-inline ml-3" th:action="@{'/equipment/list'}">
+            <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+              <button type="button" onclick="delChecks('/equipment/del')"  class="btn bg-danger btn-sm" style="margin-right:5px;">删除</button>
+              <th:block th:if="${application.hostGroup == 'true'}"><button type="button" th:onclick="showSetGroupId()" class="btn btn-primary btn-sm" style="margin-right:5px;">设置标签</button></th:block>
+              <button type="button" onclick="add()" class="btn btn-primary btn-sm" style="margin-right:5px;">添加</button>
+            </th:block>
+            <div class="input-group input-group-sm" th:if="${application.hostGroup == 'true'}"><select style="width:150px;margin-right:5px;" class="form-control" onchange="searchByGroupId()" name="groupId" id="groupId">
+              <option value="">选择标签</option>
+              <th:block th:each="item,iterStat : ${hostGroupList}">
+                <option  th:value="${item.id}"  th:text="${item.groupName}">Alabama</option>
+              </th:block>
+            </select></div>
+            <div th:replace="common/accountSelect.html"></div>
+            <div class="input-group input-group-sm">
+              <input class="form-control"  name="name" autocomplete="off" th:value="${equipment.name}" type="text" placeholder="名称/型号/编码/人员">
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body">
+        <table class="table table-bordered table-hover">
+          <thead>
+          <tr>
+            <th style="width: 20px"> <input type="checkbox" value="" name="checkall" id="checkall"></th>
+            <th style="width: 60px">序号</th>
+            <th>设备名称</th>
+            <th>规格型号</th>
+            <th th:if="${application.hostGroup == 'true'}">标签</th>
+            <th>设备编码</th>
+            <th>采购日期</th>
+            <th>维保到期</th>
+            <th>使用部门</th>
+            <th>使用人员</th>
+            <th>添加时间</th>
+            <th th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}">账号</th>
+              <th>操作</th>
+          </tr>
+          </thead>
+          <tbody>
+          <th:block th:each="item,iterStat : ${page.list}">
+            <tr>
+              <td><input type="checkbox" th:value="${item.id}" name="todo2" th:id="${item.id}+'_check'"/></td>
+              <td th:text="${iterStat.index+1}">1</td>
+              <td th:text="${item.name}">Update software</td>
+              <td th:text="${item.xinghao}">Update software</td>
+              <td th:if="${application.hostGroup == 'true'}"><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.groupId}" th:text="${#strings.abbreviate(item.groupId,60)}"></span></td>
+              <td th:text="${item.code}">Update software</td>
+              <td th:text="${item.caigouDate}">Update software</td>
+              <td th:text="${item.weibaoDate}">Update software</td>
+              <td th:text="${item.dept}">Update software</td>
+              <td th:text="${item.person}">Update software</td>
+              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+              <th th:text="${item.account}" th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}"></th>
+              <td>
+                <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+                  <button type="button"  th:onclick="edit([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">编辑</button>
+                  <button type="button"  th:onclick="del([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button>
+                </th:block>
+                <button type="button"  th:onclick="view([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">查看</button></td>
+            </tr>
+          </th:block>
+
+          </tbody>
+        </table>
+      </div>
+      <!-- /.card-body -->
+      <div th:replace="common/page.html"></div>
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-12 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+  <div class="modal fade" id="modal-default3">
+    <div class="modal-dialog">
+      <form method="post" id="form4" th:action="@{'/equipment/saveGroupId'}">
+        <div class="modal-content" style="font-size:0.90rem">
+          <div class="modal-header">
+            <h4 class="modal-title">设置标签<span class="text-muted">（可多选，在系统管理中维护标签）</span></h4>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>
+              <input type="hidden" id="id3" name="ids"/>
+              <select class="select2" multiple="multiple" data-placeholder="请选择" style="width: 100%;" name="groupId">
+                <option  value="">请选择</option>
+                <th:block th:each="item,iterStat : ${hostGroupList}">
+                  <option  th:value="${item.id}"  th:text="${item.groupName}">Alabama</option>
+                </th:block>
+              </select>
+            </p>
+          </div>
+          <div class="modal-footer justify-content-between">
+            <button type="button" class="btn btn-default  btn-sm" data-dismiss="modal">关闭</button>
+            <button type="button" onclick="ajaxSaveGroupId()" class="btn btn-primary btn-sm">保存</button>
+          </div>
+        </div>
+      </form>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+  </div>
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<script th:src="@{'/static/js/equipment.js?v=3.3.9'}"></script>
+
+<script th:inline="javascript">
+  $(document).ready(function(){
+    $("#account").val([[${equipment.account}]]);
+    $("#groupId").val([[${equipment.groupId}]]);
+    $('.select2').select2();
+  });
+
+  var msg = [[${msg}]];
+  if(msg!='' && msg!=null){
+    toastr.info(msg);
+  }
+</script>
+
+</body>
+</html>

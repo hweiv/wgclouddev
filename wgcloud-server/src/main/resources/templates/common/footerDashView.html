@@ -1,0 +1,79 @@
+<!-- /.content-wrapper -->
+<footer class="main-footer" style="margin-left: 10px">
+	<input type="hidden" id="serverInfoIdentify" th:value="${application.serverInfoId}"/>
+	<th:block th:if="${application.copyRight eq 'true'}">
+	<strong>Copyright &copy;2017-<span id="copyyear">now</span> <a target="_blank" href="http://www.wgstart.com">www.wgstart.com</a>.</strong>
+	All Rights Reserved.
+	</th:block>
+	<th:block th:if="${application.copyRight eq 'false'}">&nbsp;</th:block>
+	<div class="float-right d-none d-sm-inline-block">
+		<th:block th:if="${application.LICENSE_STATE eq '1'}">
+			<span id="newversion"></span><b id="nowversion" data-trigger="hover"  data-container="body"
+											data-toggle="popover" data-placement="top"
+											th:data-content="'专业版到期时间：'+${application.LICENSE_DATE}+' 节点数量：'+${application.LICENSE_NUM}">Version 3.4.5-Pro</b>
+		</th:block>
+		<th:block th:if="${application.LICENSE_STATE ne '1'}">
+			<span id="newversion"></span><b id="nowversion" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="个人版">Version 3.4.5</b>
+		</th:block>
+	</div>
+</footer>
+
+<audio id="notification">
+	<source th:src="@{'/static/common/sounds/warn.mp3'}" type="audio/mpeg">
+</audio>
+
+<!-- Control Sidebar -->
+<aside class="control-sidebar control-sidebar-dark">
+	<!-- Control sidebar content goes here -->
+</aside>
+<!-- /.control-sidebar -->
+
+<!-- jQuery -->
+<script th:src="@{'/static/AdminLTE/plugins/jquery/jquery.min.js'}"></script>
+<!-- jQuery UI 1.11.4 -->
+<script th:src="@{'/static/AdminLTE/plugins/jquery-ui/jquery-ui.min.js'}"></script>
+<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
+<script>
+	$.widget.bridge('uibutton', $.ui.button)
+</script>
+<!-- Bootstrap 4 -->
+<script th:src="@{'/static/AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js'}"></script>
+<!-- Select2 -->
+<script  th:src="@{'/static/AdminLTE/plugins/select2/js/select2.full.min.js'}"></script>
+<!-- ChartJS -->
+<script th:src="@{'/static/AdminLTE/plugins/chart.js/Chart.min.js'}"></script>
+<!-- Sparkline -->
+<script th:src="@{'/static/AdminLTE/plugins/sparklines/sparkline.js'}"></script>
+<!-- JQVMap -->
+<script th:src="@{'/static/AdminLTE/plugins/jqvmap/jquery.vmap.min.js'}"></script>
+<script th:src="@{'/static/AdminLTE/plugins/jqvmap/maps/jquery.vmap.usa.js'}"></script>
+<!-- jQuery Knob Chart -->
+<script th:src="@{'/static/AdminLTE/plugins/jquery-knob/jquery.knob.min.js'}"></script>
+<!-- InputMask -->
+<script th:src="@{'/static/AdminLTE/plugins/moment/moment.min.js'}"></script>
+<script th:src="@{'/static/AdminLTE/plugins/inputmask/min/jquery.inputmask.bundle.min.js'}"></script>
+<!-- daterangepicker -->
+<script th:src="@{'/static/AdminLTE/plugins/daterangepicker/daterangepicker.js'}"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script th:src="@{'/static/AdminLTE/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js'}"></script>
+<!-- Summernote -->
+<script th:src="@{'/static/AdminLTE/plugins/summernote/summernote-bs4.min.js'}"></script>
+<!-- overlayScrollbars -->
+<script th:src="@{'/static/AdminLTE/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js'}"></script>
+<!-- AdminLTE App -->
+<script th:src="@{'/static/AdminLTE/dist/js/adminlte.js'}"></script>
+<!-- SweetAlert2 -->
+<script th:src="@{'/static/AdminLTE/plugins/sweetalert2/sweetalert2.min.js'}"></script>
+<!-- Toastr -->
+<script th:src="@{'/static/AdminLTE/plugins/toastr/toastr.min.js'}"></script>
+<!-- AdminLTE for demo purposes
+<script th:src="@{'/static/AdminLTE/dist/js/demo.js'}"></script>
+ -->
+<!-- warn sound play -->
+<script th:src="@{'/static/js/warnSound.js?v=3.4.5'}"></script>
+<script type="text/javascript">
+//提示框延时15s后消失
+toastr.options.timeOut = 15000;
+//启用弹出框popover
+$("[data-toggle='popover']").popover();
+</script>

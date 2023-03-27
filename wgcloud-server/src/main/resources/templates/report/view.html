@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper"  style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item active"></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">报告详细信息</h3>
+        <div class=" float-sm-right">
+          <a href="javascript:history.back()">返回</a>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+      <form role="form">
+        <div class="card-body">
+          <div class="form-group">
+            <label>摘要
+              <th:block th:if="${reportInfo.reportType == '1'}">
+                <span style="margin-left:10px;" class="badge bg-primary">巡检周报</span>
+              </th:block>
+              <th:block th:if="${reportInfo.reportType == '2'}">
+                <span style="margin-left:10px;" class="badge bg-dark">巡检月报</span>
+              </th:block></label>
+            <div th:text="${reportInfo.timePart}"></div>
+          </div>
+          <div class="form-group">
+            <label>添加时间</label>
+            <div th:text="${#dates.format(reportInfo.createTime,'yyyy-MM-dd HH:mm:ss')}"></div>
+          </div>
+          <div class="form-group row">
+            <div class="col-12"><button type="button" style="color:#fff;" th:onclick="excelExport([[${reportInfo.id}]])"  class="btn btn-warning btn-sm float-right">导出Excel</button>&nbsp;</div>
+          </div>
+          <div class="form-group">
+            <label>详细信息</label>
+            <div class="card-body table-responsive p-0">
+              <table class="table table-hover">
+                <thead>
+                <tr>
+                  <th>序号</th>
+                  <th>巡检项</th>
+                  <th>描述</th>
+                </tr>
+                </thead>
+            <th:block th:each="item,iterStat : ${reportInstanceList}">
+              <tr>
+                <td th:text="${iterStat.index+1}">1</td>
+                <td th:text="${item.infoKey}"></td>
+                <td th:text="${item.infoContent}"></td>
+              </tr>
+            </th:block>
+            </table>
+            </div>
+          </div>
+
+
+        </div>
+        <!-- /.card-body -->
+
+
+      </form>
+      <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+
+
+  </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<script th:src="@{'/static/js/report.js?v=3.4.5'}"></script>
+</body>
+</html>

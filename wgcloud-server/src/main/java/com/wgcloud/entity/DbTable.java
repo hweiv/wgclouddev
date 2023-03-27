@@ -1,116 +1,127 @@
 package com.wgcloud.entity;
 
-import java.sql.Timestamp;
+import com.wgcloud.util.DateUtil;
+import java.util.Date;
+import org.apache.commons.lang3.StringUtils;
 
-/**
- * @version v2.3
- * @ClassName:DbTable.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: 检查系统入侵信息
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class DbTable extends BaseEntity {
+   private static final long serialVersionUID = 1L;
+   private String dbInfoId;
+   private String tableName;
+   private String whereVal;
+   private String remark;
+   private Long tableCount;
+   private String resultExp;
+   private Long value;
+   private String dateStr;
+   private String active;
+   private String state;
+   private Date createTime;
+   private String account;
+   private String image;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 879979812204191283L;
+   public String getTableName() {
+      return this.tableName;
+   }
 
+   public void setTableName(String tableName) {
+      this.tableName = tableName;
+   }
 
-    /**
-     * 数据源
-     */
-    private String dbInfoId;
+   public String getWhereVal() {
+      return this.whereVal;
+   }
 
+   public void setWhereVal(String whereVal) {
+      this.whereVal = whereVal;
+   }
 
-    /**
-     * 表名称
-     */
-    private String tableName;
+   public String getRemark() {
+      return this.remark;
+   }
 
-    /**
-     * where条件值
-     */
-    private String whereVal;
+   public void setRemark(String remark) {
+      this.remark = remark;
+   }
 
-    /**
-     * 表别名
-     */
-    private String remark;
+   public Long getTableCount() {
+      return this.tableCount;
+   }
 
-    private Long tableCount;
+   public void setTableCount(Long tableCount) {
+      this.tableCount = tableCount;
+   }
 
-    private Long value;
+   public String getDateStr() {
+      String s = DateUtil.getDateTimeString(this.getCreateTime());
+      return !StringUtils.isEmpty(s) && s.length() > 16 ? s.substring(5) : this.dateStr;
+   }
 
-    private String dateStr;
+   public void setDateStr(String dateStr) {
+      this.dateStr = dateStr;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Timestamp createTime;
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
-    public String getTableName() {
-        return tableName;
-    }
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
-    }
+   public Long getValue() {
+      return this.tableCount;
+   }
 
-    public String getWhereVal() {
-        return whereVal;
-    }
+   public void setValue(Long value) {
+      this.value = value;
+   }
 
-    public void setWhereVal(String whereVal) {
-        this.whereVal = whereVal;
-    }
+   public String getDbInfoId() {
+      return this.dbInfoId;
+   }
 
-    public String getRemark() {
-        return remark;
-    }
+   public void setDbInfoId(String dbInfoId) {
+      this.dbInfoId = dbInfoId;
+   }
 
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
+   public String getActive() {
+      return this.active;
+   }
 
-    public Long getTableCount() {
-        return tableCount;
-    }
+   public void setActive(String active) {
+      this.active = active;
+   }
 
-    public void setTableCount(Long tableCount) {
-        this.tableCount = tableCount;
-    }
+   public String getResultExp() {
+      return this.resultExp;
+   }
 
-    public String getDateStr() {
-        return dateStr;
-    }
+   public void setResultExp(String resultExp) {
+      this.resultExp = resultExp;
+   }
 
-    public void setDateStr(String dateStr) {
-        this.dateStr = dateStr;
-    }
+   public String getAccount() {
+      return this.account;
+   }
 
-    public Timestamp getCreateTime() {
-        return createTime;
-    }
+   public void setAccount(String account) {
+      this.account = account;
+   }
 
-    public void setCreateTime(Timestamp createTime) {
-        this.createTime = createTime;
-    }
+   public String getImage() {
+      return this.image;
+   }
 
-    public Long getValue() {
-        return tableCount;
-    }
+   public void setImage(String image) {
+      this.image = image;
+   }
 
-    public void setValue(Long value) {
-        this.value = value;
-    }
+   public String getState() {
+      return this.state;
+   }
 
-    public String getDbInfoId() {
-        return dbInfoId;
-    }
-
-    public void setDbInfoId(String dbInfoId) {
-        this.dbInfoId = dbInfoId;
-    }
+   public void setState(String state) {
+      this.state = state;
+   }
 }

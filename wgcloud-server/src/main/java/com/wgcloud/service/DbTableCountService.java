@@ -2,82 +2,109 @@ package com.wgcloud.service;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.wgcloud.dto.SubtitleDto;
 import com.wgcloud.entity.DbTableCount;
 import com.wgcloud.mapper.DbTableCountMapper;
 import com.wgcloud.util.DateUtil;
+import com.wgcloud.util.FormatUtil;
 import com.wgcloud.util.UUIDUtil;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 
-import java.util.List;
-import java.util.Map;
-
-/**
- * @version v2.3
- * @ClassName:DbTableCountCountService.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: DbTableCountService.java
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 @Service
 public class DbTableCountService {
+   @Autowired
+   private DbTableCountMapper dbTableCountMapper;
 
-    public PageInfo selectByParams(Map<String, Object> params, int currPage, int pageSize) throws Exception {
-        PageHelper.startPage(currPage, pageSize);
-        List<DbTableCount> list = dbTableCountMapper.selectByParams(params);
-        PageInfo<DbTableCount> pageInfo = new PageInfo<DbTableCount>(list);
-        return pageInfo;
-    }
+   public PageInfo selectByParams(Map<String, Object> params, int currPage, int pageSize) throws Exception {
+      PageHelper.startPage(currPage, pageSize);
+      List<DbTableCount> list = this.dbTableCountMapper.selectByParams(params);
+      PageInfo<DbTableCount> pageInfo = new PageInfo(list);
+      return pageInfo;
+   }
 
-    public void save(DbTableCount DbTableCount) throws Exception {
-        DbTableCount.setId(UUIDUtil.getUUID());
-        DbTableCount.setCreateTime(DateUtil.getNowTime());
-        dbTableCountMapper.save(DbTableCount);
-    }
+   public void save(DbTableCount DbTableCount) throws Exception {
+      DbTableCount.setId(UUIDUtil.getUUID());
+      DbTableCount.setCreateTime(DateUtil.getNowTime());
+      this.dbTableCountMapper.save(DbTableCount);
+   }
 
-    public void saveRecord(List<DbTableCount> recordList) throws Exception {
-        if (recordList.size() < 1) {
-            return;
-        }
-        for (DbTableCount as : recordList) {
+   public void saveRecord(List<DbTableCount> recordList) throws Exception {
+      if (recordList.size() >= 1) {
+         Iterator var2 = recordList.iterator();
+
+         while(var2.hasNext()) {
+            DbTableCount as = (DbTableCount)var2.next();
             as.setId(UUIDUtil.getUUID());
             as.setDateStr(DateUtil.getDateTimeString(as.getCreateTime()));
-        }
-        dbTableCountMapper.insertList(recordList);
-    }
+         }
 
+         this.dbTableCountMapper.insertList(recordList);
+      }
+   }
 
-    public int countByParams(Map<String, Object> params) throws Exception {
-        return dbTableCountMapper.countByParams(params);
-    }
+   public int countByParams(Map<String, Object> params) throws Exception {
+      return this.dbTableCountMapper.countByParams(params);
+   }
 
-    @Transactional
-    public int deleteById(String[] id) throws Exception {
-        return dbTableCountMapper.deleteById(id);
-    }
+   @Transactional
+   public int deleteById(String[] id) throws Exception {
+      return this.dbTableCountMapper.deleteById(id);
+   }
 
-    public void updateById(DbTableCount DbTableCount)
-            throws Exception {
-        dbTableCountMapper.updateById(DbTableCount);
-    }
+   public void updateById(DbTableCount DbTableCount) throws Exception {
+      this.dbTableCountMapper.updateById(DbTableCount);
+   }
 
-    public DbTableCount selectById(String id) throws Exception {
-        return dbTableCountMapper.selectById(id);
-    }
+   public DbTableCount selectById(String id) throws Exception {
+      return this.dbTableCountMapper.selectById(id);
+   }
 
-    public List<DbTableCount> selectAllByParams(Map<String, Object> params) throws Exception {
-        return dbTableCountMapper.selectAllByParams(params);
-    }
+   public List<DbTableCount> selectAllByParams(Map<String, Object> params) throws Exception {
+      return this.dbTableCountMapper.selectAllByParams(params);
+   }
 
-    public int deleteByDate(Map<String, Object> map) throws Exception {
-        return dbTableCountMapper.deleteByDate(map);
-    }
+   public int deleteByDate(Map<String, Object> map) throws Exception {
+      return this.dbTableCountMapper.deleteByDate(map);
+   }
 
+   public void setSubtitle(Model model, List<DbTableCount> dbTableCountList) {
+      long maxValue = 0L;
+      long minValue = 1000000L;
+      Double avgValue = 0.0D;
+      long sumValue = 0L;
+      Iterator var10 = dbTableCountList.iterator();
 
-    @Autowired
-    private DbTableCountMapper dbTableCountMapper;
+      while(var10.hasNext()) {
+         DbTableCount dbTableCount = (DbTableCount)var10.next();
+         if (null != dbTableCount.getTableCount()) {
+            if (dbTableCount.getTableCount() > maxValue) {
+               maxValue = dbTableCount.getTableCount();
+            }
 
+            if (dbTableCount.getTableCount() < minValue) {
+               minValue = dbTableCount.getTableCount();
+            }
 
+            sumValue += dbTableCount.getTableCount();
+         }
+      }
+
+      if (dbTableCountList.size() > 0) {
+         avgValue = (double)sumValue / (double)dbTableCountList.size();
+      } else {
+         minValue = 0L;
+      }
+
+      SubtitleDto countSubtitleDto = new SubtitleDto();
+      countSubtitleDto.setAvgValue(FormatUtil.formatDouble((Double)avgValue, 2) + "");
+      countSubtitleDto.setMaxValue(maxValue + "");
+      countSubtitleDto.setMinValue(minValue + "");
+      model.addAttribute("countSubtitleDto", countSubtitleDto);
+   }
 }

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WGCLOUD公众看板/主机列表(请收藏)</title>
+    <title th:text="${application.wgName}">WGClOUD监控系统</title>
   <div  th:replace="common/header.html"></div>
 
 
@@ -13,21 +13,33 @@
 
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem;margin-left: 10px">
+  <div class="content-wrapper" style="margin-left: 10px;font-size:0.90rem">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
-            <div class="col-sm-6" id="fuwuqixinxi">
-                <a href="http://www.wgstart.com"  target="_blank">
-                    <img th:src="@{'/static/logincss/logo.png'}" style="height:25px;width:25px;opacity: .8" class="brand-image img-circle elevation-3">&nbsp;<span style="vertical-align:bottom;">WGCLOUD</span>
+            <div class="col-sm-6">
+                <a href="javascript:location.reload();">
+                    <img th:src="${application.logoUrl}" style="height:25px;width:25px;opacity: .8" class="brand-image img-circle elevation-3">&nbsp;<span style="vertical-align:bottom;" th:text="${application.wgName}">WGCLOUD</span>
                 </a>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item ">
+                        <th:block  th:if="${session.timerWarnSound ne '1' }">
+                          <span style="cursor:pointer;margin-right: 10px" id="timerWarnSoundDiv" title="当前已关闭页面告警声音提示，点击可开启" value="2" data-toggle="dropdown" onclick="javascript:playSound();">
+                            <i class="far fa-bell-slash"></i>
+                          </span>
+                        </th:block>
+                        <th:block  th:if="${session.timerWarnSound eq '1' }">
+                          <span style="cursor:pointer;margin-right: 10px" id="timerWarnSoundDiv" title="当前已开启页面告警声音提示，点击可关闭" value="1" data-toggle="dropdown" onclick="javascript:playSound();">
+                            <i style="margin-right:3px" class="far fa-bell"></i>
+                          </span>
+                        </th:block>
+                    </li>
                     <li class="breadcrumb-item "><a href="/wgcloud/dash/main?dashView=1">监控概要</a></li>
-                    <li class="breadcrumb-item active">主机列表</li>
-                    <li class="breadcrumb-item active"><a  target="_blank" href="https://www.wgstart.com/elasticsearch-head/index.html">ES监控工具</a></li>
+                    <li class="breadcrumb-item "><a href="/wgcloud/systemInfo/systemInfoList?dashView=1">主机列表</a></li>
+                   <!-- <li class="breadcrumb-item active"><a  target="_blank" href="https://www.wgstart.com/elasticsearch-head/index.html">ES监控工具</a></li>-->
                 </ol>
             </div>
         </div>
@@ -41,16 +53,151 @@
 
   <div class="col-md-12">
     <div class="card">
+        <div class="card-header">
+            <span id="timeDiv" style="display: none"><i class="far fa-clock" style="margin-left:5px;margin-top:5px"></i><span id="startTime" style="margin-left:5px;"></span></span>
+            <div class="card-tools">
+                <div class="float-sm-right">
+                    <!-- SEARCH FORM -->
+                    <form class="form-inline ml-3" th:action="@{'/systemInfo/systemInfoList'}">
+                        <button type="button" onclick="searchAllDashView()" title="显示所有主机，不分页" class="btn btn-primary btn-sm" style="margin-right:5px;">显示所有主机</button>
+                        <button type="button" id="startTaskBtn" th:onclick="startTask()" title="自动刷新当前页面主机列表的指标数据" class="btn btn-primary btn-sm" style="margin-right:5px;">自动刷新</button>
+                        <button type="button" onclick="searchByOnlineDashView('')" class="btn btn-primary btn-sm" style="margin-right:5px;">全部</button>
+                        <button type="button" onclick="searchByOnlineDashView('1')" class="btn btn-success btn-sm" style="margin-right:5px;">在线</button>
+                        <button type="button" onclick="searchByOnlineDashView('2')" class="btn bg-danger btn-sm" style="margin-right:5px;">已下线</button>
+                        <div class="input-group input-group-sm" th:if="${application.hostGroup == 'true'}"><select style="width:150px;margin-right:5px;" class="form-control" onchange="searchByGroupIdDashView()" name="groupId" id="groupId">
+                            <option value="">请选择主机标签</option>
+                            <th:block th:each="item,iterStat : ${hostGroupList}">
+                                <option  th:value="${item.id}"  th:text="${item.groupName}">Alabama</option>
+                            </th:block>
+                        </select></div>
+                        <div class="input-group input-group-sm">
+                            <div style="display: none"><input type="search" value="1" name="dashView"/></div>
+                            <input class="form-control form-control-navbar" name="hostname" autocomplete="off" th:value="${systemInfo.hostname}" type="search" placeholder="输入IP或备注" aria-label="Search">
+                            <div class="input-group-append">
+                                <button class="btn btn-default" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
       <!-- /.card-header -->
       <div class="card-body">
-        <table class="table table-bordered">
+        <table class="table table-bordered table-hover">
           <thead>
           <tr>
-            <th style="width: 80px">序号</th>
+            <th style="width: 60px">序号</th>
+            <th>系统</th>
             <th>IP</th>
-            <th>内存%</th>
-            <th>CPU%</th>
-            <th>更新时间</th>
+
+            <th:block th:if="${systemInfo.orderBy  == 'MEM_PER'}">
+                <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                    <th style="cursor:pointer" onclick="searchByOrderDashView('MEM_PER','DESC')" >内存%<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                </th:block>
+                <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                    <th style="cursor:pointer" onclick="searchByOrderDashView('MEM_PER','ASC')" >内存%<small class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                </th:block>
+            </th:block>
+            <th:block th:if="${systemInfo.orderBy  ne 'MEM_PER'}">
+                <th style="cursor:pointer" onclick="searchByOrderDashView('MEM_PER','ASC')" >内存%<small class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+        </th>
+
+            <th:block th:if="${systemInfo.orderBy  == 'CPU_PER'}">
+                <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                    <th  style="cursor:pointer" onclick="searchByOrderDashView('CPU_PER','DESC')" >CPU%<small class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                </th:block>
+                <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                    <th style="cursor:pointer" onclick="searchByOrderDashView('CPU_PER','ASC')" >CPU%<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                </th:block>
+            </th:block>
+            <th:block th:if="${systemInfo.orderBy  ne 'CPU_PER'}">
+                <th style="cursor:pointer" onclick="searchByOrderDashView('CPU_PER','ASC')">CPU%<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+        </th>
+
+              <th title="所有磁盘已使用%">磁盘%</th>
+              <th:block th:if="${systemInfo.orderBy  == 'CPU_CORE_NUM'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="CPU核数" style="cursor:pointer" onclick="searchByOrderDashView('CPU_CORE_NUM','DESC')">CPU核数<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="CPU核数" style="cursor:pointer" onclick="searchByOrderDashView('CPU_CORE_NUM','ASC')">CPU核数<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'CPU_CORE_NUM'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="CPU核数" style="cursor:pointer" onclick="searchByOrderDashView('CPU_CORE_NUM','ASC')">CPU核数<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th>
+
+              <th:block th:if="${systemInfo.orderBy  == 'TOTAL_MEM'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="内存" style="cursor:pointer" onclick="searchByOrderDashView('TOTAL_MEM','DESC')">内存<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="内存" style="cursor:pointer" onclick="searchByOrderDashView('TOTAL_MEM','ASC')">内存<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'TOTAL_MEM'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="内存" style="cursor:pointer" onclick="searchByOrderDashView('TOTAL_MEM','ASC')">内存<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th>
+
+              <th:block th:if="${systemInfo.orderBy  == 'RXBYT'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="下行数据传输速率" style="cursor:pointer" onclick="searchByOrderDashView('RXBYT','DESC')">下行速率<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="下行数据传输速率" style="cursor:pointer" onclick="searchByOrderDashView('RXBYT','ASC')">下行速率<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'RXBYT'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="下行数据传输速率" style="cursor:pointer" onclick="searchByOrderDashView('RXBYT','ASC')">下行速率<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+
+              <th:block th:if="${systemInfo.orderBy  == 'TXBYT'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="上行数据传输速率" style="cursor:pointer" onclick="searchByOrderDashView('TXBYT','DESC')">上行速率<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="上行数据传输速率" style="cursor:pointer" onclick="searchByOrderDashView('TXBYT','ASC')">上行速率<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'TXBYT'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="上行数据传输速率" style="cursor:pointer" onclick="searchByOrderDashView('TXBYT','ASC')">上行速率<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+
+              <th:block th:if="${systemInfo.orderBy  == 'FIVE_LOAD'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="5分钟系统负载" style="cursor:pointer" onclick="searchByOrderDashView('FIVE_LOAD','DESC')">系统负载<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="5分钟系统负载" style="cursor:pointer" onclick="searchByOrderDashView('FIVE_LOAD','ASC')">系统负载<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'FIVE_LOAD'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="5分钟系统负载" style="cursor:pointer" onclick="searchByOrderDashView('FIVE_LOAD','ASC')">系统负载<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th>
+
+              <th th:if="${application.showWarnCount == 'true'}" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="主机及其监控资源(进程端口docker日志等)累积告警次数">告警次数</th>
+              <th:block th:if="${systemInfo.orderBy  == 'NET_CONNECTIONS'}">
+                  <th:block th:if="${systemInfo.orderType  == 'ASC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="主机连接数量包括tcp、udp、inet" style="cursor:pointer" onclick="searchByOrderDashView('NET_CONNECTIONS','DESC')">连接数量<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+                  <th:block th:if="${systemInfo.orderType  == 'DESC'}">
+                      <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="主机连接数量包括tcp、udp、inet" style="cursor:pointer" onclick="searchByOrderDashView('NET_CONNECTIONS','ASC')">连接数量<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+                  </th:block>
+              </th:block>
+              <th:block th:if="${systemInfo.orderBy  ne 'NET_CONNECTIONS'}">
+                  <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="主机连接数量包括tcp、udp、inet" style="cursor:pointer" onclick="searchByOrderDashView('NET_CONNECTIONS','ASC')">连接数量<small   class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+              </th:block>
+              </th>
+
+              <th  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="若已下线，显示最后在线时间，但监控仍在继续">更新时间</th>
+              <th th:if="${application.hostGroup == 'true'}">标签</th>
               <th>备注</th>
               <th>操作</th>
           </tr>
@@ -59,16 +206,19 @@
           <th:block th:each="item,iterStat : ${page.list}">
             <tr>
               <td th:text="${iterStat.index+1}">1</td>
-              <td>
+                <td>
+                    <image data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.platForm}+'，'+${item.platformVersion}+'，'+${item.hostnameExt}+'，已运行'+${item.uptimeStr}+'，agent版本'+${item.agentVer}" th:src="${item.image}"></image>
+                </td>
+
                   <th:block th:if="${item.state  == '2'}">
-                      <span title="超过10分钟未上报状态，可能已下线" style="color:red;font-weight: 500;"  th:text="${item.hostname}"></span>
+                      <td th:id="${item.id}+'_state'"><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.hostname}+'可能已下线'" class="badge bg-danger"    th:text="${#strings.abbreviate(item.hostname,20)}"></span>
                   </th:block>
                   <th:block th:if="${item.state  != '2'}">
-                      <span   th:text="${item.hostname}"></span>
+                      <td th:id="${item.id}+'_state'"><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.hostname}"th:text="${#strings.abbreviate(item.hostname,20)}"></span>
                   </th:block>
               </td>
 
-              <td>
+              <td th:id="${item.id}+'_memPer'">
                   <th:block th:if="${item.memPer >= 90}">
                       <span class="badge bg-danger" th:text="${item.memPer}"></span>
                   </th:block>
@@ -79,7 +229,7 @@
                       <span class="badge bg-primary" th:text="${item.memPer}"></span>
                   </th:block>
               </td>
-              <td>
+              <td th:id="${item.id}+'_cpuPer'">
                   <th:block th:if="${item.cpuPer >= 90}">
                       <span class="badge bg-danger" th:text="${item.cpuPer}"></span>
                   </th:block>
@@ -101,13 +251,20 @@
                         <span class="badge bg-primary" th:text="${item.diskPer}"></span>
                     </th:block>
                 </td>
+                <td th:text="${item.cpuCoreNum}"></td>
+                <td th:text="${item.totalMem}"></td>
+                <td th:id="${item.id}+'_rxbyt'"><span th:text="${item.rxbyt}"></span></td>
+                <td th:id="${item.id}+'_txbyt'"><span th:text="${item.txbyt}"></span></td>
+                <td th:id="${item.id}+'_fiveLoad'" title="5分钟系统负载"><span th:text="${item.fiveLoad}"></span></td>
+                <td th:if="${application.showWarnCount == 'true'}"><span style="cursor:pointer;color:#007bff;font-weight:bold" th:text="${item.warnCount}"></span></td>
+                <td th:id="${item.id}+'_netConnections'"><span th:text="${item.netConnections}"></span></td>
+              <td th:id="${item.id}+'_createTime'" th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+                <td th:text="${item.groupId}" th:if="${application.hostGroup == 'true'}"></td>
                 <td th:text="${item.remark}">
-              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
-
 
                 </td>
-                <td> <button type="button"  th:onclick="viewDashView([[${item.id}]])"  class="btn btn-primary btn-sm">系统信息</button>
-                    <button type="button"  th:onclick="viewChartDashView([[${item.id}]])"  class="btn btn-primary btn-sm">图表</button>
+                <td> <button type="button"  th:onclick="viewDashView([[${item.id}]])"  class="btn btn-primary  btn-sm">系统</button>
+                    <button type="button"  th:onclick="viewChartDashView([[${item.id}]])"  class="btn btn-primary  btn-sm">图表</button>
                  </td>
 
             </tr>
@@ -122,18 +279,39 @@
     <!-- /.card -->
 
 
-  </div>
+  </div><!-- /.col-md-12 -->
 
-        </div>
-      </div>
-    </section>
-  </div>
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 
 
-  <div th:replace="common/dashViewFooter.html"></div>
+  <div th:replace="common/footerDashView.html"></div>
 
 </div>
 <!-- ./wrapper -->
-<script th:src="@{'/static/js/host.js'}"></script>
+<script th:src="@{'/static/js/host.js?v=3.4.4'}"></script>
+
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#groupId").val([[${systemInfo.groupId}]]);
+    });
+
+    var msg = [[${msg}]];
+    if(msg!='' && msg!=null){
+        toastr.info(msg);
+    }
+    function reload() {
+        window.location.reload();
+    }
+    const dashViewListAutoData = [[${dashViewListAutoData}]];
+    if('true'==dashViewListAutoData){
+        toastr.success("页面将在10分钟后自动刷新");
+        setTimeout(reload,600000);
+    }
+</script>
+
+
 </body>
 </html>

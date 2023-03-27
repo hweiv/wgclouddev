@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wgcloud.mapper.FileWarnInfoMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.FileWarnInfo">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="FILE_PATH" property="filePath" jdbcType="CHAR" />
+		<result column="FILE_SIZE" property="fileSize" jdbcType="CHAR" />
+		<result column="WARN_CHARS" property="warnChars" jdbcType="CHAR" />
+		<result column="WARN_ROWS" property="warnRows" jdbcType="CHAR" />
+		<result column="REMARK" property="remark" jdbcType="CHAR" />
+		<result column="FILE_NAME_PREFIX" property="fileNamePrefix" jdbcType="CHAR" />
+		<result column="ACTIVE" property="active" jdbcType="CHAR" />
+		<result column="FILE_TYPE" property="fileType" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,HOST_NAME, FILE_PATH,FILE_SIZE,CREATE_TIME,WARN_CHARS,WARN_ROWS,REMARK,ACTIVE,FILE_NAME_PREFIX,FILE_TYPE
+	</sql>
+
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR FILE_PATH LIKE   CONCAT(CONCAT('%',#{hostname}),'%') )]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR FILE_PATH LIKE  CONCAT('%',#{hostname},'%') )]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="active != null">
+			<![CDATA[ AND ACTIVE = #{active} ]]>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+		</if>
+	</sql>
+	
+	
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM FILE_WARN 
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM FILE_WARN 
+		WHERE ID = #{id}
+	</delete>
+
+
+	<delete id="deleteByHostName" parameterType="map">
+		DELETE FROM FILE_WARN WHERE <![CDATA[  HOST_NAME =#{hostname}]]>
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		FILE_WARN 
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.FileWarnInfo">
+		INSERT INTO FILE_WARN 
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" >HOST_NAME,</if>
+      		<if test="filePath != null">FILE_PATH,</if>
+      		<if test="fileSize != null">FILE_SIZE,</if>
+			<if test="warnChars != null">WARN_CHARS,</if>
+			<if test="warnRows != null">WARN_ROWS,</if>
+			<if test="remark != null">REMARK,</if>
+			<if test="active != null">ACTIVE,</if>
+			<if test="fileType != null">FILE_TYPE,</if>
+			<if test="fileNamePrefix != null">FILE_NAME_PREFIX,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="filePath != null" >#{filePath},</if>
+      		<if test="fileSize != null" >#{fileSize},</if>
+			<if test="warnChars != null" >#{warnChars},</if>
+			<if test="warnRows != null" >#{warnRows},</if>
+			<if test="remark != null" >#{remark},</if>
+			<if test="active != null" >#{active},</if>
+			<if test="fileType != null" >#{fileType},</if>
+			<if test="fileNamePrefix != null" >#{fileNamePrefix},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO FILE_WARN (ID,HOST_NAME, FILE_PATH,FILE_SIZE,CREATE_TIME,WARN_CHARS,WARN_ROWS,REMARK,ACTIVE,FILE_NAME_PREFIX,FILE_TYPE)  VALUES
+					(#{item.id},#{item.hostname},#{item.filePath},#{item.fileSize},#{item.createTime},#{item.warnChars},#{item.warnRows},#{item.remark},#{item.active},#{item.fileNamePrefix},#{item.fileType});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO FILE_WARN (ID,HOST_NAME, FILE_PATH,FILE_SIZE,CREATE_TIME,WARN_CHARS,WARN_ROWS,REMARK,ACTIVE,FILE_NAME_PREFIX,FILE_TYPE)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.filePath},#{item.fileSize},#{item.createTime},#{item.warnChars},#{item.warnRows},#{item.remark},#{item.active},#{item.fileNamePrefix},#{item.fileType})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<update id="updateList" parameterType="java.util.List" >
+		<if test="_databaseId == 'oracle'">
+			begin
+		</if>
+		<foreach collection="list" item="item" index="index">
+			UPDATE FILE_WARN
+			<set>
+				<if test="item.hostname != null">
+					HOST_NAME = #{item.hostname},
+				</if>
+				<if test="item.filePath != null">
+					FILE_PATH = #{item.filePath},
+				</if>
+				<if test="item.fileSize != null">
+					FILE_SIZE = #{item.fileSize},
+				</if>
+				<if test="item.warnChars != null">
+					WARN_CHARS = #{item.warnChars},
+				</if>
+				<if test="item.warnRows != null">
+					WARN_ROWS = #{item.warnRows},
+				</if>
+				<if test="item.remark != null">
+					REMARK = #{item.remark},
+				</if>
+				<if test="item.active != null">
+					ACTIVE = #{item.active},
+				</if>
+				<if test="item.fileType != null">
+					FILE_TYPE = #{item.fileType},
+				</if>
+				<if test="item.fileNamePrefix != null">
+					FILE_NAME_PREFIX = #{item.fileNamePrefix},
+				</if>
+				<if test="item.createTime != null" >
+					CREATE_TIME= #{item.createTime}
+				</if>
+			</set>
+			WHERE ID = #{item.id};
+		</foreach>
+		<if test="_databaseId == 'oracle'">
+			end;
+		</if>
+	</update>
+	
+	
+	<update id="updateById" parameterType="com.wgcloud.entity.FileWarnInfo">
+		UPDATE FILE_WARN
+		<set>
+			<if test="hostname != null">
+				HOST_NAME = #{hostname},
+			</if>
+			<if test="filePath != null">
+				FILE_PATH = #{filePath},
+			</if>
+			<if test="fileSize != null">
+				FILE_SIZE = #{fileSize},
+			</if>
+			<if test="warnChars != null">
+				WARN_CHARS = #{warnChars},
+			</if>
+			<if test="warnRows != null">
+				WARN_ROWS = #{warnRows},
+			</if>
+			<if test="remark != null">
+				REMARK = #{remark},
+			</if>
+			<if test="active != null">
+				ACTIVE = #{active},
+			</if>
+			<if test="fileType != null">
+				FILE_TYPE = #{fileType},
+			</if>
+			<if test="fileNamePrefix != null">
+				FILE_NAME_PREFIX = #{fileNamePrefix},
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME = #{createTime}
+			</if>
+		</set>
+		WHERE ID = #{id}
+	</update>
+
+	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)  FROM FILE_WARN t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+
+	<select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM FILE_WARN t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID DESC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />,(SELECT COUNT(*) FROM FILE_WARN_STATE WHERE FILE_WARN_ID = t.ID) AS warnDatas
+		FROM FILE_WARN t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</when>
+			<otherwise>
+				ORDER BY ID DESC
+			</otherwise>
+		</choose>
+
+	</select>
+	
+	
+</mapper>

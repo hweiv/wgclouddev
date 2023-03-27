@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wgcloud.mapper.CustomStateMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.CustomState">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="CUSTOM_INFO_ID" property="customInfoId" jdbcType="CHAR" />
+		<result column="CUSTOM_VALUE" property="customValue" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,CUSTOM_INFO_ID, CUSTOM_VALUE,CREATE_TIME
+	</sql>
+	
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM CUSTOM_STATE 
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByCustomInfoId"  parameterType="java.lang.String">
+		DELETE FROM CUSTOM_STATE WHERE  CUSTOM_INFO_ID  = #{customInfoId}
+	</delete>
+	
+	<delete id="deleteByDate"  parameterType="map">
+		DELETE FROM CUSTOM_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
+	</delete>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM CUSTOM_STATE 
+		WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		CUSTOM_STATE 
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+		
+	<insert id="save" parameterType="com.wgcloud.entity.CustomState">
+		INSERT INTO CUSTOM_STATE
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="customInfoId != null" >CUSTOM_INFO_ID,</if>
+      		<if test="customValue != null" >CUSTOM_VALUE,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="customInfoId != null" >#{customInfoId},</if>
+      		<if test="customValue != null" >#{customValue},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+	
+	
+	 <insert id="insertList" parameterType="java.util.List" >
+		 <choose>
+			 <when test="_databaseId == 'oracle'">
+				 begin
+				 <foreach collection="list" item="item" index="index">
+					 INSERT INTO CUSTOM_STATE (ID, CUSTOM_INFO_ID, CUSTOM_VALUE,CREATE_TIME)  VALUES
+					 (#{item.id},#{item.customInfoId},#{item.customValue},#{item.createTime});
+				 </foreach>
+				 end;
+			 </when>
+			 <otherwise>
+				 INSERT INTO CUSTOM_STATE (ID, CUSTOM_INFO_ID, CUSTOM_VALUE,CREATE_TIME)  VALUES
+				 <foreach collection="list" item="item" index="index" separator="," >
+					 (#{item.id},#{item.customInfoId},#{item.customValue},#{item.createTime})
+				 </foreach>
+			 </otherwise>
+		 </choose>
+	 </insert>
+	 
+	
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM CUSTOM_STATE t
+		<where>
+			<if test="customInfoId != null">
+			<![CDATA[ AND CUSTOM_INFO_ID  = #{customInfoId} ]]>
+			</if>
+			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+				<if test="_databaseId == 'mysql'">
+					<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+				</if>
+				<if test="_databaseId == 'postgresql'">
+					<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+				</if>
+				<if test="_databaseId == 'oracle'">
+					<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+				</if>
+			</if>
+		</where>
+		  ORDER BY CREATE_TIME ASC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM CUSTOM_STATE 
+		<where>
+			<if test="customInfoId != null">
+			<![CDATA[ AND CUSTOM_INFO_ID  = #{customInfoId} ]]>
+			</if>
+			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+				<if test="_databaseId == 'mysql'">
+					<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+				</if>
+				<if test="_databaseId == 'postgresql'">
+					<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+				</if>
+				<if test="_databaseId == 'oracle'">
+					<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+				</if>
+			</if>
+		</where>
+		  ORDER BY CREATE_TIME DESC
+	</select>
+	
+	
+</mapper>

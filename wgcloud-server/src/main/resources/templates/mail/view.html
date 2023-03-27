@@ -5,32 +5,30 @@
 
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 <div th:replace="common/chart.html"></div>
 
-<div class="wrapper">
+<div class="wrapper"  >
 
   <div th:replace="common/navbar.html"></div>
 
   <div th:replace="common/aside.html"></div>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper" style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1></h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item active"></li>
-            </ol>
-          </div>
-        </div>
-      </div><!-- /.container-fluid -->
-    </section>
+      <section class="content-header" style="height:38px">
+          <div class="container-fluid">
+              <div class="row mb-2" style="margin-top: -7px;">
+                  <div class="col-sm-6"></div>
+                  <div class="col-sm-6">
+                      <ol class="breadcrumb float-sm-right">
+                          <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
+                      </ol>
+                  </div>
+              </div>
+          </div><!-- /.container-fluid -->
+      </section>
 
     <!-- Main content -->
     <section class="content">
@@ -40,7 +38,7 @@
   <div class="col-md-10">
     <div class="card card-primary">
       <div class="card-header">
-        <h3 class="card-title">告警邮件(发送内存，CPU，服务接口告警，若不需要，可以删除)</h3>
+        <h3 class="card-title"><i class="nav-icon far fa-envelope"></i>&nbsp;告警邮件</h3>
       </div>
       <!-- /.card-header -->
       <!-- form start -->
@@ -59,37 +57,66 @@
                     <input type="text"  th:value="${mailSet.fromMailName}" autocomplete="off" class="validate[required,maxSize[40],custom[email]] form-control" name="fromMailName" id="fromMailName" placeholder="123456@qq.com">
                 </div>
                 <div class="form-group">
-                    <label for="fromPwd"><font color="red">*</font>发送邮箱密码</label>
+                    <label for="fromPwd"><font color="red">*</font>发送邮箱密码 <span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="显示密码" onclick="javascript:showPasswd();" style="cursor:pointer;margin-left: 5px"><i id="eyeSwitch" class="fa fa-eye"></i></span></label>
                     <input type="password"  th:value="${mailSet.fromPwd}"  class="validate[required,maxSize[20]] form-control" name="fromPwd" id="fromPwd" placeholder="">
                 </div>
                 <div class="form-group">
                     <label for="fromMailName"><font color="red">*</font>发送邮箱SMTP服务器</label>
-                    <input type="text" th:value="${mailSet.smtpHost}" autocomplete="off" class="validate[required,maxSize[40]] form-control" name="smtpHost" id="smtpHost" placeholder="如smtp.qq.com">
+                    <input type="text" th:value="${mailSet.smtpHost}" autocomplete="off" class="validate[required,maxSize[100]] form-control" name="smtpHost" id="smtpHost" placeholder="如smtp.qq.com">
+                </div>
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>是否启用安全链接(SSL)</label></br>
+                    <th:block th:if="${#strings.isEmpty(mailSet.smtpSSL)}" >
+                        <div class="icheck-turquoise d-inline">
+                            <input type="radio" onclick="setSmtpPortSSL()" id="radioPrimary2" name="smtpSSL" value="1" checked>
+                            <label for="radioPrimary2"> 启用 </label>
+                        </div>
+                        <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                            <input type="radio" onclick="setSmtpPort()" id="radioPrimary4"  name="smtpSSL" value="0">
+                            <label for="radioPrimary4">不启用</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${mailSet.smtpSSL  == '0'}">
+                        <div class="icheck-turquoise d-inline">
+                            <input type="radio" onclick="setSmtpPortSSL()" id="radioPrimary2" name="smtpSSL" value="1">
+                            <label for="radioPrimary2"> 启用 </label>
+                        </div>
+                        <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                            <input type="radio" onclick="setSmtpPort()" id="radioPrimary4"  name="smtpSSL" value="0" checked>
+                            <label for="radioPrimary4">不启用</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${mailSet.smtpSSL  == '1'}">
+                        <div class="icheck-turquoise d-inline">
+                            <input type="radio" onclick="setSmtpPortSSL()" id="radioPrimary2" name="smtpSSL" value="1" checked>
+                            <label for="radioPrimary2"> 启用 </label>
+                        </div>
+                        <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                            <input type="radio" onclick="setSmtpPort()" id="radioPrimary4"  name="smtpSSL" value="0">
+                            <label for="radioPrimary4">不启用</label>
+                        </div>
+                    </th:block>
                 </div>
                 <div class="form-group">
-                    <label><font color="red">*</font>是否启用安全链接(SSL)</label>
-                    <select class="form-control"   onchange="setSmtpPort()"  name="smtpSSL" id="smtpSSL">
-                        <option value="0">不启用</option>
-                        <option value="1">启用</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="fromMailName"><font color="red">*</font>发送邮箱的SMTP端口,25或465</label>
+                    <label for="fromMailName"><font color="red">*</font>发送邮箱的SMTP端口，25或465<span class="text-muted">（一般启用安全链接SSL后的端口为465）</span></label>
                     <input type="text"  th:value="${mailSet.smtpPort}" autocomplete="off" class="validate[required,custom[number],maxSize[5]] form-control" name="smtpPort" id="smtpPort" placeholder="">
                 </div>
 
                 <div class="form-group">
-                    <label for="fromMailName"><font color="red">*</font>接受邮件,多个邮件用;隔开</label>
-                    <input type="text" th:value="${mailSet.toMail}"  autocomplete="off" class="validate[required,maxSize[200]] form-control" name="toMail" id="toMail" placeholder="123@qq.com;456@qq.com">
+                    <label for="fromMailName">接受邮件，多个邮件用;隔开</label>
+                    <input type="text" th:value="${mailSet.toMail}"  autocomplete="off" class="validate[maxSize[300]] form-control" name="toMail" id="toMail" placeholder="123@qq.com;456@qq.com">
                 </div>
 
             </div>
             <!-- /.card-body -->
 
             <div class="card-footer">
-                <button type="button" onclick="test()" class="btn btn-primary btn-sm">测试发送</button>
-                <button type="submit" class="btn btn-primary btn-sm">保存</button>
-                <button type="button"  th:onclick="del([[${mailSet.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button>
+                <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+                    <button type="button" onclick="test()" class="btn btn-primary btn-sm" style="margin-right:10px;">测试发送</button>
+                    <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                    <button type="button" style="margin-right:10px;" title="不需要邮件告警可删除，其他告警脚本依然生效"  th:onclick="del([[${mailSet.id}]])"  class="btn bg-gradient-danger btn-sm">删 除</button>
+                    <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
+                </th:block>
             </div>
 
         </form>
@@ -110,14 +137,11 @@
 
 </div>
 <!-- ./wrapper -->
-<link rel="stylesheet" th:href="@{'/static/js/jQuery/validationEngine.jquery.css'}" type="text/css"/>
-<script th:src="@{'/static/js/jQuery/jquery.validationEngine-zh_CN.js'}" type="text/javascript" charset="utf-8"></script>
-<script th:src="@{'/static/js/jQuery/jquery.validationEngine.js'}" type="text/javascript" charset="utf-8"></script>
 <script th:inline="javascript">
     $(document).ready(function(){
         $("#form1").validationEngine();
         // $("#sendMail").val([[${mailSet.sendMail}]]);
-        $("#smtpSSL").val([[${mailSet.smtpSSL}]]);
+        //$("#smtpSSL").val([[${mailSet.smtpSSL}]]);
     });
 
     function test() {
@@ -132,14 +156,25 @@
     }
 
     function setSmtpPort(){
-        if($("#smtpSSL").val()=='0'){
-            $("#smtpPort").val('25')
-        }
-        if($("#smtpSSL").val()=='1'){
-            $("#smtpPort").val('465')
-        }
+        $("#smtpPort").val('25')
     }
-    toastr.options.timeOut = 15000;
+
+    function setSmtpPortSSL(){
+        $("#smtpPort").val('465');
+    }
+
+    function showPasswd(){
+        var type = $("#fromPwd").attr("type");
+        if(type=='text'){
+            $("#eyeSwitch").attr("class","fa fa-eye");
+            $("#fromPwd").attr("type","password");
+        }else{
+            $("#eyeSwitch").attr("class","fa fa-eye-slash");
+            $("#fromPwd").attr("type","text");
+        }
+
+    }
+
     var msg = [[${msg}]];
     if(msg!=''){
         if(msg.indexOf("测试发送失败")>-1){

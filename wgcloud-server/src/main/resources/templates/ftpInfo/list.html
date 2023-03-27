@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper"  style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header" style="height:38px">
+      <div class="container-fluid">
+        <div class="row mb-2" style="margin-top: -7px;">
+          <div class="col-sm-6"></div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="nav-icon fas fa-cloud-upload-alt"></i>&nbsp;FTP/SFTP监测列表</h3>
+        <div class=" float-sm-right">
+          <!-- SEARCH FORM -->
+          <form class="form-inline ml-3" th:action="@{'/ftpInfo/list'}">
+            <button type="button" onclick="searchByOnline('')" class="btn btn-primary btn-sm" style="margin-right:5px;">全部</button>
+            <button type="button" onclick="searchByOnline('1')" class="btn btn-success btn-sm" style="margin-right:5px;">在线</button>
+            <button type="button" onclick="searchByOnline('2')" class="btn bg-danger btn-sm" style="margin-right:5px;">已下线</button>
+            <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+              <button type="button" onclick="startMonitor('/ftpInfo/updateActive')" class="btn btn-primary btn-sm" style="margin-right:5px;">开始监控</button>
+              <button type="button" onclick="stopMonitor('/ftpInfo/updateActive')" class="btn btn-default btn-sm" style="margin-right:5px;">停止监控</button>
+              <button type="button" onclick="delChecks('/ftpInfo/del')"  class="btn bg-danger btn-sm" style="margin-right:5px;">删除</button>
+              <button type="button" onclick="add()" class="btn btn-primary btn-sm" style="margin-right:5px;">添加</button>
+            </th:block>
+            <div class="input-group input-group-sm">
+              <input class="form-control"  id="ftpHost" name="ftpHost" autocomplete="off" th:value="${ftpInfo.ftpHost}" type="text" placeholder="输入IP">
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body">
+        <table class="table table-bordered table-hover">
+          <thead>
+          <tr>
+            <th style="width: 20px"> <input type="checkbox" value="" name="checkall" id="checkall"></th>
+            <th style="width: 60px">序号</th>
+            <th:block th:if="${ftpInfo.orderBy  == 'FTP_HOST'}">
+              <th:block th:if="${ftpInfo.orderType  == 'ASC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('FTP_HOST','DESC')">IP<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+              <th:block th:if="${ftpInfo.orderType  == 'DESC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('FTP_HOST','ASC')">IP<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+            </th:block>
+            <th:block th:if="${ftpInfo.orderBy  ne 'FTP_HOST'}">
+              <th style="cursor:pointer" onclick="searchByOrder('FTP_HOST','ASC')">IP<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+            </th>
+            <th>类型</th>
+            <th>端口</th>
+            <th:block th:if="${ftpInfo.orderBy  == 'RES_TIMES'}">
+              <th:block th:if="${ftpInfo.orderType  == 'ASC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('RES_TIMES','DESC')">响应时间ms<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+              <th:block th:if="${ftpInfo.orderType  == 'DESC'}">
+                <th style="cursor:pointer" onclick="searchByOrder('RES_TIMES','ASC')">响应时间ms<small    class="text-success mr-1 float-right"><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i>&nbsp;</small>
+              </th:block>
+            </th:block>
+            <th:block th:if="${ftpInfo.orderBy  ne 'RES_TIMES'}">
+              <th style="cursor:pointer" onclick="searchByOrder('RES_TIMES','ASC')">响应时间ms<small  class="text-success mr-1 float-right"><i class="fas fa-arrow-up" style="vertical-align:bottom;"></i><i class="fas fa-arrow-down" style="color: #dc3545!important;vertical-align:bottom;"></i></small>
+            </th:block>
+            </th>
+            <th>名称</th>
+            <th>监控状态</th>
+            <th th:if="${application.showWarnCount == 'true'}" title="累积告警次数">告警次数</th>
+            <th title="若已下线，显示最后在线时间，但监控仍在继续">更新时间</th>
+            <th th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}">账号</th>
+            <th>操作</th>
+          </tr>
+          </thead>
+          <tbody>
+          <th:block th:each="item,iterStat : ${page.list}">
+            <tr>
+              <td><input type="checkbox" th:value="${item.id}" name="todo2" th:id="${item.id}+'_check'"/></td>
+              <td th:text="${iterStat.index+1}">1</td>
+              <th:block th:if="${item.state  == '2'}">
+                <td><span  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="可能已下线" class="badge bg-danger"  th:text="${item.ftpHost}"></span>
+              </th:block>
+              <th:block th:if="${item.state  != '2'}">
+                <td><span   th:text="${item.ftpHost}"></span>
+              </th:block>
+              </td>
+              <td>
+                <th:block th:if="${item.ftpType=='FTP'}">
+                  <span class="badge bg-primary" th:text="${item.ftpType}"></span>
+                </th:block>
+                <th:block th:if="${item.ftpType=='SFTP'}">
+                  <span class="badge bg-dark" th:text="${item.ftpType}"></span>
+                </th:block>
+              </td>
+              <td th:text="${item.port}">Update software</td>
+              <td>
+                <th:block th:if="${item.resTimes >= 10000}">
+                  <span class="badge bg-danger" th:text="${item.resTimes}"></span>
+                </th:block>
+                <th:block th:if="${item.resTimes < 10000 && item.resTimes >= 5000  }">
+                  <span class="badge bg-warning" th:text="${item.resTimes}"></span>
+                </th:block>
+                <th:block th:if="${item.resTimes < 5000  }">
+                  <span class="badge bg-primary" th:text="${item.resTimes}"></span>
+                </th:block>
+              </td>
+              <td th:text="${item.ftpName}">Update software</td>
+              <td>
+                <th:block th:if="${item.active  == '1'}">
+                  <span class="badge bg-primary">监控中</span>
+                </th:block>
+                <th:block th:if="${item.active  == '2'}">
+                  <span style="background:#6c757d!important;" class="badge bg-danger">已停止</span>
+                </th:block>
+              </td>
+              <td th:if="${application.showWarnCount == 'true'}"><span style="cursor:pointer;color:#007bff;font-weight:bold" th:onclick="goHrefLogInfo([[${item.warnQueryWd}]])" th:text="${item.warnCount}"></span></td>
+              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+              <th th:text="${item.account}" th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}"></th>
+              <td>
+                <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+                  <button type="button"  th:onclick="del([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button>
+                  <button type="button"  th:onclick="edit([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">编辑</button>
+                </th:block>
+              </td>
+            </tr>
+          </th:block>
+
+          </tbody>
+        </table>
+      </div>
+      <!-- /.card-body -->
+      <div th:replace="common/page.html"></div>
+    </div>
+    <!-- /.card -->
+
+
+  </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<script th:src="@{'/static/js/ftpInfo.js?v=3.4.4'}"></script>
+<script th:inline="javascript">
+  $(document).ready(function(){
+    $("#account").val([[${ftpInfo.account}]]);
+  });
+
+  var msg = [[${msg}]];
+  if(msg!='' && msg!=null){
+    toastr.info(msg);
+  }
+</script>
+
+</body>
+</html>

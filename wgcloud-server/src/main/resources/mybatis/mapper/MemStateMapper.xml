@@ -8,12 +8,11 @@
 		<result column="USED" property="used" jdbcType="CHAR" />
 		<result column="FREE" property="free" jdbcType="CHAR" />
 		<result column="USE_PER" property="usePer" jdbcType="DOUBLE" />
-		<result column="DATE_STR" property="dateStr" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,HOST_NAME, TOTAL,USED,FREE, USE_PER,DATE_STR,CREATE_TIME
+		ID,HOST_NAME, TOTAL,USED,FREE, USE_PER,CREATE_TIME
 	</sql>
 	
 	<sql id="queryByParams">
@@ -21,7 +20,15 @@
 			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
 		</if>
 		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-			<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			<if test="_databaseId == 'mysql'">
+				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			</if>
+			<if test="_databaseId == 'postgresql'">
+				<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+			</if>
+			<if test="_databaseId == 'oracle'">
+				<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+			</if>
 		</if>
 	</sql>
 	
@@ -32,10 +39,48 @@
 		FROM MEM_STATE
 		WHERE ID=#{id} 
 	</select>
+
+	<select id="selectMaxAvgByHostname" resultType="com.wgcloud.entity.MemState" parameterType="map">
+		SELECT MAX(USE_PER) as usePer,AVG(USE_PER) as used,MIN(USE_PER) as free
+		FROM MEM_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+	<select id="selectMaxByDate" resultType="java.lang.Double" parameterType="map">
+		SELECT MAX(USE_PER)
+		FROM MEM_STATE
+		<where>
+			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+				<if test="_databaseId == 'mysql'">
+					<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+				</if>
+				<if test="_databaseId == 'postgresql'">
+					<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+				</if>
+				<if test="_databaseId == 'oracle'">
+					<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+				</if>
+			</if>
+			<if test="account != null">
+				<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+			</if>
+		</where>
+	</select>
 	
 	
 	<delete id="deleteByAccountAndDate"  parameterType="map">
-		DELETE FROM MEM_STATE WHERE <![CDATA[   CREATE_TIME <=#{endTime}]]>
+		DELETE FROM MEM_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
 	</delete>
 	
 	
@@ -62,7 +107,6 @@
       		<if test="used != null">USED,</if>
       		<if test="free != null" >FREE,</if>
       		<if test="usePer != null" >USE_PER,</if>
-      		<if test="dateStr != null" >DATE_STR,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -72,17 +116,28 @@
       		<if test="used != null" >#{used},</if>
       		<if test="free != null" >#{free},</if>
       		<if test="usePer != null" >#{usePer},</if>
-      		<if test="dateStr != null" >#{dateStr},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
 	
 	
 	<insert id="insertList" parameterType="java.util.List" >
-	      INSERT INTO MEM_STATE (ID,HOST_NAME,TOTAL,USED,FREE,USE_PER,DATE_STR,CREATE_TIME)  VALUES
-	      <foreach collection="list" item="item" index="index" separator="," >  
-	        (#{item.id},#{item.hostname},#{item.total},#{item.used},#{item.free},#{item.usePer},#{item.dateStr},#{item.createTime})
-	      </foreach>
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO MEM_STATE (ID,HOST_NAME,TOTAL,USED,FREE,USE_PER,CREATE_TIME)  VALUES
+					(#{item.id},#{item.hostname},#{item.total},#{item.used},#{item.free},#{item.usePer},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO MEM_STATE (ID,HOST_NAME,TOTAL,USED,FREE,USE_PER,CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.total},#{item.used},#{item.free},#{item.usePer},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
 	 </insert>
 	
 	
@@ -103,7 +158,14 @@
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		 ORDER BY CREATE_TIME DESC
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</when>
+			<otherwise>
+				ORDER BY CREATE_TIME DESC
+			</otherwise>
+		</choose>
 	</select>
 	
 </mapper>

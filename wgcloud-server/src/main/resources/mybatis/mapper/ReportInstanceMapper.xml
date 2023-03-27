@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wgcloud.mapper.ReportInstanceMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.ReportInstance">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="INFO_KEY" property="infoKey" jdbcType="CHAR" />
+		<result column="INFO_CONTENT" property="infoContent" jdbcType="CHAR" />
+		<result column="REPORT_INFO_ID" property="reportInfoId" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,INFO_KEY, INFO_CONTENT, REPORT_INFO_ID,CREATE_TIME
+	</sql>
+	
+	<sql id="queryByParams">
+		<if test="reportInfoId != null">
+			<![CDATA[ AND REPORT_INFO_ID = #{reportInfoId} ]]>
+		</if>
+	</sql>
+	
+	
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM REPORT_INSTANCE WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM REPORT_INSTANCE WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteByDate"  parameterType="map">
+		DELETE FROM REPORT_INSTANCE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
+	</delete>
+	
+
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM REPORT_INSTANCE WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO REPORT_INSTANCE (ID,INFO_KEY,INFO_CONTENT,REPORT_INFO_ID,CREATE_TIME)  VALUES
+					(#{item.id},#{item.infoKey},#{item.infoContent},#{item.reportInfoId},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO REPORT_INSTANCE (ID,INFO_KEY,INFO_CONTENT,REPORT_INFO_ID,CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.infoKey},#{item.infoContent},#{item.reportInfoId},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<insert id="save" parameterType="com.wgcloud.entity.ReportInstance">
+		INSERT INTO REPORT_INSTANCE
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="infoKey != null" > INFO_KEY,</if>
+      		<if test="infoContent != null">INFO_CONTENT,</if>
+      		<if test="reportInfoId != null" >REPORT_INFO_ID,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="infoKey != null" >#{infoKey},</if>
+      		<if test="infoContent != null" >#{infoContent},</if>
+      		<if test="reportInfoId != null" >#{reportInfoId},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+
+
+	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)  FROM REPORT_INSTANCE t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM REPORT_INSTANCE t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID ASC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM REPORT_INSTANCE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID ASC
+	</select>
+	
+	
+</mapper>

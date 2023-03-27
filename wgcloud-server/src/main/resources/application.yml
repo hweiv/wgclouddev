@@ -14,7 +14,7 @@ spring:
     name: wgcloud-server
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/wgcloudCopy?characterEncoding=utf-8&characterSetResults=utf8&autoReconnect=true&useSSL=false&allowMultiQueries=true
+    url: jdbc:mysql://localhost:3306/wgclouddev?characterEncoding=utf-8&characterSetResults=utf8&autoReconnect=true&useSSL=false&allowMultiQueries=true
     username: root
     password: root
     # hikari连接池的参数 相关设置
@@ -45,32 +45,157 @@ mybatis:
 
 #自定义配置参数
 base:
-  #登陆账号admin的密码
-  admindPwd: 111111
-  #通信token，agent端和此保持一致
+  #管理员登录账号
+  account: admin
+  #管理员登录账号的密码
+  accountPwd: 111111
+  #只读账号（只有浏览权限，没有修改、删除、添加权限，此功能需升级到专业版才生效）
+  guestAccount: guest
+  #只读账号的密码
+  guestAccountPwd: 111111
+  #通信token，agent端的wgToken和此保持一致
   wgToken: wgcloud
-  #是否开启公众看板，yes开启，no关闭，公众看板页面无需登陆
+  #每页显示多少条数据，建议不小于10
+  pageSize: 20
+  #是否开启web ssh客户端，yes开启，no关闭
+  webSsh: yes
+  #web ssh客户端的服务端口
+  webSshPort: 9998
+  #守护进程访问url，server服务使用，agent不使用，若守护端口修改，那此处的端口也要同步修改下（一般保持默认即可）
+  daemonUrl: http://localhost:9997
+  #是否开启公众看板，yes开启，no关闭，开启后看板页面无需登陆
   dashView: yes
-  #数据表监控间隔,单位毫秒，默认60分钟
-  dbTableTimes: 3600000
-  #服务接口监控间隔，单位毫秒，默认10分钟
-  heathTimes: 600000
+  #公众看板页面主机IP是否开启脱敏显示，yes开启，no关闭
+  dashViewIpHide: yes
+  #是否开启大屏展示看板，yes开启，no关闭，开启后看板页面无需登陆
+  dapingView: yes
+  #是否开启数据开放接口，yes开启，no关闭
+  openDataAPI: yes
+  #是否自动闭合左侧菜单，yes是，no否
+  sidebarCollapse: yes
+  #是否在列表页面显示告警次数，yes是，no否，这个会对性能有些影响，不建议开启
+  showWarnCount: no
+  #是否开启指令下发(若关闭，将不能再新增和下发指令)，yes是，no否
+  shellToRun: yes
+  #linux指令下发不能包含的敏感字符，小写即可，多个用逗号隔开
+  shellToRunLinuxBlock: 'rm ,mkfs, /dev/,:(){:|:&};:,mv ,wget , install '
+  #windows指令下发不能包含的敏感字符，小写即可，多个用逗号隔开
+  shellToRunWinBlock: 'del ,delete ,format ,ren ,rd ,rd/s/q ,rmdir '
+  #数据监控的sql语句，不能编写出现的敏感字符（即sql可能注入的关键字），小写即可，多个用逗号隔开
+  sqlInKeys: 'execute ,update ,delete ,insert ,create ,drop ,alter ,rename ,modify '
+  #数据表监控间隔,单位秒，默认60分钟
+  dbTableTimes: 3600
+  #服务接口监控间隔，单位秒，默认10分钟
+  heathTimes: 600
+  #ftp/sftp服务监控间隔，单位秒，默认10分钟
+  ftpTimes: 600
+  #数通设备PING监控间隔，单位秒，默认15分钟
+  dceTimes: 900
+  #数通设备snmp监测间隔，单位秒，默认20分钟
+  snmpTimes: 1200
+  #告警缓存时间间隔(即告警静默时间，此时间段内同一告警通知不再重复发)，单位秒，默认120分钟
+  warnCacheTimes: 7200
+  #监控数据保留天数，默认30天
+  historyDataOut: 30
+  #节点类型（集群才会用到，一般保持默认即可），master或slave，一个集群只能有一个master和N(最多31)个slave，如：slave1，slave2
+  nodeType: master
+  #是否开启使用标签，yes开启，no关闭
+  hostGroup: no
+  #是否开启成员账号管理（即每个成员可管理自己的资源），yes开启，no关闭，关闭后新增的成员不能再登录（管理员和只读账号可以登录）此功能需升级到专业版
+  userInfoManage: no
+  #server/logo/下的ico图标名称，建议32*32，如favicon.png，此功能需升级到专业版
+  icoUrl:
+  #server/logo/下的logo图标名称，建议120*120，如logo.png，此功能需升级到专业版
+  logoUrl:
+  #系统全称，如wgcloud运维监控系统，此功能需升级到专业版
+  wgName:
+  #系统简称，如wgcloud，此功能需升级到专业版
+  wgShortName:
+  #告警邮件标题前缀，此功能需升级到专业版
+  mailTitlePrefix: '[WGCLOUD]'
+  #告警邮件内容后缀，此功能需升级到专业版
+  mailContentSuffix: '<p><p><p>WGCLOUD敬上'
+  #是否显示页面底部版权、网址信息，yes显示，no不显示，此功能需升级到专业版
+  copyRight: yes
 
-#告警配置
+#告警配置，策略优先级按照前后顺序执行，比如告警总开关关闭时，那下面所有告警开关都会失效
 mail:
-  #告警邮件总开关，yes开启，no关闭
+  #告警总开关，yes开启，no关闭。总开关开启后，以下子开关设置才会生效。以下开关均遵循此规则。
   allWarnMail: yes
-  #监控主机内存使用率%报警值，超过此值即发送邮件报警
-  memWarnVal: 98
-  #监控主机cpu使用率%报警值，超过此值即发送邮件报警
-  cpuWarnVal: 98
-  #内存告警邮件开关，yes开启，no关闭。总开关开启后，此处设置才会生效。以下开关均遵循此规则。
+  #告警时间段cron表达式设置(在该时间段内发送告警，其他时间不发)，默认为空会持续发送，如'* * 8-20 ? * MON-FRI'表示周1到周5的8点-20点发送告警，'* * 8-20 * * ?'表示每天的8点-20点发送告警，带单引号
+  warnCronTime:
+  #不需要告警ip集合，多个用逗号,隔开，此主机所有监控资源都不会再告警
+  blockIps:
+  #主机上行传输速率bytes sent告警开关，yes开启，no关闭
+  upSpeedMail: yes
+  #主机上行传输速率告警值，单位KB/s，默认10MB，超过此值即发送告警
+  upSpeedVal: 10240
+  #主机上行传输速率低于此值时发送告警，此配置项一般不用，默认即可，单位KB/s，默认0MB
+  upSpeedMinVal: 0
+  #主机下行传输速率bytes received告警开关，yes开启，no关闭
+  downSpeedMail: yes
+  #主机下行传输速率告警值，单位KB/s，默认10MB，超过此值即发送告警
+  downSpeedVal: 10240
+  #主机下行传输速率低于此值时发送告警，此配置项一般不用，默认即可，单位KB/s，默认0MB
+  downSpeedMinVal: 0
+  #内存告警开关，yes开启，no关闭
   memWarnMail: yes
-  #CPU告警邮件开关，yes开启，no关闭
+  #主机内存使用率%告警值，超过此值即发送告警
+  memWarnVal: 99
+  #主机系统负载告警开关，yes开启，no关闭，
+  sysLoadWarnMail: yes
+  #主机系统负载告警值（以5分钟系统负载值为准进行告警），可以为小数，如1.2，超过此值即发送告警
+  sysLoadWarnVal: 20
+  #主机CPU使用率告警开关，yes开启，no关闭
   cpuWarnMail: yes
-  #主机下线告警邮件开关，yes开启，no关闭
+  #主机cpu使用率%告警值，可大于100，超过此值即发送告警
+  cpuWarnVal: 99
+  #主机CPU温度告警开关，yes开启，no关闭
+  cpuTemperatureWarnMail: no
+  #主机CPU温度告警值℃，超过此值即发送告警
+  cpuTemperatureWarnVal: 92
+  #主机磁盘使用率告警开关，yes开启，no关闭
+  diskWarnMail: yes
+  #主机磁盘使用率%告警值，超过此值即发送告警
+  diskWarnVal: 96
+  #主机不需要告警磁盘在此屏蔽，多个盘符用,隔开，如/boot,/dev。支持Ant路径匹配规则，如/dev/**。特殊符号用单引号，如'C:'
+  diskBlock: /dev,/snap/**
+  #主机磁盘SMART健康检测告警开关，yes开启，no关闭
+  smartWarnMail: yes
+  #主机下线告警开关，yes开启，no关闭
   hostDownWarnMail: yes
-  #进程下线告警邮件开关，yes开启，no关闭
+  #进程下线告警开关，yes开启，no关闭
   appDownWarnMail: yes
-  #服务接口告警邮件开关，yes开启，no关闭
+  #DOCKER下线告警开关，yes开启，no关闭
+  dockerDownWarnMail: yes
+  #服务接口告警开关，yes开启，no关闭
   heathWarnMail: yes
+  #服务接口监测失败连续几次后发送告警通知，默认2次
+  heathWarnCount: 2
+  #ftp/sftp告警开关，yes开启，no关闭
+  ftpWarnMail: yes
+  #数通设备PING告警，yes开启，no关闭
+  dceWarnMail: yes
+  #数通设备PING监测失败连续几次后发送告警通知，默认2次
+  dceWarnCount: 2
+  #数通设备SNMP监测告警，yes开启，no关闭
+  snmpWarnMail: yes
+  #数据源、数据表告警开关，yes开启，no关闭
+  dbDownWarnMail: yes
+  #日志文件监控告警开关，yes开启，no关闭
+  fileLogWarnMail: yes
+  #端口telnet不通告警开关，yes开启，no关闭
+  portWarnMail: yes
+  #文件防篡改告警开关，yes开启，no关闭
+  fileSafeWarnMail: yes
+  #指令下发通知开关，yes开启，no关闭
+  shellWarnMail: yes
+  #自定义监控项告警开关，yes开启，no关闭
+  customInfoWarnMail: yes
+  #服务器登录提醒通知开关，yes开启，no关闭，此功能需升级到专业版
+  hostLoginWarnMail: yes
+  #告警脚本完整路径(若配置脚本，无论是否配置过邮件，都会执行该脚本)，可以为空
+  warnScript:
+  #是否将告警内容转为unicode(针对告警脚本生效)，yes是，no否，钉钉微信等告警建议设置为yes，windows部署server需设置为yes，否则接受到会是乱码
+  warnToUnicode: no
+

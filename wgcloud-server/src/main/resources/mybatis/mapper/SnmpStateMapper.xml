@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wgcloud.mapper.SnmpStateMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.SnmpState">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="SNMP_INFO_ID" property="snmpInfoId" jdbcType="CHAR" />
+		<result column="RECV_AVG" property="recvAvg" jdbcType="CHAR" />
+		<result column="SENT_AVG" property="sentAvg" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="CPU_PER" property="cpuPer" jdbcType="CHAR" />
+		<result column="MEM_PER" property="memPer" jdbcType="CHAR" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,SNMP_INFO_ID, RECV_AVG,SENT_AVG,CREATE_TIME,CPU_PER,MEM_PER
+	</sql>
+	
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM SNMP_STATE 
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteBySnmpInfoId"  parameterType="java.lang.String">
+		DELETE FROM SNMP_STATE WHERE  APP_INFO_ID  = #{appInfoId} 
+	</delete>
+	
+	<delete id="deleteByDate"  parameterType="map">
+		DELETE FROM SNMP_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
+	</delete>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM SNMP_STATE 
+		WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		SNMP_STATE 
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+		
+	<insert id="save" parameterType="com.wgcloud.entity.SnmpState">
+		INSERT INTO SNMP_STATE
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="snmpInfoId != null" >SNMP_INFO_ID,</if>
+      		<if test="recvAvg != null" >RECV_AVG,</if>
+      		<if test="sentAvg != null" >SENT_AVG,</if>
+			<if test="cpuPer != null" >CPU_PER,</if>
+			<if test="memPer != null" >MEM_PER,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="snmpInfoId != null" >#{snmpInfoId},</if>
+      		<if test="recvAvg != null" >#{recvAvg},</if>
+      		<if test="sentAvg != null" >#{sentAvg},</if>
+			<if test="cpuPer != null" >#{cpuPer},</if>
+			<if test="memPer != null" >#{memPer},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+	
+	
+	 <insert id="insertList" parameterType="java.util.List" >
+		 <choose>
+			 <when test="_databaseId == 'oracle'">
+				 begin
+				 <foreach collection="list" item="item" index="index">
+					 INSERT INTO SNMP_STATE (ID, SNMP_INFO_ID, RECV_AVG,SENT_AVG,CREATE_TIME,CPU_PER,MEM_PER)  VALUES
+					 (#{item.id},#{item.snmpInfoId},#{item.recvAvg},#{item.sentAvg},#{item.createTime},#{item.cpuPer},#{item.memPer});
+				 </foreach>
+				 end;
+			 </when>
+			 <otherwise>
+				 INSERT INTO SNMP_STATE (ID, SNMP_INFO_ID, RECV_AVG,SENT_AVG,CREATE_TIME,CPU_PER,MEM_PER)  VALUES
+				 <foreach collection="list" item="item" index="index" separator="," >
+					 (#{item.id},#{item.snmpInfoId},#{item.recvAvg},#{item.sentAvg},#{item.createTime},#{item.cpuPer},#{item.memPer})
+				 </foreach>
+			 </otherwise>
+		 </choose>
+	 </insert>
+
+
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM SNMP_STATE t
+		<where>
+			<if test="snmpInfoId != null">
+			<![CDATA[ AND SNMP_INFO_ID  = #{snmpInfoId} ]]>
+			</if>
+			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+				<if test="_databaseId == 'mysql'">
+					<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+				</if>
+				<if test="_databaseId == 'postgresql'">
+					<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+				</if>
+				<if test="_databaseId == 'oracle'">
+					<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+				</if>
+			</if>
+		</where>
+		  ORDER BY CREATE_TIME ASC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM SNMP_STATE 
+		<where>
+			<if test="snmpInfoId != null">
+			<![CDATA[ AND SNMP_INFO_ID  = #{snmpInfoId} ]]>
+			</if>
+		</where>
+		  ORDER BY CREATE_TIME DESC
+	</select>
+	
+	
+</mapper>

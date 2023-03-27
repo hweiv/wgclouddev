@@ -5,7 +5,7 @@
 
 
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body th:class="${application.sidebarCollapse}">
 
 <div class="wrapper">
 
@@ -15,7 +15,7 @@
 
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem">
+  <div class="content-wrapper" style="font-size:0.90rem">
     <!-- Content Header (Page header) -->
     <div class="content-header">
       <div class="container-fluid">
@@ -36,132 +36,23 @@
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
-        <!-- Small boxes (Stat box) -->
 
+      <div th:replace="common/indexTop.html"></div>
 
-        <!-- Small boxes (Stat box) -->
-        <div class="row">
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3 th:text="${totalSizeApp}"></h3>
+      <div class="row  mb-2">
+          <div class="col-sm-12" style="color: #495057;">
+              最近1小时告警：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><span  style="cursor:pointer;" onclick="hrefTopUrl('/wgcloud/log/list')" th:text="${warnCount}">18</span></span>
+              主机平均监控时间(秒)：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><i class="far fa-clock"></i><span style="margin-left:5px;" th:text="${avgSubmitSeconds}">18</span></span>
+              历史数据保留时间(天)：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><span th:text="${historyDataOut}">0</span></span>
+              告警通知：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><span th:text="${warnType}">17</span></span>
+              公众看板：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><span th:text="${dapingView}"></span></span>
+              管理员密码：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><span th:text="${adminPwd}"></span></span>
+              只读账号密码：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><span th:text="${guestAccountPwd}"></span></span>
+              通信Token：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><span th:text="${wgToken}"></span></span>
+              web ssh：<span style="margin-right:10px;font-weight:700;color:#4567ee!important;"><span th:text="${webSSH}"></span></span></div>
+      </div>
 
-                <p>监控进程</p>
-              </div>
-              <a th:href="@{'/appInfo/list'}" class="small-box-footer">更多 <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-warning">
-              <div class="inner">
-                <h3 th:text="${memPerSizeApp}"></h3>
-
-                <p>进程占用CPU>90%</p>
-              </div>
-              <a th:href="@{'/appInfo/list'}" class="small-box-footer">更多 <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3 th:text="${dbInfoSize}"></h3>
-
-                <p>数据源</p>
-              </div>
-              <a th:href="@{'/dbInfo/list'}" class="small-box-footer">更多 <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3 th:text="${dbTableSize}"></h3>
-
-                <p>监控数据表数量</p>
-              </div>
-              <a th:href="@{'/dbTable/list'}" class="small-box-footer">更多 <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-        </div>
-        <!-- /.row -->
-
-        <!-- Small boxes (Stat box) -->
-        <div class="row">
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3 th:text="${dbTableSum}"></h3>
-
-                <p>数据表总数据量</p>
-              </div>
-              <a th:href="@{'/dbTable/list'}" class="small-box-footer">更多 <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3 th:text="${heathSize}"></h3>
-
-                <p>服务接口数量</p>
-              </div>
-              <a th:href="@{'/heathMonitor/list'}" class="small-box-footer">更多 <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-danger">
-              <div class="inner">
-                <h3 th:text="${heatherrSize}"></h3>
-
-                <p>异常服务接口</p>
-              </div>
-              <a th:href="@{'/heathMonitor/list'}" class="small-box-footer">更多 <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-          <!-- ./col -->
-          <!-- ./col -->
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-success">
-              <div class="inner">
-                <h3  th:text="${logSize}">53<sup style="font-size: 20px"></sup></h3>
-
-                <p>已产生系统日志</p>
-              </div>
-              <a th:href="@{'/log/list'}"class="small-box-footer">更多 <i class="fas fa-arrow-circle-right"></i></a>
-            </div>
-          </div>
-        </div>
-        <!-- /.row -->
-
-
-        <!-- Main row -->
-        <div class="row">
-          <!-- Left col -->
-          <section class="col-lg-7 connectedSortable">
-            <!-- Custom tabs (Charts with tabs)-->
-            <div class="card" id="chartInfoList">
-
-            </div>
-            <!-- /.card -->
-          </section>
-          <section class="col-lg-5 connectedSortable ui-sortable">
-            <div class="card" id="dbTableList">
-
-            </div>
-          </section>
-        </div>
-
+      <div th:replace="common/indexCommon.html"></div>
 
       </div><!-- /.container-fluid -->
     </section>
@@ -176,109 +67,165 @@
 
 <script th:inline="javascript">
 
-  const data = [[${chartInfoList}]];
+  const data1 = [[${chartInfoList1}]];
+  const data2 = [[${chartInfoList2}]];
 
-  const chart = new G2.Chart({
-    container: 'chartInfoList',
+  const chart1 = new G2.Chart({
+    container: 'chartInfoList1',
     forceFit: true,
-    height: 500,
-    animate: false
+    height: 400
   });
-  chart.source(data, {
+  chart1.source(data1, {
     percent: {
       formatter: val => {
       val = (val * 100) + '%';
+  if(val.length > 10 ){
+    val = val.substr(0,5)+'%';
+  }
   return val;
   }
   }
   });
-  chart.coord('theta', {
-    radius: 0.75,
+  chart1.tooltip({
+    showTitle: false,
+    itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}的主机数量: {value}</li>'
+  });
+  chart1.coord('theta', {
+    startAngle: Math.PI, // 起始角度
+    endAngle: Math.PI * (3 / 2) // 结束角度
+  });
+  chart1.intervalStack()
+          .position('percent')
+          .color('item',['#FF5371','#FFD22F','#26A3FF','#26CD7B']);
+  chart1.render();
+
+  const chart3 = new G2.Chart({
+      container: 'chartInfoList2',
+      forceFit: true,
+      height: 400
+  });
+  chart3.source(data2, {
+      percent: {
+          formatter: val => {
+          val = (val * 100) + '%';
+          if(val.length > 10 ){
+              val = val.substr(0,5)+'%';
+          }
+          return val;
+  }
+  }
+  });
+  chart3.coord('theta');
+  chart3.tooltip({
+      showTitle: false,
+  });
+  chart3.intervalStack()
+          .position('percent')
+          .color('item',['#FF5371','#FFD22F','#26A3FF','#26CD7B'])
+          .tooltip('item*percent', (item, percent) => {
+            percent = (percent * 100) + '%';
+            if(percent.length > 10 ){
+              percent = percent.substr(0,5)+'%';
+            }
+          return {
+            name: item+"的主机数量",
+            value: percent
+          };
+          })
+          .style({
+            lineWidth: 1,
+            stroke: '#fff'
+          });
+  chart3.render();
+
+
+  const dataTable = [[${dbTableList}]];
+  if(dataTable.length>0){
+    const chart2 = new G2.Chart({
+      container: 'dbTableList',
+      forceFit: true,
+      height: 400
+    });
+    chart2.source(dataTable);
+    chart2.scale('value', {
+      tickInterval: 20
+    });
+    chart2.axis('remark', {
+      label: {
+        textStyle: {
+          fill: '#aaaaaa'
+        }
+      }
+    });
+    chart2.source(dataTable, {
+      value: {
+        min: 0,
+        nice: false,
+        alias: '数据监控'
+      }
+    });
+    chart2.axis('value', {
+      label: null,
+      title: {
+        offset: 30,
+        textStyle: {
+          fontSize: 12,
+          fontWeight: 300
+        }
+      }
+    });
+    chart2.interval().position('remark*value').size(28);
+    chart2.render();
+  }
+
+  const huantuChartInfos = [[${huantuChartInfos}]];
+  const chart6 = new G2.Chart({
+    container: 'chartInfoHuantu',
+    forceFit: true,
+    height: 400,
+    animate: false
+  });
+  // chart6.legend(false);
+  chart6.source(huantuChartInfos, {
+    percent: {
+      formatter: val => {
+        val = (val * 100) + '%';
+        return val;
+      }
+    }
+  });
+  chart6.coord('theta', {
+    radius: 0.95,
     innerRadius: 0.6
   });
-  chart.tooltip({
+  chart6.tooltip({
     showTitle: false,
     itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>'
   });
   // 辅助文本
-  chart.guide().html({
+  chart6.guide().html({
     position: [ '50%', '50%' ],
-    html: '<div style="color:#8c8c8c;font-size: 14px;text-align: center;width: 10em;">监控主机<br><span style="color:#8c8c8c;font-size:20px">[[${totalSystemInfoSize}]]</span>台</div>',
+    html: '<div style="color:#8c8c8c;font-size: 14px;text-align: center;width: 10em;">监控资源总数量<br><span style="color:#8c8c8c;font-size:20px">[[${huantuTotalSize}]]</span></div>',
     alignX: 'middle',
     alignY: 'middle'
   });
-  const interval = chart.intervalStack()
+  const interval6 = chart6.intervalStack()
           .position('percent')
           .color('item')
-          .label('count', {
-            formatter: (val, item) => {
-            return item.point.item + ': ' + val;
-  }
-  })
-  .tooltip('item*percent', (item, percent) => {
-    percent = percent * 100 + '%';
-  return {
-    name: item,
-    value: percent
-  };
-  })
-  .style({
-    lineWidth: 1,
-    stroke: '#fff'
-  });
-  chart.render();
-  interval.setSelected(data[0]);
-
-  const data2 = [[${dbTableList}]];
-  const chart2 = new G2.Chart({
-    container: 'dbTableList',
-    forceFit: true,
-    height: 500,
-    padding: [ 20, 40, 50, 124 ]
-  });
-  chart2.source(data2, {
-    value: {
-      min: 0,
-      nice: false,
-      alias: '条'
-    }
-  });
-  chart2.axis('tableName', {
-    label: {
-      textStyle: {
-        fill: '#8d8d8d',
-        fontSize: 12
-      }
-    },
-    tickLine: {
-      alignWithLabel: false,
-      length: 0
-    },
-    line: {
-      lineWidth: 0
-    }
-  });
-  chart2.axis('value', {
-    label: null,
-    title: {
-      offset: 30,
-      textStyle: {
-        fontSize: 12,
-        fontWeight: 300
-      }
-    }
-  });
-  chart2.legend(false);
-  chart2.coord().transpose();
-  chart2.interval().position('tableName*value').size(26)
-          .opacity(1)
-          .label('value', {
-            textStyle: {
-              fill: '#8d8d8d'
-            },
-            offset: 10
+          .tooltip('item*percent', (item, percent) => {
+            percent = percent * 100 + '%';
+            return {
+              name: item,
+              value: percent
+            };
+          })
+          .style({
+            lineWidth: 1,
+            stroke: '#fff'
           });
-  chart2.render();
+  chart6.render();
+  interval6.setSelected(huantuChartInfos[0]);
+
 </script>
 </body>
 </html>

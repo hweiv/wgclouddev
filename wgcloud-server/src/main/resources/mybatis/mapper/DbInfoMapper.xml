@@ -4,20 +4,33 @@
 	<resultMap id="resultMap" type="com.wgcloud.entity.DbInfo">
 		<id column="ID" property="id" jdbcType="CHAR" />
 		<result column="DBTYPE" property="dbType" jdbcType="CHAR" />
-		<result column="USER" property="user" jdbcType="CHAR" />
+		<result column="USER_NAME" property="userName" jdbcType="CHAR" />
 		<result column="PASSWD" property="passwd" jdbcType="CHAR" />
-		<result column="IP" property="ip" jdbcType="CHAR" />
-		<result column="DBNAME" property="dbName" jdbcType="CHAR" />
-		<result column="PORT" property="port" jdbcType="CHAR" />
+		<result column="DBURL" property="dbUrl" jdbcType="CHAR" />
 		<result column="DB_STATE" property="dbState" jdbcType="CHAR" />
 		<result column="ALIAS_NAME" property="aliasName" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="ACCOUNT" property="account" jdbcType="CHAR" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,DBTYPE, USER,PASSWD,CREATE_TIME,IP,PORT,DBNAME,DB_STATE,ALIAS_NAME
+		ID,DBTYPE,USER_NAME,PASSWD,CREATE_TIME,DBURL,DB_STATE,ALIAS_NAME,ACCOUNT
 	</sql>
-	
+
+	<sql id="queryByParams">
+		<if test="dbState != null">
+			<![CDATA[ AND DB_STATE = #{dbState} ]]>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND ACCOUNT = #{account} ]]>
+		</if>
+		<if test="dbInfoNames != null">
+			<![CDATA[ AND ALIAS_NAME IN ]]>
+			<foreach item="item" index="index" collection="dbInfoNames" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+	</sql>
 	
 	<select id="selectByAccountId" resultMap="resultMap" parameterType="java.lang.String">
 		SELECT
@@ -39,11 +52,10 @@
 		WHERE ID = #{id}
 	</delete>
 
-	<delete id="deleteByDate"  parameterType="map">
-		DELETE FROM DB_INFO WHERE   <![CDATA[  CREATE_TIME <=#{endTime}]]>
-	</delete>
+	<update id="updateToTargetAccount"  parameterType="map">
+		UPDATE  DB_INFO SET ACCOUNT = #{accountTarget} WHERE ACCOUNT = #{account}
+	</update>
 
-	
 	<delete id="deleteById" parameterType="java.lang.String">
 		DELETE FROM
 		DB_INFO 
@@ -58,25 +70,23 @@
     	<trim prefix="(" suffix=")" suffixOverrides="," >
       		<if test="id != null" >ID,</if>
       		<if test="dbType != null" >DBTYPE,</if>
-      		<if test="user != null">USER,</if>
+      		<if test="userName != null">USER_NAME,</if>
       		<if test="passwd != null">PASSWD,</if>
-			<if test="ip != null">IP,</if>
-			<if test="port != null">PORT,</if>
-			<if test="dbName != null">DBNAME,</if>
+			<if test="dbUrl != null">DBURL,</if>
 			<if test="dbState != null">DB_STATE,</if>
 			<if test="aliasName != null">ALIAS_NAME,</if>
+			<if test="account != null">ACCOUNT,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
       		<if test="id != null" >#{id},</if>
       		<if test="dbType != null" >#{dbType},</if>
-      		<if test="user != null" >#{user},</if>
+      		<if test="userName != null" >#{userName},</if>
       		<if test="passwd != null" >#{passwd},</if>
-			<if test="ip != null" >#{ip},</if>
-			<if test="port != null" >#{port},</if>
-			<if test="dbName != null" >#{dbName},</if>
+			<if test="dbUrl != null" >#{dbUrl},</if>
 			<if test="dbState != null" >#{dbState},</if>
 			<if test="aliasName != null" >#{aliasName},</if>
+			<if test="account != null" >#{account},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
@@ -88,20 +98,14 @@
 			<if test="dbType != null">
 				DBTYPE = #{dbType},
 			</if>
-			<if test="user != null">
-				USER = #{user},
+			<if test="userName != null">
+				USER_NAME = #{userName},
 			</if>
 			<if test="passwd != null">
 				PASSWD = #{passwd},
 			</if>
-			<if test="ip != null">
-				IP = #{ip},
-			</if>
-			<if test="port != null">
-				PORT = #{port},
-			</if>
-			<if test="dbName != null">
-				DBNAME = #{dbName},
+			<if test="dbUrl != null">
+				DBURL = #{dbUrl},
 			</if>
 			<if test="dbState != null">
 				DB_STATE = #{dbState},
@@ -119,9 +123,7 @@
 	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
 		SELECT count(*)  FROM DB_INFO t
 		<where>
-			<if test="cpuPer != null">
-				<![CDATA[ AND CPU_PER >= #{cpuPer} ]]>
-			</if>
+			<include refid="queryByParams" />
 		</where>
 	</select>
 
@@ -130,14 +132,20 @@
 		SELECT
 		<include refid="tableColumnList" />
 		FROM DB_INFO t
-		 ORDER BY CREATE_TIME DESC
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID DESC
 	</select>
 	
 	<select id="selectByParams" parameterType="map" resultMap="resultMap">
 		SELECT
 		<include refid="tableColumnList" />
 		FROM DB_INFO
-		 ORDER BY CREATE_TIME DESC
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY ID DESC
 	</select>
 	
 	

@@ -5,12 +5,11 @@
 		<id column="ID" property="id" jdbcType="CHAR" />
 		<result column="DB_TABLE_ID" property="dbTableId" jdbcType="CHAR" />
 		<result column="TABLE_COUNT" property="tableCount" jdbcType="BIGINT" />
-		<result column="DATE_STR" property="dateStr" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,DB_TABLE_ID, TABLE_COUNT,DATE_STR,CREATE_TIME
+		ID,DB_TABLE_ID, TABLE_COUNT,CREATE_TIME
 	</sql>
 
 
@@ -19,7 +18,15 @@
 			<![CDATA[ AND DB_TABLE_ID = #{dbTableId} ]]>
 		</if>
 		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-			<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			<if test="_databaseId == 'mysql'">
+				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			</if>
+			<if test="_databaseId == 'postgresql'">
+				<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+			</if>
+			<if test="_databaseId == 'oracle'">
+				<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+			</if>
 		</if>
 	</sql>
 
@@ -37,7 +44,16 @@
 	</delete>
 
 	<delete id="deleteByDate"  parameterType="map">
-		DELETE FROM DB_TABLE_COUNT WHERE   <![CDATA[  CREATE_TIME <=#{endTime}]]>
+		DELETE FROM DB_TABLE_COUNT WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
 	</delete>
 
 	<delete id="deleteById" parameterType="java.lang.String">
@@ -50,10 +66,22 @@
 	</delete>
 
 	<insert id="insertList" parameterType="java.util.List" >
-		INSERT INTO DB_TABLE_COUNT (ID,DB_TABLE_ID,TABLE_COUNT,DATE_STR,CREATE_TIME)  VALUES
-		<foreach collection="list" item="item" index="index" separator="," >
-			(#{item.id},#{item.dbTableId},#{item.tableCount},#{item.dateStr},#{item.createTime})
-		</foreach>
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO DB_TABLE_COUNT (ID,DB_TABLE_ID,TABLE_COUNT,CREATE_TIME)  VALUES
+					(#{item.id},#{item.dbTableId},#{item.tableCount},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO DB_TABLE_COUNT (ID,DB_TABLE_ID,TABLE_COUNT,CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.dbTableId},#{item.tableCount},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
 	</insert>
 
 	<insert id="save" parameterType="com.wgcloud.entity.DbTableCount">
@@ -62,14 +90,12 @@
       		<if test="id != null" >ID,</if>
       		<if test="dbTableId != null" >DB_TABLE_ID,</if>
       		<if test="tableCount != null">TABLE_COUNT,</if>
-      		<if test="dateStr != null">DATE_STR,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
       		<if test="id != null" >#{id},</if>
       		<if test="dbTableId != null" >#{dbTableId},</if>
       		<if test="tableCount != null" >#{tableCount},</if>
-      		<if test="dateStr != null" >#{dateStr},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
@@ -83,9 +109,6 @@
 			</if>
 			<if test="tableCount != null">
 				TABLE_COUNT = #{tableCount},
-			</if>
-			<if test="dateStr != null">
-				DATE_STR = #{dateStr},
 			</if>
 			<if test="createTime != null">
 				CREATE_TIME = #{createTime}

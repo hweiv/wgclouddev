@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wgcloud.mapper.DiskSmartMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.DiskSmart">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
+		<result column="FILE_STSTEM" property="fileSystem" jdbcType="CHAR" />
+		<result column="DISK_STATE" property="diskState" jdbcType="CHAR" />
+		<result column="POWER_HOURS" property="powerHours" jdbcType="CHAR" />
+		<result column="POWER_COUNT" property="powerCount" jdbcType="CHAR" />
+		<result column="TEMPERATURE" property="temperature" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+	</resultMap>
+	
+	<sql id="tableColumnList">
+		ID,HOST_NAME, FILE_STSTEM,CREATE_TIME,DISK_STATE,POWER_HOURS,POWER_COUNT,TEMPERATURE
+	</sql>
+	
+	<sql id="queryByParams">
+		<if test="hostname != null">
+			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
+		</if>
+	</sql>
+
+	<insert id="insertList" parameterType="java.util.List" >
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO DISK_SMART (ID,HOST_NAME, FILE_STSTEM,CREATE_TIME,DISK_STATE,POWER_HOURS,POWER_COUNT,TEMPERATURE)  VALUES
+					(#{item.id},#{item.hostname},#{item.fileSystem},#{item.createTime},#{item.diskState},#{item.powerHours},#{item.powerCount},#{item.temperature});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO DISK_SMART (ID,HOST_NAME, FILE_STSTEM,CREATE_TIME,DISK_STATE,POWER_HOURS,POWER_COUNT,TEMPERATURE)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.fileSystem},#{item.createTime},#{item.diskState},#{item.powerHours},#{item.powerCount},#{item.temperature})
+				</foreach>
+			</otherwise>
+		</choose>
+	</insert>
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DISK_SMART
+		WHERE ID=#{id} 
+	</select>
+	
+	
+	<delete id="deleteByAccountAndDate"  parameterType="map">
+		DELETE FROM DISK_SMART WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
+	</delete>
+	
+	<delete id="deleteByAccHname"  parameterType="java.util.List">
+			DELETE FROM DISK_SMART WHERE  HOST_NAME  IN
+			<foreach item="item" collection="list" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM DISK_SMART WHERE ID = #{id}
+	</delete>
+	
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		DISK_SMART
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.DiskState">
+		INSERT INTO DISK_SMART
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="hostname != null" > HOST_NAME,</if>
+      		<if test="fileSystem != null">FILE_STSTEM,</if>
+			<if test="diskState != null" >DISK_STATE,</if>
+			<if test="powerHours != null" >POWER_HOURS,</if>
+			<if test="powerCount != null" >POWER_COUNT,</if>
+			<if test="temperature != null" >TEMPERATURE,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="hostname != null" >#{hostname},</if>
+      		<if test="fileSystem != null" >#{fileSystem},</if>
+			<if test="diskState != null" >#{diskState},</if>
+			<if test="powerHours != null" >#{powerHours},</if>
+			<if test="powerCount != null" >#{powerCount},</if>
+			<if test="temperature != null" >#{temperature},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+	
+	
+	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DISK_SMART t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY FILE_STSTEM ASC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM DISK_SMART
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY FILE_STSTEM ASC
+	</select>
+	
+</mapper>

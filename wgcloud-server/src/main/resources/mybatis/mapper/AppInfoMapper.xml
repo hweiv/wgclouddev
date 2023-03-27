@@ -10,19 +10,30 @@
 		<result column="CPU_PER" property="cpuPer" jdbcType="DOUBLE" />
 		<result column="MEM_PER" property="memPer" jdbcType="DOUBLE" />
 		<result column="STATE" property="state" jdbcType="CHAR" />
+		<result column="ACTIVE" property="active" jdbcType="CHAR" />
+		<result column="READ_BYTES" property="readBytes" jdbcType="CHAR" />
+		<result column="WRITES_BYTES" property="writesBytes" jdbcType="CHAR" />
+		<result column="THREADS_NUM" property="threadsNum" jdbcType="CHAR" />
+		<result column="GATHER_PID" property="gatherPid" jdbcType="CHAR" />
+		<result column="GROUP_ID" property="groupId" jdbcType="CHAR" />
+		<result column="APP_TIMES" property="appTimes" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
 	</resultMap>
-	
+
 	<sql id="tableColumnList">
-		ID,HOST_NAME, APP_PID,APP_NAME,CREATE_TIME,CPU_PER,MEM_PER,APP_TYPE,STATE
+		ID,HOST_NAME, APP_PID,APP_NAME,CREATE_TIME,CPU_PER,MEM_PER,APP_TYPE,STATE,ACTIVE,READ_BYTES,WRITES_BYTES,THREADS_NUM,GATHER_PID,GROUP_ID,APP_TIMES
 	</sql>
 
 	<sql id="queryByParams">
 		<if test="hostname != null">
-			<![CDATA[ AND HOST_NAME LIKE  CONCAT('%',#{hostname},'%')]]>
-		</if>
-		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-			<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR APP_NAME LIKE  CONCAT(CONCAT('%',#{hostname}),'%') )]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND ( HOST_NAME  = #{hostname} OR APP_NAME LIKE  CONCAT('%',#{hostname},'%') )]]>
+				</otherwise>
+			</choose>
 		</if>
 		<if test="cpuPer != null">
 			<![CDATA[ AND CPU_PER >= #{cpuPer} ]]>
@@ -30,39 +41,49 @@
 		<if test="cpuPerLe != null">
 			<![CDATA[ AND CPU_PER <= #{cpuPerLe} ]]>
 		</if>
+		<if test="state != null">
+			<![CDATA[ AND STATE = #{state} ]]>
+		</if>
+		<if test="active != null">
+			<![CDATA[ AND ACTIVE = #{active} ]]>
+		</if>
+		<if test="groupId != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT(CONCAT('%',#{groupId}),'%') ]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT('%',#{groupId},'%') ]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+		</if>
 	</sql>
-	
-	<select id="selectByAccountId" resultMap="resultMap" parameterType="java.lang.String">
-		SELECT
-		<include refid="tableColumnList" />
-		FROM APP_INFO 
-	</select>
-	
-	
+
+
 	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
 		SELECT
 		<include refid="tableColumnList" />
-		FROM APP_INFO 
-		WHERE ID=#{id} 
+		FROM APP_INFO
+		WHERE ID=#{id}
 	</select>
-	
-	
+
+
 	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-		DELETE FROM APP_INFO 
+		DELETE FROM APP_INFO
 		WHERE ID = #{id}
 	</delete>
 
-	<delete id="deleteByDate"  parameterType="map">
-		DELETE FROM APP_INFO WHERE   <![CDATA[  CREATE_TIME <=#{endTime}]]>
-	</delete>
 
 	<delete id="deleteByHostName" parameterType="map">
-		DELETE FROM APP_INFO WHERE <![CDATA[  APP_PID=#{appPid} AND HOST_NAME =#{hostname}]]>
+		DELETE FROM APP_INFO WHERE <![CDATA[  HOST_NAME =#{hostname}]]>
 	</delete>
-	
+
 	<delete id="deleteById" parameterType="java.lang.String">
 		DELETE FROM
-		APP_INFO 
+		APP_INFO
 		WHERE ID IN
 		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
 			#{item}
@@ -70,7 +91,7 @@
 	</delete>
 
 	<insert id="save" parameterType="com.wgcloud.entity.AppInfo">
-		INSERT INTO APP_INFO 
+		INSERT INTO APP_INFO
     	<trim prefix="(" suffix=")" suffixOverrides="," >
       		<if test="id != null" >ID,</if>
       		<if test="hostname != null" >HOST_NAME,</if>
@@ -80,6 +101,13 @@
 			<if test="memPer != null">MEM_PER,</if>
 			<if test="appType != null">APP_TYPE,</if>
 			<if test="state != null">STATE,</if>
+			<if test="active != null">ACTIVE,</if>
+			<if test="readBytes != null">READ_BYTES,</if>
+			<if test="writesBytes != null">WRITES_BYTES,</if>
+			<if test="threadsNum != null">THREADS_NUM,</if>
+			<if test="gatherPid != null">GATHER_PID,</if>
+			<if test="groupId != null">GROUP_ID,</if>
+			<if test="appTimes != null">APP_TIMES,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -91,19 +119,49 @@
 			<if test="memPer != null" >#{memPer},</if>
 			<if test="appType != null" >#{appType},</if>
 			<if test="state != null" >#{state},</if>
+			<if test="active != null" >#{active},</if>
+			<if test="readBytes != null" >#{readBytes},</if>
+			<if test="writesBytes != null" >#{writesBytes},</if>
+			<if test="threadsNum != null" >#{threadsNum},</if>
+			<if test="gatherPid != null" >#{gatherPid},</if>
+			<if test="groupId != null" >#{groupId},</if>
+			<if test="appTimes != null" >#{appTimes},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
 
 	<insert id="insertList" parameterType="java.util.List" >
-		INSERT INTO APP_INFO (ID,HOST_NAME, APP_PID,APP_NAME,CREATE_TIME,CPU_PER,MEM_PER,APP_TYPE,STATE)  VALUES
-		<foreach collection="list" item="item" index="index" separator="," >
-			(#{item.id},#{item.hostname},#{item.appPid},#{item.appName},#{item.createTime},#{item.cpuPer},#{item.memPer},#{item.appType},#{item.state})
-		</foreach>
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO APP_INFO (ID,HOST_NAME, APP_PID,APP_NAME,CREATE_TIME,CPU_PER,MEM_PER,APP_TYPE,STATE,ACTIVE,READ_BYTES,WRITES_BYTES,THREADS_NUM,GATHER_PID,GROUP_ID,APP_TIMES)  VALUES
+					(#{item.id},#{item.hostname},#{item.appPid},#{item.appName},#{item.createTime},#{item.cpuPer},#{item.memPer},#{item.appType},#{item.state},#{item.active},#{item.readBytes},#{item.writesBytes},#{item.threadsNum},#{item.gatherPid},#{item.groupId},#{item.appTimes});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO APP_INFO (ID,HOST_NAME, APP_PID,APP_NAME,CREATE_TIME,CPU_PER,MEM_PER,APP_TYPE,STATE,ACTIVE,READ_BYTES,WRITES_BYTES,THREADS_NUM,GATHER_PID,GROUP_ID,APP_TIMES)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.appPid},#{item.appName},#{item.createTime},#{item.cpuPer},#{item.memPer},#{item.appType},#{item.state},#{item.active},#{item.readBytes},#{item.writesBytes},#{item.threadsNum},#{item.gatherPid},#{item.groupId},#{item.appTimes})
+				</foreach>
+			</otherwise>
+		</choose>
 	</insert>
 
+	<update id="downByHostName" parameterType="java.util.List">
+		UPDATE  APP_INFO SET STATE = '2'
+		WHERE HOST_NAME IN
+		<foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
+
 	<update id="updateList" parameterType="java.util.List" >
-		<foreach collection="list" item="item" index="index" separator=";" >
+		<if test="_databaseId == 'oracle'">
+			begin
+		</if>
+		<foreach collection="list" item="item" index="index">
 			UPDATE APP_INFO
 			<set>
 				<if test="item.hostname != null">
@@ -127,15 +185,39 @@
 				<if test="item.state != null">
 					STATE = #{item.state},
 				</if>
+				<if test="item.active != null">
+					ACTIVE = #{item.active},
+				</if>
+				<if test="item.readBytes != null">
+					READ_BYTES = #{item.readBytes},
+				</if>
+				<if test="item.writesBytes != null">
+					WRITES_BYTES = #{item.writesBytes},
+				</if>
+				<if test="item.threadsNum != null">
+					THREADS_NUM = #{item.threadsNum},
+				</if>
+				<if test="item.gatherPid != null">
+					GATHER_PID = #{item.gatherPid},
+				</if>
+				<if test="item.groupId != null">
+					GROUP_ID = #{item.groupId},
+				</if>
+				<if test="item.appTimes != null">
+					APP_TIMES = #{item.appTimes},
+				</if>
 				<if test="item.createTime != null" >
 					CREATE_TIME= #{item.createTime}
 				</if>
 			</set>
-			WHERE ID = #{item.id}
+			WHERE ID = #{item.id};
 		</foreach>
+		<if test="_databaseId == 'oracle'">
+			end;
+		</if>
 	</update>
-	
-	
+
+
 	<update id="updateById" parameterType="com.wgcloud.entity.AppInfo">
 		UPDATE APP_INFO
 		<set>
@@ -160,6 +242,27 @@
 			<if test="state != null">
 				STATE = #{state},
 			</if>
+			<if test="active != null">
+				ACTIVE = #{active},
+			</if>
+			<if test="readBytes != null">
+				READ_BYTES = #{readBytes},
+			</if>
+			<if test="writesBytes != null">
+				WRITES_BYTES = #{writesBytes},
+			</if>
+			<if test="threadsNum != null">
+				THREADS_NUM = #{threadsNum},
+			</if>
+			<if test="gatherPid != null">
+				GATHER_PID = #{gatherPid},
+			</if>
+			<if test="groupId != null">
+				GROUP_ID = #{groupId},
+			</if>
+			<if test="appTimes != null">
+				APP_TIMES = #{appTimes},
+			</if>
 			<if test="createTime != null">
 				CREATE_TIME = #{createTime}
 			</if>
@@ -182,7 +285,7 @@
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		 ORDER BY CREATE_TIME DESC
+		 ORDER BY ID DESC
 	</select>
 	
 	<select id="selectByParams" parameterType="map" resultMap="resultMap">
@@ -192,7 +295,15 @@
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		 ORDER BY CREATE_TIME DESC
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</when>
+			<otherwise>
+				ORDER BY ID DESC
+			</otherwise>
+		</choose>
+
 	</select>
 	
 	

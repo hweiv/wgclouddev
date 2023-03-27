@@ -1,19 +1,52 @@
 package com.wgcloud.task;
 
-
 import cn.hutool.core.collection.CollectionUtil;
 import com.wgcloud.config.CommonConfig;
-import com.wgcloud.entity.*;
-import com.wgcloud.mapper.*;
-import com.wgcloud.service.*;
+import com.wgcloud.config.MailConfig;
+import com.wgcloud.entity.AccountInfo;
+import com.wgcloud.entity.AppInfo;
+import com.wgcloud.entity.DceInfo;
+import com.wgcloud.entity.DockerInfo;
+import com.wgcloud.entity.FileSafe;
+import com.wgcloud.entity.HeathMonitor;
+import com.wgcloud.entity.MailSet;
+import com.wgcloud.entity.PortInfo;
+import com.wgcloud.entity.SnmpInfo;
+import com.wgcloud.entity.SystemInfo;
+import com.wgcloud.service.AccountInfoService;
+import com.wgcloud.service.AppInfoService;
+import com.wgcloud.service.CustomInfoService;
+import com.wgcloud.service.DbTableCountService;
+import com.wgcloud.service.DbTableService;
+import com.wgcloud.service.DceInfoService;
+import com.wgcloud.service.DockerInfoService;
+import com.wgcloud.service.FileSafeService;
+import com.wgcloud.service.FtpInfoService;
+import com.wgcloud.service.HeathMonitorService;
+import com.wgcloud.service.LogInfoService;
+import com.wgcloud.service.MailSetService;
+import com.wgcloud.service.PortInfoService;
+import com.wgcloud.service.SnmpInfoService;
+import com.wgcloud.service.SystemInfoService;
+import com.wgcloud.service.TaskUtilService;
 import com.wgcloud.util.DateUtil;
-import com.wgcloud.util.RestUtil;
-import com.wgcloud.util.jdbc.ConnectionUtil;
-import com.wgcloud.util.jdbc.RDSConnection;
+import com.wgcloud.util.HostUtil;
+import com.wgcloud.util.ServerBackupUtil;
+import com.wgcloud.util.SnmpUtil;
+import com.wgcloud.util.ThreadPoolUtil;
+import com.wgcloud.util.license.LicenseUtil;
 import com.wgcloud.util.msg.WarnMailUtil;
 import com.wgcloud.util.msg.WarnPools;
 import com.wgcloud.util.staticvar.BatchData;
 import com.wgcloud.util.staticvar.StaticKeys;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,478 +54,495 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-/**
- * @version v2.3
- * @ClassName:ScheduledTask.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: ScheduledTask.java
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 @Component
 public class ScheduledTask {
+   private Logger logger = LoggerFactory.getLogger(ScheduledTask.class);
+   @Autowired
+   private SystemInfoService systemInfoService;
+   @Autowired
+   private LogInfoService logInfoService;
+   @Autowired
+   private AppInfoService appInfoService;
+   @Autowired
+   private FileSafeService fileSafeService;
+   @Autowired
+   private DockerInfoService dockerInfoService;
+   @Autowired
+   private PortInfoService portInfoService;
+   @Autowired
+   private MailSetService mailSetService;
+   @Autowired
+   private AccountInfoService accountInfoService;
+   @Autowired
+   private TaskUtilService taskUtilService;
+   @Autowired
+   private CustomInfoService customInfoService;
+   @Autowired
+   private DbTableService dbTableService;
+   @Autowired
+   private FtpInfoService ftpInfoService;
+   @Autowired
+   private DbTableCountService dbTableCountService;
+   @Autowired
+   private HeathMonitorService heathMonitorService;
+   @Autowired
+   private DceInfoService dceInfoService;
+   @Autowired
+   private SnmpInfoService snmpInfoService;
+   @Autowired
+   private CommonConfig commonConfig;
+   @Autowired
+   private MailConfig mailConfig;
+   @Autowired
+   private ServletContext servletContext;
 
-    private Logger logger = LoggerFactory.getLogger(ScheduledTask.class);
+   @Scheduled(
+      initialDelay = 5000L,
+      fixedRate = 86400000L
+   )
+   public void validateLicense() {
+      this.logger.info("validateLicense------------" + DateUtil.getDateTimeString(new Date()));
 
-    /**
-     * 线程池
-     */
-    static ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 40, 2, TimeUnit.MINUTES, new LinkedBlockingDeque<>());
+      try {
+         this.servletContext.setAttribute("icoUrl", "/wgcloud/static/logincss/favicon.png");
+         this.servletContext.setAttribute("logoUrl", "/wgcloud/static/logincss/logo.png");
+         this.servletContext.setAttribute("wgName", "WGCLOUD");
+         this.servletContext.setAttribute("wgShortName", "WGCLOUD");
+         Map<String, Object> params = new HashMap();
+         int listAgentNum = this.systemInfoService.countByParams(params);
+         int listPingNum = this.dceInfoService.countByParams(params);
+         StaticKeys.LICENSE_STATE = LicenseUtil.validateLicense(listAgentNum, this.commonConfig.getPageSize(), listPingNum);
+         this.servletContext.setAttribute("LICENSE_STATE", StaticKeys.LICENSE_STATE);
+         this.servletContext.setAttribute("LICENSE_DATE", StaticKeys.LICENSE_DATE);
+         this.servletContext.setAttribute("LICENSE_NAME", StaticKeys.LICENSE_NAME);
+         if (!StringUtils.isEmpty(StaticKeys.LICENSE_DATE) && StaticKeys.LICENSE_DATE.startsWith("2099")) {
+            this.servletContext.setAttribute("LICENSE_DATE", "永久授权");
+         }
 
-    @Autowired
-    SystemInfoService systemInfoService;
-    @Autowired
-    DeskStateService deskStateService;
-    @Autowired
-    LogInfoService logInfoService;
-    @Autowired
-    AppInfoService appInfoService;
-    @Autowired
-    CpuStateService cpuStateService;
-    @Autowired
-    MemStateService memStateService;
-    @Autowired
-    NetIoStateService netIoStateService;
-    @Autowired
-    SysLoadStateService sysLoadStateService;
-    @Autowired
-    TcpStateService tcpStateService;
-    @Autowired
-    AppStateService appStateService;
-    @Autowired
-    MailSetService mailSetService;
-    @Autowired
-    IntrusionInfoService intrusionInfoService;
-    @Autowired
-    HostInfoService hostInfoService;
-    @Autowired
-    DbInfoService dbInfoService;
-    @Autowired
-    DbTableService dbTableService;
-    @Autowired
-    DbTableCountService dbTableCountService;
-    @Autowired
-    HeathMonitorService heathMonitorService;
-    @Autowired
-    private RestUtil restUtil;
-    @Autowired
-    ConnectionUtil connectionUtil;
-    @Autowired
-    CommonConfig commonConfig;
-
-    /**
-     * 20秒后执行
-     * 初始化操作
-     */
-    @Scheduled(initialDelay = 20000L, fixedRate = 600 * 60 * 1000)
-    public void initTask() {
-        try {
-            Map<String, Object> params = new HashMap<String, Object>();
-            List<MailSet> list = mailSetService.selectAllByParams(params);
-            if (list.size() > 0) {
-                StaticKeys.mailSet = list.get(0);
+         this.servletContext.setAttribute("LICENSE_NUM", StaticKeys.LICENSE_NUM);
+         this.servletContext.setAttribute("copyRight", "true");
+         if (StaticKeys.LICENSE_STATE.equals("1")) {
+            if (!StringUtils.isEmpty(this.commonConfig.getIcoUrl())) {
+               this.servletContext.setAttribute("icoUrl", "/wgcloud/resources/" + this.commonConfig.getIcoUrl());
             }
-        } catch (Exception e) {
-            logger.error("初始化操作错误", e);
-        }
 
-    }
-
-
-    /**
-     * 300秒后执行
-     * 检测主机是否已经下线，检测进程是否下线
-     */
-    @Scheduled(initialDelay = 300000L, fixedRate = 20 * 60 * 1000)
-    public void hostDownCheckTask() {
-        Date date = DateUtil.getNowTime();
-        long delayTime = 900 * 1000;
-
-        try {
-            Map<String, Object> params = new HashMap<String, Object>();
-            List<SystemInfo> list = systemInfoService.selectAllByParams(params);
-            if (!CollectionUtil.isEmpty(list)) {
-                List<SystemInfo> updateList = new ArrayList<SystemInfo>();
-                List<LogInfo> logInfoList = new ArrayList<LogInfo>();
-                for (SystemInfo systemInfo : list) {
-
-                    Date createTime = systemInfo.getCreateTime();
-                    long diff = date.getTime() - createTime.getTime();
-                    if (diff > delayTime) {
-                        if (!StringUtils.isEmpty(WarnPools.MEM_WARN_MAP.get(systemInfo.getId()))) {
-                            continue;
-                        }
-                        systemInfo.setState(StaticKeys.DOWN_STATE);
-                        LogInfo logInfo = new LogInfo();
-                        logInfo.setHostname("主机下线：" + systemInfo.getHostname());
-                        logInfo.setInfoContent("超过10分钟未上报状态，可能已下线：" + systemInfo.getHostname());
-                        logInfo.setState(StaticKeys.LOG_ERROR);
-                        logInfoList.add(logInfo);
-                        updateList.add(systemInfo);
-                        Runnable runnable = () -> {
-                            WarnMailUtil.sendHostDown(systemInfo, true);
-                        };
-                        executor.execute(runnable);
-                    } else {
-                        if (!StringUtils.isEmpty(WarnPools.MEM_WARN_MAP.get(systemInfo.getId()))) {
-                            Runnable runnable = () -> {
-                                WarnMailUtil.sendHostDown(systemInfo, false);
-                            };
-                            executor.execute(runnable);
-                        }
-                    }
-                }
-                if (updateList.size() > 0) {
-                    systemInfoService.updateRecord(updateList);
-                }
-                if (logInfoList.size() > 0) {
-                    logInfoService.saveRecord(logInfoList);
-                }
+            if (!StringUtils.isEmpty(this.commonConfig.getLogoUrl())) {
+               this.servletContext.setAttribute("logoUrl", "/wgcloud/resources/" + this.commonConfig.getLogoUrl());
             }
-        } catch (Exception e) {
-            logger.error("检测主机是否下线错误", e);
-        }
 
-        try {
-            Map<String, Object> params = new HashMap<String, Object>();
-            List<AppInfo> list = appInfoService.selectAllByParams(params);
-            if (!CollectionUtil.isEmpty(list)) {
-                List<AppInfo> updateList = new ArrayList<AppInfo>();
-                List<LogInfo> logInfoList = new ArrayList<LogInfo>();
-                for (AppInfo appInfo : list) {
-
-                    Date createTime = appInfo.getCreateTime();
-                    long diff = date.getTime() - createTime.getTime();
-                    if (diff > delayTime) {
-                        if (!StringUtils.isEmpty(WarnPools.MEM_WARN_MAP.get(appInfo.getId()))) {
-                            continue;
-                        }
-                        appInfo.setState(StaticKeys.DOWN_STATE);
-                        LogInfo logInfo = new LogInfo();
-                        logInfo.setHostname("进程下线IP：" + appInfo.getHostname() + "，名称：" + appInfo.getAppName());
-                        logInfo.setInfoContent("超过10分钟未上报状态，可能已下线IP：" + appInfo.getHostname() + "，名称：" + appInfo.getAppName() + "，进程ID：" + appInfo.getAppPid());
-                        logInfo.setState(StaticKeys.LOG_ERROR);
-                        logInfoList.add(logInfo);
-                        updateList.add(appInfo);
-                        Runnable runnable = () -> {
-                            WarnMailUtil.sendAppDown(appInfo, true);
-                        };
-                        executor.execute(runnable);
-                    } else {
-                        if (!StringUtils.isEmpty(WarnPools.MEM_WARN_MAP.get(appInfo.getId()))) {
-                            Runnable runnable = () -> {
-                                WarnMailUtil.sendAppDown(appInfo, false);
-                            };
-                            executor.execute(runnable);
-                        }
-                    }
-                }
-                if (updateList.size() > 0) {
-                    appInfoService.updateRecord(updateList);
-                }
-                if (logInfoList.size() > 0) {
-                    logInfoService.saveRecord(logInfoList);
-                }
+            if (!StringUtils.isEmpty(this.commonConfig.getWgName())) {
+               this.servletContext.setAttribute("wgName", this.commonConfig.getWgName());
             }
-        } catch (Exception e) {
-            logger.error("检测进程是否下线错误", e);
-        }
 
+            if (!StringUtils.isEmpty(this.commonConfig.getWgShortName())) {
+               this.servletContext.setAttribute("wgShortName", this.commonConfig.getWgShortName());
+            }
 
-    }
+            this.servletContext.setAttribute("copyRight", this.commonConfig.getCopyRight());
+         }
+      } catch (Exception var4) {
+         this.logger.error("检测license任务错误", var4);
+      }
 
+   }
 
-    /**
-     * 90秒后执行，之后每隔10分钟执行, 单位：ms。
-     * 检测心跳
-     */
-    @Scheduled(initialDelay = 90000L, fixedRateString = "${base.heathTimes}")
-    public void heathMonitorTask() {
-        logger.info("heathMonitorTask------------" + DateUtil.getDateTimeString(new Date()));
-        Map<String, Object> params = new HashMap<>();
-        List<HeathMonitor> heathMonitors = new ArrayList<HeathMonitor>();
-        List<LogInfo> logInfoList = new ArrayList<LogInfo>();
-        Date date = DateUtil.getNowTime();
-        try {
-            List<HeathMonitor> heathMonitorAllList = heathMonitorService.selectAllByParams(params);
+   @Scheduled(
+      initialDelay = 20000L,
+      fixedRate = 360000L
+   )
+   public void initTask() {
+      this.logger.info("initTask------------" + DateUtil.getDateTimeString(new Date()));
+
+      try {
+         Map<String, Object> params = new HashMap();
+         List<MailSet> list = this.mailSetService.selectAllByParams(params);
+         if (list.size() > 0) {
+            StaticKeys.mailSet = (MailSet)list.get(0);
+         } else {
+            StaticKeys.mailSet = null;
+         }
+
+         StaticKeys.ACCOUNT_INFO_MAP.clear();
+         if ("true".equals(this.commonConfig.getUserInfoManage()) && StaticKeys.LICENSE_STATE.equals("1")) {
+            List<AccountInfo> accountInfoList = this.accountInfoService.selectAllByParams(new HashMap());
+            Iterator var4 = accountInfoList.iterator();
+
+            while(var4.hasNext()) {
+               AccountInfo accountInfo = (AccountInfo)var4.next();
+               StaticKeys.ACCOUNT_INFO_MAP.put(accountInfo.getAccount(), accountInfo);
+            }
+         }
+
+         StaticKeys.WARN_CRON_TIME_SIGN = DateUtil.isWarnTime(this.mailConfig.getWarnCronTime());
+      } catch (Exception var6) {
+         this.logger.error("initTask错误", var6);
+      }
+
+   }
+
+   @Scheduled(
+      initialDelay = 15000L,
+      fixedRate = 3600000L
+   )
+   public void sumDiskSizeCacheTask() {
+      this.logger.info("sumDiskSizeCacheTask------------" + DateUtil.getDateTimeString(new Date()));
+
+      try {
+         this.servletContext.setAttribute("sumDiskSizeCache", this.taskUtilService.sumDiskSizeCache((HttpServletRequest)null));
+      } catch (Exception var2) {
+         this.logger.error("获取所有磁盘总容量之和任务错误", var2);
+      }
+
+   }
+
+   @Scheduled(
+      initialDelay = 150000L,
+      fixedRateString = "${base.snmpTimes}000"
+   )
+   public void snmpInfoTask() {
+      if (!"master".equals(this.commonConfig.getNodeType())) {
+         this.logger.info("slave节点不执行snmp设备监测任务");
+      } else if (DateUtil.isClearTime()) {
+         this.logger.info("正在清空历史数据，不执行snmp设备监控----------" + DateUtil.getCurrentDateTime());
+      } else {
+         this.logger.info("snmpInfoTask------------" + DateUtil.getDateTimeString(new Date()));
+         Map<String, Object> params = new HashMap();
+         Date date = new Date();
+
+         try {
+            params.put("active", "1");
+            List<SnmpInfo> snmpInfoAllList = this.snmpInfoService.selectAllByParams(params);
+            if (snmpInfoAllList.size() > 0) {
+               Map<String, String> snmpMap = SnmpUtil.getOnLineList(snmpInfoAllList);
+               Iterator var5 = snmpInfoAllList.iterator();
+
+               while(var5.hasNext()) {
+                  SnmpInfo h = (SnmpInfo)var5.next();
+                  if (ServerBackupUtil.SNMP_INFO_ID_LIST.contains(h.getId())) {
+                     this.logger.info("此设备由wgcloud-server-backup监测:" + h.getHostname());
+                  } else {
+                     Runnable runnable = () -> {
+                        this.snmpInfoService.taskThreadHandler(snmpMap, h, date);
+                     };
+                     ThreadPoolUtil.executor.execute(runnable);
+                  }
+               }
+            }
+         } catch (Exception var8) {
+            this.logger.error("SNMP设备检测任务错误", var8);
+            this.logInfoService.save("SNMP设备检测任务错误", var8.toString(), "2");
+         }
+
+      }
+   }
+
+   @Scheduled(
+      initialDelay = 60000L,
+      fixedRateString = "${base.heathTimes}000"
+   )
+   public void heathMonitorTask() {
+      if (!"master".equals(this.commonConfig.getNodeType())) {
+         this.logger.info("slave节点不执行检测服务接口任务");
+      } else if (DateUtil.isClearTime()) {
+         this.logger.info("正在清空历史数据，不执行服务接口监控----------" + DateUtil.getCurrentDateTime());
+      } else {
+         this.logger.info("heathMonitorTask------------" + DateUtil.getDateTimeString(new Date()));
+         Map<String, Object> params = new HashMap();
+         Date date = new Date();
+
+         try {
+            params.put("active", "1");
+            List<HeathMonitor> heathMonitorAllList = this.heathMonitorService.selectAllByParams(params);
             if (heathMonitorAllList.size() > 0) {
-                for (HeathMonitor h : heathMonitorAllList) {
-                    int status = 500;
-                    status = restUtil.get(h.getHeathUrl());
-                    h.setCreateTime(date);
-                    h.setHeathStatus(status + "");
-                    heathMonitors.add(h);
-                    if (!"200".equals(h.getHeathStatus())) {
-                        if (!StringUtils.isEmpty(WarnPools.MEM_WARN_MAP.get(h.getId()))) {
-                            continue;
-                        }
-                        LogInfo logInfo = new LogInfo();
-                        logInfo.setHostname("服务接口检测异常：" + h.getAppName());
-                        logInfo.setInfoContent("服务接口检测异常：" + h.getAppName() + "，" + h.getHeathUrl() + "，返回状态" + h.getHeathStatus());
-                        logInfo.setState(StaticKeys.LOG_ERROR);
-                        logInfoList.add(logInfo);
-                        Runnable runnable = () -> {
-                            WarnMailUtil.sendHeathInfo(h, true);
-                        };
-                        executor.execute(runnable);
-                    } else {
-                        if (!StringUtils.isEmpty(WarnPools.MEM_WARN_MAP.get(h.getId()))) {
-                            Runnable runnable = () -> {
-                                WarnMailUtil.sendHeathInfo(h, false);
-                            };
-                            executor.execute(runnable);
-                        }
-                    }
-                }
-                heathMonitorService.updateRecord(heathMonitors);
-                if (logInfoList.size() > 0) {
-                    logInfoService.saveRecord(logInfoList);
-                }
-            }
-        } catch (Exception e) {
-            logger.error("服务接口检测任务错误", e);
-            logInfoService.save("服务接口检测错误", e.toString(), StaticKeys.LOG_ERROR);
-        }
-    }
+               Iterator var4 = heathMonitorAllList.iterator();
 
+               while(var4.hasNext()) {
+                  HeathMonitor h = (HeathMonitor)var4.next();
+                  if (ServerBackupUtil.HEATH_MONITOR_ID_LIST.contains(h.getId())) {
+                     this.logger.info("此接口由wgcloud-server-backup监测:" + h.getAppName());
+                  } else {
+                     Runnable runnable = () -> {
+                        this.heathMonitorService.taskThreadHandler(h, date);
+                     };
+                     ThreadPoolUtil.executor.execute(runnable);
+                  }
+               }
+            }
+         } catch (Exception var7) {
+            this.logger.error("服务接口检测任务错误", var7);
+            this.logInfoService.save("服务接口检测错误", var7.toString(), "2");
+         }
 
-    /**
-     * 60秒后执行，之后每隔120分钟执行, 单位：ms。
-     * 数据表监控
-     */
-    @Scheduled(initialDelay = 60000L, fixedRateString = "${base.dbTableTimes}")
-    public void tableCountTask() {
-        Map<String, Object> params = new HashMap<>();
-        List<DbTable> dbTablesUpdate = new ArrayList<DbTable>();
-        List<DbTableCount> dbTableCounts = new ArrayList<DbTableCount>();
-        Date date = DateUtil.getNowTime();
-        String sql = "";
-        Long tableCount = 0l;
-        try {
-            List<DbInfo> dbInfos = dbInfoService.selectAllByParams(params);
-            for (DbInfo dbInfo : dbInfos) {
-                params.put("dbInfoId", dbInfo.getId());
-                List<DbTable> dbTables = dbTableService.selectAllByParams(params);
-                for (DbTable dbTable : dbTables) {
-                    String whereAnd = "";
-                    if (!StringUtils.isEmpty(dbTable.getWhereVal())) {
-                        whereAnd = " and ";
-                    }
-                    if ("postgresql".equals(dbInfo.getDbType())) {
-                        sql = RDSConnection.query_table_count_pg.replace("{tableName}", dbTable.getTableName()) + whereAnd + dbTable.getWhereVal();
-                    } else {
-                        sql = RDSConnection.query_table_count.replace("{tableName}", dbTable.getTableName()) + whereAnd + dbTable.getWhereVal();
-                    }
-                    tableCount = connectionUtil.queryTableCount(dbInfo, sql);
-                    DbTableCount dbTableCount = new DbTableCount();
-                    dbTableCount.setCreateTime(date);
-                    dbTableCount.setDbTableId(dbTable.getId());
-                    dbTableCount.setTableCount(tableCount);
-                    dbTableCounts.add(dbTableCount);
-                    dbTable.setDateStr(DateUtil.getDateTimeString(date));
-                    dbTable.setTableCount(tableCount);
-                    dbTablesUpdate.add(dbTable);
-                }
-            }
-            if (dbTableCounts.size() > 0) {
-                dbTableCountService.saveRecord(dbTableCounts);
-                dbTableService.updateRecord(dbTablesUpdate);
-            }
-        } catch (Exception e) {
-            logger.error("数据表监控任务错误", e);
-            logInfoService.save("数据表监控任务错误", e.toString(), StaticKeys.LOG_ERROR);
-        }
-    }
+      }
+   }
 
-    /**
-     * 30秒后执行，之后每隔1分钟执行, 单位：ms。
-     * 批量提交数据
-     */
-    @Scheduled(initialDelay = 30000L, fixedRate = 1 * 60 * 1000)
-    public synchronized void commitTask() {
-        logger.info("批量提交监控数据任务开始----------" + DateUtil.getCurrentDateTime());
-        try {
-            if (BatchData.APP_STATE_LIST.size() > 0) {
-                List<AppState> APP_STATE_LIST = new ArrayList<AppState>();
-                APP_STATE_LIST.addAll(BatchData.APP_STATE_LIST);
-                BatchData.APP_STATE_LIST.clear();
-                appStateService.saveRecord(APP_STATE_LIST);
-            }
-            if (BatchData.CPU_STATE_LIST.size() > 0) {
-                List<CpuState> CPU_STATE_LIST = new ArrayList<CpuState>();
-                CPU_STATE_LIST.addAll(BatchData.CPU_STATE_LIST);
-                BatchData.CPU_STATE_LIST.clear();
-                cpuStateService.saveRecord(CPU_STATE_LIST);
-            }
-            if (BatchData.MEM_STATE_LIST.size() > 0) {
-                List<MemState> MEM_STATE_LIST = new ArrayList<MemState>();
-                MEM_STATE_LIST.addAll(BatchData.MEM_STATE_LIST);
-                BatchData.MEM_STATE_LIST.clear();
-                memStateService.saveRecord(MEM_STATE_LIST);
-            }
-            if (BatchData.NETIO_STATE_LIST.size() > 0) {
-                List<NetIoState> NETIO_STATE_LIST = new ArrayList<NetIoState>();
-                NETIO_STATE_LIST.addAll(BatchData.NETIO_STATE_LIST);
-                BatchData.NETIO_STATE_LIST.clear();
-                netIoStateService.saveRecord(NETIO_STATE_LIST);
-            }
-            if (BatchData.SYSLOAD_STATE_LIST.size() > 0) {
-                List<SysLoadState> SYSLOAD_STATE_LIST = new ArrayList<SysLoadState>();
-                SYSLOAD_STATE_LIST.addAll(BatchData.SYSLOAD_STATE_LIST);
-                BatchData.SYSLOAD_STATE_LIST.clear();
-                sysLoadStateService.saveRecord(SYSLOAD_STATE_LIST);
-            }
-            if (BatchData.LOG_INFO_LIST.size() > 0) {
-                List<LogInfo> LOG_INFO_LIST = new ArrayList<LogInfo>();
-                LOG_INFO_LIST.addAll(BatchData.LOG_INFO_LIST);
-                BatchData.LOG_INFO_LIST.clear();
-                logInfoService.saveRecord(LOG_INFO_LIST);
-            }
-            if (BatchData.DESK_STATE_LIST.size() > 0) {
-                Map<String, Object> paramsDel = new HashMap<String, Object>();
+   @Scheduled(
+      initialDelay = 90000L,
+      fixedRateString = "${base.dceTimes}000"
+   )
+   public void dceInfoTask() {
+      if (!"master".equals(this.commonConfig.getNodeType())) {
+         this.logger.info("slave节点不执行检测数通设备PING监控");
+      } else if (DateUtil.isClearTime()) {
+         this.logger.info("正在清空历史数据，不执行数通设备PING监控----------" + DateUtil.getCurrentDateTime());
+      } else {
+         this.logger.info("dceInfoTask------------" + DateUtil.getDateTimeString(new Date()));
+         Map<String, Object> params = new HashMap();
+         Date date = new Date();
 
-                List<DeskState> DESK_STATE_LIST = new ArrayList<DeskState>();
-                DESK_STATE_LIST.addAll(BatchData.DESK_STATE_LIST);
-                BatchData.DESK_STATE_LIST.clear();
-                List<String> hostnameList = new ArrayList<String>();
-                for (DeskState deskState : DESK_STATE_LIST) {
-                    if (!hostnameList.contains(deskState.getHostname())) {
-                        hostnameList.add(deskState.getHostname());
-                    }
-                }
-                for (String hostname : hostnameList) {
-                    paramsDel.put("hostname", hostname);
-                    deskStateService.deleteByAccHname(paramsDel);
-                }
-                deskStateService.saveRecord(DESK_STATE_LIST);
+         try {
+            params.put("active", "1");
+            List<DceInfo> dceInfoAllList = this.dceInfoService.selectAllByParams(params);
+            if (dceInfoAllList.size() > 0) {
+               Iterator var4 = dceInfoAllList.iterator();
+
+               while(var4.hasNext()) {
+                  DceInfo h = (DceInfo)var4.next();
+                  if (ServerBackupUtil.DCE_INFO_ID_LIST.contains(h.getId())) {
+                     this.logger.info("此设备由wgcloud-server-backup监测:" + h.getHostname());
+                  } else {
+                     Runnable runnable = () -> {
+                        this.dceInfoService.taskThreadHandler(h, date);
+                     };
+                     ThreadPoolUtil.executor.execute(runnable);
+                  }
+               }
             }
-            if (BatchData.SYSTEM_INFO_LIST.size() > 0) {
-                Map<String, Object> paramsDel = new HashMap<String, Object>();
-                List<SystemInfo> SYSTEM_INFO_LIST = new ArrayList<SystemInfo>();
-                SYSTEM_INFO_LIST.addAll(BatchData.SYSTEM_INFO_LIST);
-                BatchData.SYSTEM_INFO_LIST.clear();
-                List<SystemInfo> updateList = new ArrayList<SystemInfo>();
-                List<SystemInfo> insertList = new ArrayList<SystemInfo>();
-                List<SystemInfo> savedList = systemInfoService.selectAllByParams(paramsDel);
-                for (SystemInfo systemInfo : SYSTEM_INFO_LIST) {
-                    boolean issaved = false;
-                    for (SystemInfo systemInfoS : savedList) {
-                        if (systemInfoS.getHostname().equals(systemInfo.getHostname())) {
-                            systemInfo.setId(systemInfoS.getId());
-                            updateList.add(systemInfo);
-                            issaved = true;
-                            break;
-                        }
-                    }
-                    if (!issaved) {
-                        insertList.add(systemInfo);
-                    }
-                }
-                systemInfoService.updateRecord(updateList);
-                systemInfoService.saveRecord(insertList);
+         } catch (Exception var7) {
+            this.logger.error("数通设备PING检测任务错误", var7);
+            this.logInfoService.save("数通设备PING检测任务错误", var7.toString(), "2");
+         }
+
+      }
+   }
+
+   @Scheduled(
+      initialDelay = 120000L,
+      fixedRateString = "${base.dbTableTimes}000"
+   )
+   public void tableCountTask() {
+      if (!"master".equals(this.commonConfig.getNodeType())) {
+         this.logger.info("slave节点不执行数据表监控任务");
+      } else if (DateUtil.isClearTime()) {
+         this.logger.info("正在清空历史数据，不执行数据表监控----------" + DateUtil.getCurrentDateTime());
+      } else {
+         this.logger.info("tableCountTask------------" + DateUtil.getDateTimeString(new Date()));
+
+         try {
+            this.dbTableService.taskThreadHandler();
+         } catch (Exception var2) {
+            this.logger.error("数据表监控任务错误", var2);
+            this.logInfoService.save("数据表监控任务错误", var2.toString(), "2");
+         }
+
+      }
+   }
+
+   @Scheduled(
+      initialDelay = 140000L,
+      fixedRateString = "${base.ftpTimes}000"
+   )
+   public void ftpInfoTask() {
+      if (!"master".equals(this.commonConfig.getNodeType())) {
+         this.logger.info("slave节点不执行数据表监控任务");
+      } else if (DateUtil.isClearTime()) {
+         this.logger.info("正在清空历史数据，不执行数据表监控----------" + DateUtil.getCurrentDateTime());
+      } else {
+         this.logger.info("ftpInfoTask------------" + DateUtil.getDateTimeString(new Date()));
+
+         try {
+            this.ftpInfoService.taskThreadHandler();
+         } catch (Exception var2) {
+            this.logger.error("FTP监控任务错误", var2);
+            this.logInfoService.save("FTP监控任务错误", var2.toString(), "2");
+         }
+
+      }
+   }
+
+   @Scheduled(
+      initialDelay = 300000L,
+      fixedRate = 300000L
+   )
+   public void hostDownCheckTask() {
+      if (!"master".equals(this.commonConfig.getNodeType())) {
+         this.logger.info("slave节点不执行检测主机/进程/docker/端口是否恢复任务");
+      } else if (DateUtil.isClearTimeForHost()) {
+         this.logger.info("正在清空历史数据，不执行提交检测主机/进程/docker/端口数据----------" + DateUtil.getCurrentDateTime());
+         BatchData.clearAll();
+      } else {
+         this.logger.info("hostDownCheckTask------------" + DateUtil.getDateTimeString(new Date()));
+         this.checkHostDown();
+         this.checkAppDown();
+         this.checkDockerDown();
+         this.checkPortDown();
+         this.checkFileSafeDown();
+      }
+   }
+
+   private void checkHostDown() {
+      ArrayList downHostNameList = new ArrayList();
+
+      try {
+         Map<String, Object> params = new HashMap();
+         List<SystemInfo> list = this.systemInfoService.selectAllByParams(params);
+         if (!CollectionUtil.isEmpty(list)) {
+            Iterator var4 = list.iterator();
+
+            while(var4.hasNext()) {
+               SystemInfo systemInfo = (SystemInfo)var4.next();
+               this.agentTimeOutHandle(systemInfo, downHostNameList);
             }
-            if (BatchData.APP_INFO_LIST.size() > 0) {
-                Map<String, Object> paramsDel = new HashMap<String, Object>();
-                List<AppInfo> APP_INFO_LIST = new ArrayList<AppInfo>();
-                APP_INFO_LIST.addAll(BatchData.APP_INFO_LIST);
-                BatchData.APP_INFO_LIST.clear();
 
-                List<AppInfo> updateList = new ArrayList<AppInfo>();
-                List<AppInfo> insertList = new ArrayList<AppInfo>();
-                List<AppInfo> savedList = appInfoService.selectAllByParams(paramsDel);
-                for (AppInfo systemInfo : APP_INFO_LIST) {
-                    boolean issaved = false;
-                    for (AppInfo systemInfoS : savedList) {
-                        if (systemInfoS.getHostname().equals(systemInfo.getHostname()) && systemInfoS.getAppPid().equals(systemInfo.getAppPid())) {
-                            systemInfo.setId(systemInfoS.getId());
-                            updateList.add(systemInfo);
-                            issaved = true;
-                            break;
-                        }
-                    }
-                    if (!issaved) {
-                        insertList.add(systemInfo);
-                    }
-                }
-                appInfoService.updateRecord(updateList);
-                appInfoService.saveRecord(insertList);
+            if (downHostNameList.size() > 0) {
+               this.systemInfoService.downByHostName(downHostNameList);
+               this.appInfoService.downByHostName(downHostNameList);
+               this.portInfoService.downByHostName(downHostNameList);
+               this.dockerInfoService.downByHostName(downHostNameList);
+               this.fileSafeService.downByHostName(downHostNameList);
+               this.customInfoService.downByHostName(downHostNameList);
             }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            logger.error("批量提交监控数据错误----------", e);
-            logInfoService.save("commitTask", "批量提交监控数据错误：" + e.toString(), StaticKeys.LOG_ERROR);
-        }
-        logger.info("批量提交监控数据任务结束----------" + DateUtil.getCurrentDateTime());
-    }
 
-    @Autowired
-    SystemInfoMapper systemInfoMapper;
-    @Autowired
-    CpuStateMapper cpuStateMapper;
-    @Autowired
-    DeskStateMapper deskStateMapper;
-    @Autowired
-    MemStateMapper memStateMapper;
-    @Autowired
-    NetIoStateMapper netIoStateMapper;
-    @Autowired
-    SysLoadStateMapper sysLoadStateMapper;
-    @Autowired
-    TcpStateMapper tcpStateMapper;
-    @Autowired
-    AppInfoMapper appInfoMapper;
-    @Autowired
-    AppStateMapper appStateMapper;
-    @Autowired
-    MailSetMapper mailSetMapper;
-    @Autowired
-    IntrusionInfoMapper intrusionInfoMapper;
-    @Autowired
-    LogInfoMapper logInfoMapper;
+            HostUtil.initHostCacheMap(list);
+         }
+      } catch (Exception var6) {
+         this.logger.error("检测主机是否下线错误", var6);
+         this.logInfoService.save("检测主机是否下线错误", var6.toString(), "2");
+      }
 
-    /**
-     * 每天凌晨1:10执行
-     * 删除历史数据，15天
-     */
-    @Scheduled(cron = "0 10 1 * * ?")
-    public void clearHisdataTask() {
-        logger.info("定时清空历史数据任务开始----------" + DateUtil.getCurrentDateTime());
-        WarnPools.clearOldData();//清空发告警邮件的记录
-        String nowTime = DateUtil.getCurrentDateTime();
-        //15天前时间
-        String thrityDayBefore = DateUtil.getDateBefore(nowTime, 15);
-        Map<String, Object> paramsDel = new HashMap<String, Object>();
-        try {
-            paramsDel.put(StaticKeys.SEARCH_END_TIME, thrityDayBefore);
-            //执行删除操作begin
-            if (paramsDel.get(StaticKeys.SEARCH_END_TIME) != null && !"".equals(paramsDel.get(StaticKeys.SEARCH_END_TIME))) {
-                cpuStateMapper.deleteByAccountAndDate(paramsDel);//删除cpu监控信息
-                deskStateMapper.deleteByAccountAndDate(paramsDel);//删除磁盘监控信息
-                memStateMapper.deleteByAccountAndDate(paramsDel);//删除内存监控信息
-                netIoStateMapper.deleteByAccountAndDate(paramsDel);//删除吞吐率监控信息
-                sysLoadStateMapper.deleteByAccountAndDate(paramsDel);//删除负载状态监控信息
-                tcpStateMapper.deleteByAccountAndDate(paramsDel);//删除tcp监控信息
-                appStateMapper.deleteByDate(paramsDel);
-                //删除15天前的日志信息
-                logInfoMapper.deleteByDate(paramsDel);
-                //删除15天前数据库表统计信息
-                dbTableCountService.deleteByDate(paramsDel);
+   }
 
-                logInfoService.save("定时清空历史数据完成", "定时清空历史数据完成：", StaticKeys.LOG_ERROR);
+   private void agentTimeOutHandle(SystemInfo systemInfo, List<String> downHostNameList) {
+      Date createTime = systemInfo.getCreateTime();
+      long diff = System.currentTimeMillis() - createTime.getTime();
+      Integer submitSeconds = 180000;
+
+      try {
+         submitSeconds = (Integer.valueOf(systemInfo.getSubmitSeconds()) + 60) * 1000;
+      } catch (Exception var8) {
+         this.logger.error("Integer转换错误", var8);
+      }
+
+      Runnable runnable;
+      if (diff >= (long)submitSeconds) {
+         if (null == WarnPools.MEM_WARN_MAP.get(systemInfo.getId())) {
+            downHostNameList.add(systemInfo.getHostname());
+         }
+
+         runnable = () -> {
+            WarnMailUtil.sendHostDown(systemInfo, true);
+         };
+         ThreadPoolUtil.executor.execute(runnable);
+      } else if (null != WarnPools.MEM_WARN_MAP.get(systemInfo.getId())) {
+         runnable = () -> {
+            WarnMailUtil.sendHostDown(systemInfo, false);
+         };
+         ThreadPoolUtil.executor.execute(runnable);
+      }
+
+   }
+
+   private void checkAppDown() {
+      try {
+         Map<String, Object> params = new HashMap();
+         params.put("state", "1");
+         params.put("active", "1");
+         List<AppInfo> list = this.appInfoService.selectAllByParams(params);
+         if (!CollectionUtil.isEmpty(list)) {
+            Iterator var3 = list.iterator();
+
+            while(var3.hasNext()) {
+               AppInfo appInfo = (AppInfo)var3.next();
+               if (null != WarnPools.MEM_WARN_MAP.get(appInfo.getId())) {
+                  Runnable runnable = () -> {
+                     WarnMailUtil.sendAppDown(appInfo, false);
+                  };
+                  ThreadPoolUtil.executor.execute(runnable);
+               }
             }
-            //执行删除操作end
+         }
+      } catch (Exception var6) {
+         this.logger.error("检测进程是否恢复错误", var6);
+         this.logInfoService.save("检测进程是否恢复错误", var6.toString(), "2");
+      }
 
-        } catch (Exception e) {
-            logger.error("定时清空历史数据任务出错：", e);
-            logInfoService.save("定时清空历史数据错误", "定时清空历史数据错误：" + e.toString(), StaticKeys.LOG_ERROR);
-        }
-        logger.info("定时清空历史数据任务结束----------" + DateUtil.getCurrentDateTime());
-    }
+   }
 
+   private void checkDockerDown() {
+      try {
+         Map<String, Object> params = new HashMap();
+         params.put("state", "1");
+         params.put("active", "1");
+         List<DockerInfo> list = this.dockerInfoService.selectAllByParams(params);
+         if (!CollectionUtil.isEmpty(list)) {
+            Iterator var3 = list.iterator();
 
+            while(var3.hasNext()) {
+               DockerInfo appInfo = (DockerInfo)var3.next();
+               if (null != WarnPools.MEM_WARN_MAP.get(appInfo.getId())) {
+                  Runnable runnable = () -> {
+                     WarnMailUtil.sendDockerDown(appInfo, false);
+                  };
+                  ThreadPoolUtil.executor.execute(runnable);
+               }
+            }
+         }
+      } catch (Exception var6) {
+         this.logger.error("检测docker是否恢复错误", var6);
+         this.logInfoService.save("检测docker是否恢复错误", var6.toString(), "2");
+      }
+
+   }
+
+   private void checkPortDown() {
+      try {
+         Map<String, Object> params = new HashMap();
+         params.put("state", "1");
+         params.put("active", "1");
+         List<PortInfo> list = this.portInfoService.selectAllByParams(params);
+         if (!CollectionUtil.isEmpty(list)) {
+            Iterator var3 = list.iterator();
+
+            while(var3.hasNext()) {
+               PortInfo appInfo = (PortInfo)var3.next();
+               if (null != WarnPools.MEM_WARN_MAP.get(appInfo.getId())) {
+                  Runnable runnable = () -> {
+                     WarnMailUtil.sendPortDown(appInfo, false);
+                  };
+                  ThreadPoolUtil.executor.execute(runnable);
+               }
+            }
+         }
+      } catch (Exception var6) {
+         this.logger.error("检测端口是否恢复错误", var6);
+         this.logInfoService.save("检测端口是否恢复错误", var6.toString(), "2");
+      }
+
+   }
+
+   private void checkFileSafeDown() {
+      try {
+         Map<String, Object> params = new HashMap();
+         params.put("state", "1");
+         params.put("active", "1");
+         List<FileSafe> list = this.fileSafeService.selectAllByParams(params);
+         if (!CollectionUtil.isEmpty(list)) {
+            Iterator var3 = list.iterator();
+
+            while(var3.hasNext()) {
+               FileSafe fileSafe = (FileSafe)var3.next();
+               if (null != WarnPools.MEM_WARN_MAP.get(fileSafe.getId())) {
+                  Runnable runnable = () -> {
+                     WarnMailUtil.sendFileSafeDown(fileSafe, false);
+                  };
+                  ThreadPoolUtil.executor.execute(runnable);
+               }
+            }
+         }
+      } catch (Exception var6) {
+         this.logger.error("检测文件防篡改监测是否恢复错误", var6);
+         this.logInfoService.save("检测文件防篡改监测是否恢复错误", var6.toString(), "2");
+      }
+
+   }
 }

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wgcloud.mapper.EquipmentMapper">
+	<resultMap id="resultMap" type="com.wgcloud.entity.Equipment">
+		<id column="ID" property="id" jdbcType="CHAR" />
+		<result column="NAME" property="name" jdbcType="CHAR" />
+		<result column="XINGHAO" property="xinghao" jdbcType="CHAR" />
+		<result column="PERSON" property="person" jdbcType="CHAR" />
+		<result column="DEPT" property="dept" jdbcType="CHAR" />
+		<result column="CODE" property="code" jdbcType="CHAR" />
+		<result column="PRICE" property="price" jdbcType="DOUBLE" />
+		<result column="GONGYINGSHANG" property="gongyingshang" jdbcType="CHAR" />
+		<result column="CAIGOU_DATE" property="caigouDate" jdbcType="CHAR" />
+		<result column="REMARK" property="remark" jdbcType="CHAR" />
+		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="ACCOUNT" property="account" jdbcType="CHAR" />
+		<result column="WEIBAO_DATE" property="weibaoDate" jdbcType="CHAR" />
+		<result column="GROUP_ID" property="groupId" jdbcType="CHAR" />
+	</resultMap>
+
+	<sql id="tableColumnList">
+		ID,NAME, XINGHAO,PERSON,DEPT,CODE,PRICE,GONGYINGSHANG,CAIGOU_DATE,REMARK,CREATE_TIME,ACCOUNT,WEIBAO_DATE,GROUP_ID
+	</sql>
+
+	<sql id="queryByParams">
+		<if test="name != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND ( NAME LIKE  CONCAT(CONCAT('%',#{name}),'%') OR XINGHAO LIKE  CONCAT(CONCAT('%',#{name}),'%') OR CODE LIKE  CONCAT(CONCAT('%',#{name}),'%') OR PERSON LIKE  CONCAT(CONCAT('%',#{name}),'%') )]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND ( NAME LIKE  CONCAT('%',#{name},'%') OR XINGHAO LIKE  CONCAT('%',#{name},'%') OR CODE LIKE  CONCAT('%',#{name},'%') OR PERSON LIKE  CONCAT('%',#{name},'%') )]]>
+				</otherwise>
+			</choose>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND ACCOUNT = #{account} ]]>
+		</if>
+		<if test="groupId != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT(CONCAT('%',#{groupId}),'%') ]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND GROUP_ID LIKE  CONCAT('%',#{groupId},'%') ]]>
+				</otherwise>
+			</choose>
+		</if>
+	</sql>
+
+
+	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM EQUIPMENT
+		WHERE ID=#{id}
+	</select>
+
+
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		DELETE FROM EQUIPMENT
+		WHERE ID = #{id}
+	</delete>
+
+
+	<delete id="deleteById" parameterType="java.lang.String">
+		DELETE FROM
+		EQUIPMENT
+		WHERE ID IN
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<insert id="save" parameterType="com.wgcloud.entity.Equipment">
+		INSERT INTO EQUIPMENT
+    	<trim prefix="(" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >ID,</if>
+      		<if test="name != null" >NAME,</if>
+      		<if test="xinghao != null">XINGHAO,</if>
+      		<if test="person != null">PERSON,</if>
+			<if test="dept != null">DEPT,</if>
+			<if test="code != null">CODE,</if>
+			<if test="price != null">PRICE,</if>
+			<if test="gongyingshang != null">GONGYINGSHANG,</if>
+			<if test="caigouDate != null">CAIGOU_DATE,</if>
+			<if test="remark != null">REMARK,</if>
+			<if test="account != null">ACCOUNT,</if>
+			<if test="weibaoDate != null">WEIBAO_DATE,</if>
+			<if test="groupId != null">GROUP_ID,</if>
+      		<if test="createTime != null" >CREATE_TIME</if>
+    	</trim>
+    	<trim prefix="values (" suffix=")" suffixOverrides="," >
+      		<if test="id != null" >#{id},</if>
+      		<if test="name != null" >#{name},</if>
+      		<if test="xinghao != null" >#{xinghao},</if>
+      		<if test="person != null" >#{person},</if>
+			<if test="dept != null" >#{dept},</if>
+			<if test="code != null" >#{code},</if>
+			<if test="price != null" >#{price},</if>
+			<if test="gongyingshang != null" >#{gongyingshang},</if>
+			<if test="caigouDate != null" >#{caigouDate},</if>
+			<if test="remark != null" >#{remark},</if>
+			<if test="account != null" >#{account},</if>
+			<if test="weibaoDate != null" >#{weibaoDate},</if>
+			<if test="groupId != null" >#{groupId},</if>
+      		<if test="createTime != null" >#{createTime}</if>
+    	</trim>
+	</insert>
+
+
+	<update id="updateById" parameterType="com.wgcloud.entity.Equipment">
+		UPDATE EQUIPMENT
+		<set>
+			<if test="name != null">
+				NAME = #{name},
+			</if>
+			<if test="xinghao != null">
+				XINGHAO = #{xinghao},
+			</if>
+			<if test="person != null">
+				PERSON = #{person},
+			</if>
+			<if test="dept != null">
+				DEPT = #{dept},
+			</if>
+			<if test="code != null">
+				CODE = #{code},
+			</if>
+			<if test="price != null">
+				PRICE = #{price},
+			</if>
+			<if test="gongyingshang != null">
+                GONGYINGSHANG = #{gongyingshang},
+			</if>
+            <if test="caigouDate != null">
+				CAIGOU_DATE = #{caigouDate},
+            </if>
+            <if test="remark != null">
+				REMARK = #{remark},
+            </if>
+			<if test="weibaoDate != null">
+				WEIBAO_DATE = #{weibaoDate},
+			</if>
+			<if test="groupId != null">
+				GROUP_ID = #{groupId},
+			</if>
+			<if test="createTime != null">
+				CREATE_TIME = #{createTime}
+			</if>
+		</set>
+		WHERE ID = #{id}
+	</update>
+
+	<select id="countByParams" parameterType="map" resultType="java.lang.Integer">
+		SELECT count(*)  FROM EQUIPMENT t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+
+	<select id="selectAllByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM EQUIPMENT t
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY CREATE_TIME DESC
+	</select>
+	
+	<select id="selectByParams" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM EQUIPMENT
+		<where>
+			<include refid="queryByParams" />
+		</where>
+		 ORDER BY CREATE_TIME DESC
+	</select>
+	
+	
+</mapper>

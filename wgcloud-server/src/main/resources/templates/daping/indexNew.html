@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title th:text="${application.wgName}">WGClOUD监控系统</title>
+  <base href="./" th:href="'/'"/>
+  <meta charset="utf-8">
+  <link rel="shortcut icon" type="image/x-icon" th:href="${application.icoUrl}"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" th:href="@{'/static/dapingNew/css/index.css'}">
+  <link rel="stylesheet" th:href="@{'/static/dapingNew/css/reset.css'}">
+
+
+</head>
+<body style="overflow: hidden;">
+<div id="particles-js" class="main">
+  <div class="main_con">
+    <div class="main_top">
+      <div class="main_top_left">
+        <div class="main_top_left_top">
+          <img th:src="@{'/static/dapingNew/images/main_top_left.png'}"/>
+          <div class="main_top_left_top_title">基础资源展示</div>
+          <div class="main_top_left_top_con">
+            <div class="main_top_left_top_con_list">
+              <span  th:text="${totalSystemInfoSize}" class="counter-value">0</span>
+              <p>主机数量</p>
+            </div>
+            <div class="main_top_left_top_con_list">
+              <span  th:text="${heathSize}" class="counter-value">0</span>
+              <p>服务接口</p>
+            </div>
+            <div class="main_top_left_top_con_list">
+              <span  th:text="${dbInfoSize}" class="counter-value">0</span>
+              <p>数据源</p>
+            </div>
+            <div class="main_top_left_top_con_left">
+              <div class="main_top_left_t_c_l_left">
+                <span  th:text="${dbTableSize}" class="counter-value">0</span>
+                <p>数据表</p>
+              </div>
+              <div class="main_top_left_t_c_l_right">
+                <span  th:text="${dceSize}" class="counter-value">0</span>
+                <p>PING</p>
+              </div>
+            </div>
+            <div class="main_top_left_top_con_right main_top_left_top_con_right2">
+              <div class="main_top_left_t_c_r_left">
+                <span  th:text="${snmpSize}" class="counter-value">0</span>
+                <p>SNMP</p>
+              </div>
+              <div class="main_top_left_t_c_r_right">
+                <span  th:text="${shellInfoSize}" class="counter-value">0</span>
+                <p>下发指令</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="main_top_left_top main_top_left_bottom">
+          <img th:src="@{'/static/dapingNew/images/main_top_left.png'}"/>
+          <div class="main_top_left_top_title">下线资源数据展示</div>
+          <div id="baseId" class="main_top_left_top_con"></div>
+        </div>
+      </div>
+      <div class="main_top_middle">
+        <div class="main_top_middle_top_title">
+          <img class="title_bg" th:src="@{'/static/dapingNew/images/title_bg.png'}">
+          <span th:text="${application.wgName}">WGCLOUD</span>
+        </div>
+        <div class="main_top_middle_num_title">平台监测资源</div>
+        <div class="main_top_middle_num">
+          <!-- <div class="main_top_middle_num_list">
+              <img src="./images/center_num.png">
+              <p class="main_top_middle_num_list6">0</p>
+          </div> -->
+          <div class="main_top_middle_num_list">
+            <img th:src="@{'/static/dapingNew/images/center_num.png'}">
+            <p class="main_top_middle_num_list5">0</p>
+          </div>
+          <div class="main_top_middle_num_list">
+            <img th:src="@{'/static/dapingNew/images/center_num.png'}">
+            <p class="main_top_middle_num_list4">0</p>
+          </div>
+          <div class="main_top_middle_num_list">
+            <img th:src="@{'/static/dapingNew/images/center_num.png'}">
+            <p class="main_top_middle_num_list3">0</p>
+          </div>
+          <div class="main_top_middle_num_list">
+            <img th:src="@{'/static/dapingNew/images/center_num.png'}">
+            <p class="main_top_middle_num_list2">0</p>
+          </div>
+          <div class="main_top_middle_num_list">
+            <img th:src="@{'/static/dapingNew/images/center_num.png'}">
+            <p class="main_top_middle_num_list1">0</p>
+          </div>
+        </div>
+        <div class="main_top_middle_bottom">
+          <div class="main_top_middle_bottom_echarts">
+            <img th:src="@{'/static/dapingNew/images/main_top_bottom.png'}">
+            <div class="main_top_echarts_con">
+              <div class="main_top_echarts_con_title">系统类型数量占比</div>
+              <div id="systemTypeId" class="main_top_echarts_pie"></div>
+            </div>
+          </div>
+          <div class="main_top_middle_bottom_echarts main_top_middle_bottom_echarts_right">
+            <img th:src="@{'/static/dapingNew/images/main_top_bottom.png'}">
+            <div class="main_top_echarts_con">
+              <div class="main_top_echarts_con_title">最近一周系统日志</div>
+              <div id="hostWarnTopId" class="main_top_echarts_pie"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="main_top_left main_top_right">
+        <div class="main_top_left_top">
+          <img th:src="@{'/static/dapingNew/images/main_top_left.png'}"/>
+          <div class="main_top_left_top_title">主机资源数量</div>
+          <div class="main_top_left_top_con">
+            <div class="main_top_left_top_con_left">
+              <span th:text="${totalSizeApp}" class="counter-value">0</span>
+              <p>进程数量</p>
+            </div>
+            <div class="main_top_left_top_con_right">
+              <span th:text="${portSize}" class="weekData">0</span>
+              <p>端口数量</p>
+            </div>
+            <div class="main_top_left_top_con_list">
+              <span th:text="${fileSafeSize}" class="counter-value">0</span>
+              <p>文件防篡改</p>
+            </div>
+            <div class="main_top_left_top_con_list">
+              <span th:text="${fileWarnSize}" class="counter-value">0</span>
+              <p>日志文件</p>
+            </div>
+            <div class="main_top_left_top_con_list">
+              <span th:text="${dockerSize}" class="counter-value">0</span>
+              <p>DOCKER容器</p>
+            </div>
+          </div>
+        </div>
+        <div class="main_top_left_top main_top_left_bottom">
+          <img th:src="@{'/static/dapingNew/images/main_top_left.png'}"/>
+          <div class="main_top_left_top_title">主机下线资源展示</div>
+          <div id="hostDownId" class="main_top_left_top_con">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="main_middle">
+      <div class="main_middle_list">
+        <img th:src="@{'/static/dapingNew/images/main_middle.png'}">
+        <div class="main_list_title main_list_title1"></div>
+        <span class="main_list_title_num main_list_title_num1">0</span>
+      </div>
+      <div class="main_middle_list">
+        <img th:src="@{'/static/dapingNew/images/main_middle.png'}">
+        <div class="main_list_title main_list_title2"></div>
+        <span class="main_list_title_num main_list_title_num2">0</span>
+      </div>
+      <div class="main_middle_list">
+        <img th:src="@{'/static/dapingNew/images/main_middle.png'}">
+        <div class="main_list_title main_list_title3"></div>
+        <span class="main_list_title_num main_list_title_num3">0</span>
+      </div>
+      <div class="main_middle_list">
+        <img th:src="@{'/static/dapingNew/images/main_middle.png'}">
+        <div class="main_list_title main_list_title4"></div>
+        <span class="main_list_title_num main_list_title_num4">0</span>
+      </div>
+      <div class="main_middle_list">
+        <img th:src="@{'/static/dapingNew/images/main_middle.png'}">
+        <div class="main_list_title main_list_title5"></div>
+        <span class="main_list_title_num main_list_title_num5">0</span>
+      </div>
+    </div>
+    <div class="main_bottom">
+      <div class="main_bottom_top">
+        <div class="main_bottom_top_list">
+          <img th:src="@{'/static/dapingNew/images/main_bottopm_top1.png'}">
+          <div class="main_bottom_t_l_title">最新资源告警信息</div>
+          <div class="main_bottom_t_l_con">
+            <div class="main_bottom_t_l_main">
+              <ul>
+                <th:block th:each="item,iterStat : ${logLeftList}">
+                  <li>
+                    <div class="main_bottom_t_l_main_list">
+                      <div class="main_bottom_t_list_title main_bottom_t_list_title1" th:text="${item.hostname}"></div>
+                      <div class="main_bottom_t_list_time main_bottom_t_list_time1" th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}"></div>
+                    </div>
+                  </li>
+                </th:block>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="main_bottom_top_list">
+          <img th:src="@{'/static/dapingNew/images/main_bottopm_top2.png'}">
+          <div class="main_bottom_t_l_title">服务接口响应时间最长TOP5</div>
+          <div id="heathId" class="main_bottom_t_l_chart"></div>
+        </div>
+        <div class="main_bottom_top_list">
+          <img th:src="@{'/static/dapingNew//images/main_bottopm_top1.png'}">
+          <div class="main_bottom_t_l_title">最新系统日志信息</div>
+          <div class="main_bottom_t_l_con">
+            <div class="main_bottom_t_l_main2">
+              <ul>
+                <th:block th:each="item,iterStat : ${logRightList}">
+                  <li>
+                    <div class="main_bottom_t_l_main_list">
+                      <div class="main_bottom_t_list_title main_bottom_polity_title1" th:text="${item.hostname}"></div>
+                      <div class="main_bottom_t_list_time main_bottom_polity_time1" th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}"></div>
+                    </div>
+                  </li>
+                </th:block>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="main_bottom_bottom">
+        <div class="main_bottom_b_left">
+          <img th:src="@{'/static/dapingNew/images/main_bottom_bottom.png'}">
+          <div class="main_bottom_b_title">主机监测资源占比</div>
+          <div id="coverageId" class="main_bottom_b_con"></div>
+        </div>
+        <div class="main_bottom_b_middle1">
+          <img th:src="@{'/static/dapingNew/images/main_bootm_middle.png'}">
+          <div class="main_bottom_b_title">所有主机最近10分钟状态</div>
+          <div id="contentId" class="main_bottom_b_con main_bottom_b_con2"></div>
+        </div>
+        <div class="main_bottom_b_middle2">
+          <img th:src="@{'/static/dapingNew/images/main_bootm_middle.png'}">
+          <div class="main_bottom_b_title">最新上报进程数量、连接数量</div>
+          <div id="publicNumId" class="main_bottom_b_con main_bottom_b_con2"></div>
+        </div>
+        <div class="main_bottom_b_right">
+          <img th:src="@{'/static/dapingNew/images/main_bottom_bottom.png'}">
+          <div class="main_bottom_b_title">最新上报内存%、CPU%、磁盘%</div>
+          <div id="hostProcsId" class="main_bottom_b_con"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script  type="text/javascript"  th:src="@{'/static/daping/js/jquery.js'}"></script>
+<script type="text/javascript"  th:src="@{'/static/dapingNew/js/echarts.min.js'}"></script>
+<script type="text/javascript" th:src="@{'/static/dapingNew/js/dataScoll.js'}"></script>
+<script type="text/javascript" th:src="@{'/static/dapingNew/js/digitalScroll.js'}"></script>
+<script type="text/javascript" th:src="@{'/static/dapingNew/js/jcarousellite.js'}"></script>
+<script type="text/javascript" th:src="@{'/static/dapingNew/js/particles.min.js'}"></script>
+<script type="text/javascript" th:src="@{'/static/dapingNew/js/app.js'}"></script>
+
+  <script>
+    //每10分钟刷新一次页面
+    function reload() {
+      window.location.reload();
+    }
+    setTimeout(reload,600000);
+
+  </script>
+
+
+
+<script  th:inline="javascript">
+  const resourceAllSize = [[${resourceAllSize}]];
+  const hostDownSize = [[${hostDownSize}]];
+  const dceDownSize = [[${dceDownSize}]];
+  const snmpDownSize = [[${snmpDownSize}]];
+  const dbInfoDownSize = [[${dbInfoDownSize}]];
+  const heatherrSize = [[${heatherrSize}]];
+
+  const downAppSize = [[${downAppSize}]];
+  const downDockerSize = [[${downDockerSize}]];
+  const portDownSize = [[${portDownSize}]];
+  const fileSafeDownSize = [[${fileSafeDownSize}]];
+
+  const windowsSize = [[${windowsSize}]];
+  const centosSize = [[${centosSize}]];
+  const redhatSize = [[${redhatSize}]];
+  const ubuntuSize = [[${ubuntuSize}]];
+  const debianSize = [[${debianSize}]];
+  const othersSize = [[${othersSize}]];
+
+  const topDownHostData = [[${topDownHostChart}]];
+
+  const uptimeSumDays = [[${uptimeSum}]];
+  const warnCount = [[${warnCount}]];
+  const cpuCoresSum = [[${cpuCoresSum}]];
+  const memSum = [[${memSum}]];
+  const sumDiskSizeCache = [[${application.sumDiskSizeCache}]];
+
+  const heathMonitorTop5List = [[${heathMonitorTop5List}]];
+
+  const totalSystemInfoSize = [[${totalSystemInfoSize}]];
+  const totalSizeApp = [[${totalSizeApp}]];
+  const dockerSize = [[${dockerSize}]];
+  const portSize = [[${portSize}]];
+  const fileWarnSize = [[${fileWarnSize}]];
+  const customInfoSize = [[${customInfoSize}]];
+  const fileSafeSize = [[${fileSafeSize}]];
+  const hostPowerMaxSize = [[${hostPowerMaxSize}]];
+
+
+  const maxCpuInfo = [[${maxCpuInfo}]];
+  const avgCpuInfo = [[${avgCpuInfo}]];
+  const minCpuInfo = [[${minCpuInfo}]];
+  const maxMemInfo = [[${maxMemInfo}]];
+  const avgMemInfo = [[${avgMemInfo}]];
+  const minMemInfo = [[${minMemInfo}]];
+  const maxFiveLoad = [[${maxFiveLoad}]];
+  const avgFiveLoad = [[${avgFiveLoad}]];
+  const minFiveLoad = [[${minFiveLoad}]];
+  const maxFifteenLoad = [[${maxFifteenLoad}]];
+  const minFifteenLoad = [[${minFifteenLoad}]];
+  const avgFifteenLoad = [[${avgFifteenLoad}]];
+  const maxDiskPer = [[${maxDiskPer}]];
+  const avgDiskPer = [[${avgDiskPer}]];
+  const minDiskPer = [[${minDiskPer}]];
+
+  const hostNameTop6List = [[${hostNameTop6List}]];
+  const hostMemTop6List = [[${hostMemTop6List}]];
+  const hostCpuTop6List = [[${hostCpuTop6List}]];
+  const hostProcsTop6List = [[${hostProcsTop6List}]];
+  const hostNetConnectionsTop6List = [[${hostNetConnectionsTop6List}]];
+  const hostDiskPerTop6List = [[${hostDiskPerTop6List}]];
+  const maxSystemValue = [[${maxSystemValue}]];
+
+
+
+  $(function() {
+    function apiFn() {
+      this.hostname = ""
+    }
+    apiFn.prototype = {
+      Init:function() {
+        this.findCount()
+        this.baseInfo()
+        this.hostDownFn()
+        this.hostWarnTopFn()
+        this.systemTypeFn()
+        this.heathFn()
+        this.guideFn()
+        this.policyFn()
+        this.coverageFn()
+        this.hostProcsFn()
+        this.contentFn()
+        this.publicNumFn()
+        setInterval(function() {
+          numInit()
+        },90000)
+      },
+      findCount:function() {
+
+      },
+      // 下线基础资源
+      baseInfo:function() {
+        var baseChart = echarts.init(document.getElementById('baseId'));
+        var charts = [
+          {name: "主机", num: hostDownSize},
+          {name: "服务接口", num: heatherrSize},
+          {name: "数据源", num: dbInfoDownSize},
+          {name: "PING", num: dceDownSize},
+          {name: "SNMP", num: snmpDownSize},
+        ]
+        var color = ['rgba(100,255,249', 'rgba(100,255,249', 'rgba(100,255,249', 'rgba(100,255,249', 'rgba(100,255,249']
+
+        let lineY = []
+        for (var i = 0; i < charts.length; i++) {
+          var x = i
+          if (x > color.length - 1) {
+            x = color.length - 1
+          }
+          var data = {
+            name: charts[i].name,
+            color: color[x] + ')',
+            value: charts[i].num,
+            itemStyle: {
+              normal: {
+                show: true,
+                color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
+                  offset: 0,
+                  color: color[x] + ', 0.3)'
+                }, {
+                  offset: 1,
+                  color: color[x] + ', 1)'
+                }], false),
+                barBorderRadius: 10
+              },
+              emphasis: {
+                shadowBlur: 15,
+                shadowColor: 'rgba(0, 0, 0, 0.1)'
+              }
+            }
+          }
+          lineY.push(data)
+        }
+        var option= {
+          title: {
+            show: false
+          },
+          grid: {
+            // borderWidth: 1,
+            top: '10%',
+            left: '30%',
+            right: '20%',
+            bottom: '3%'
+          },
+          color: color,
+          yAxis: [{
+            type: 'category',
+            inverse: true,
+            axisTick: {
+              show: false
+            },
+            axisLine: {
+              show: false
+            },
+            axisLabel: {
+              show: false,
+              inside: false
+            },
+            data: charts.name
+          }, {
+            type: 'category',
+            inverse: true,
+            axisLine: {
+              show: false
+            },
+            axisTick: {
+              show: false
+            },
+            axisLabel: {
+              show: true,
+              inside: false,
+              textStyle: {
+                color: '#38E1E1',
+                fontSize: '8',
+              },
+              formatter: function (val,index) {
+                return `${charts[index].num}`
+              }
+            },
+            splitArea: {
+              show: false
+            },
+            splitLine: {
+              show: false
+            },
+            data: charts
+          }],
+          xAxis: {
+            // type: 'value',
+            axisTick: {
+              show: false
+            },
+            axisLine: {
+              show: false
+            },
+            splitLine: {
+              show: false
+            },
+            axisLabel: {
+              show: false
+            }
+          },
+          series: [{
+            name: '',
+            type: 'bar',
+            zlevel: 2,
+            barWidth: '5px',
+            data: lineY,
+            animationDuration: 1500,
+            label: {
+              normal: {
+                color: 'white',
+                show: true,
+                position: [-65, -2],
+                textStyle: {
+                  fontSize: 8
+                },
+                formatter: function (a, b) {
+                  return a.name
+                }
+              }
+            }
+          }],
+          animationEasing: 'cubicOut'
+        }
+        baseChart.setOption(option)
+        setInterval(function() {
+          baseChart.clear()
+          baseChart.setOption(option)
+        },60000)
+      },
+      // 下线资源类型占比
+      hostDownFn:function() {
+        var numArr = [
+          {name: '进程', value: downAppSize},
+          {name: '端口', value: portDownSize},
+          {name: '文件防篡改', value: fileSafeDownSize},
+          {name: 'DOCKER容器', value: downDockerSize}
+        ]
+        var datas = numArr
+        var hostDownChart = echarts.init(document.getElementById('hostDownId'));
+        var option = {
+          title: {
+            left: 'center'
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b} : {c} ({d}%)'
+          },
+          color:['#2E8CFF', '#FD9133','#37D2D4','#19CA88','#858FF8'],
+          legend: {
+            itemWidth: 11,// 标志图形的长度
+            itemHeight: 11,// 标志图形的宽度
+            orient: 'vertical',
+            // left: 'right',
+            top: '15%',
+            x: '50%',
+            data: datas,
+            textStyle: { //图例文字的样式
+              color: '#fff',
+              fontSize: 8
+            },
+          },
+          series: [
+            {
+              name: '下线资源',
+              type: 'pie',
+              radius: '75%',
+              center: ['20%', '50%'],
+              animationDuration: 2500,
+              data: datas,
+              label: {
+                normal: {
+                  position: 'inner',
+                  show : false
+                }
+              }
+            }
+          ]
+        };
+        hostDownChart.setOption(option)
+        setInterval(function() {
+          hostDownChart.clear()
+          hostDownChart.setOption(option)
+        },60000)
+      },
+      // 主机告警次数最高占比TOP6
+      hostWarnTopFn:function() {
+        var dataArr = topDownHostData;
+        // for(var i = 0; i < res.list.length; i++) {
+        //     dataArr.push({name: res.list[i].name, value: res.list[i].num})
+        // }
+
+        var publicitChart = echarts.init(document.getElementById('hostWarnTopId'));
+        var data = dataArr
+        var option = {
+          color: ['#0EFCFF', '#4D92F2' , '#F7E16C', '#38EB70', '#FD9133'],
+          tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b} : {c} ({d}%)'
+          },
+          legend: {
+            itemWidth: 12,// 标志图形的长度
+            itemHeight: 12,// 标志图形的宽度
+            orient: 'vertical',
+            // left: 'right',
+            top: '5%',
+            bottom: '50%',
+            x: '45%',
+            textStyle: {
+              color: '#fff',
+              fontSize: 8,
+
+            },
+            data: data,
+          },
+          series: [
+            // 主要展示层的
+            {
+              radius: ['70%', '90%'],
+              center: ['25%', '50%'],
+              type: 'pie',
+              label: {
+                normal: {
+                  position: 'inner',
+                  show : false
+                }
+              },
+              name: "系统日志统计占比数量",
+              data: data,
+            },
+            // 边框的设置
+            {
+              radius: ['50%', '55%'],
+              center: ['25%', '50%'],
+              type: 'pie',
+              label: {
+                normal: {
+                  show: false
+                },
+                emphasis: {
+                  show: false
+                }
+              },
+              labelLine: {
+                normal: {
+                  show: false
+                },
+                emphasis: {
+                  show: false
+                }
+              },
+              animation: false,
+              tooltip: {
+                show: false
+              },
+              data: [{
+                value: 1,
+                itemStyle: {
+                  color: "rgba(250,250,250,0.3)",
+                },
+              }],
+            }
+          ]
+        };
+        publicitChart.setOption(option)
+        setInterval(function() {
+          publicitChart.clear()
+          publicitChart.setOption(option)
+        },60000)
+      },
+      // 系统类型数量
+      systemTypeFn:function() {
+        let names = resourceAllSize+"";
+        if(6 - names.length > 0) {
+          for(g = 0; g < 6 - names.length; g++) {
+            $(".main_top_middle_num_list"+(6 - g)).text('0')
+          }
+        }
+        for(var j = 0; j < names.length; j++) {
+          $(".main_top_middle_num_list"+(names.length - j)).text(names.substr(j,1))
+        }
+        var dataArr = [
+          {name: 'windows', value: windowsSize},
+          {name: 'centos', value: centosSize},
+          {name: 'redhat', value: redhatSize},
+          {name: 'ubuntu', value: ubuntuSize},
+          {name: 'debian', value: debianSize},
+          {name: '其他Linux', value: othersSize},
+        ]
+        var systemTypeChart = echarts.init(document.getElementById('systemTypeId'));
+        var data = dataArr
+        var option = {
+          color: ['#38EB70', '#2E8CFF', '#0EFCFF', '#858FF8', '#FD9133','#F7E270'],
+          tooltip : {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c} ({d}%)"
+          },
+          legend: {
+            itemWidth: 15,// 标志图形的长度
+            itemHeight: 15,// 标志图形的宽度
+            orient: 'vertical',
+            // left: 'right',
+            top: '10%',
+            bottom: '50%',
+            x: '50%',
+            textStyle: {
+              color: '#fff',
+              fontSize: 8,
+
+            },
+            data: data
+          },
+          series :
+                  {
+                    name:'系统类型数量',
+                    type:'pie',
+                    animationDuration: 1500,
+                    radius: ['70%', '90%'],
+                    center: ['25%', '50%'],
+                    roseType : 'radius',
+                    label: {
+                      normal: {
+                        position: 'inner',
+                        show : false
+                      }
+                    },
+                    data:data
+                  }
+        };
+        systemTypeChart.setOption(option)
+        setInterval(function() {
+          systemTypeChart.clear()
+          systemTypeChart.setOption(option)
+        },60000)
+      },
+      heathFn:function() {
+        var dataArr = [
+          {name: '内存总和', value: memSum},
+          {name: 'CPU核数总和', value: cpuCoresSum},
+          {name: '存储容量总和', value: sumDiskSizeCache},
+          {name: '最近10分钟告警', value: warnCount},
+          {name: '运行时间总和', value: uptimeSumDays},
+        ]
+        // 中间滚动数据展示
+        for(var j = 0; j < dataArr.length; j++) {
+          if(j==0 || j==2 || j==4){
+            $(".main_list_title_num"+(j+1)).text(dataArr[j].value)
+            $(".main_list_title"+(j+1)).text(dataArr[j].name)
+          }else{
+            $(".main_list_title_num"+(j+1)).addClass("counter-value").text(dataArr[j].value)
+            $(".main_list_title"+(j+1)).text(dataArr[j].name)
+          }
+        }
+        var heathChart = echarts.init(document.getElementById('heathId'));
+        var dataHeathArr = heathMonitorTop5List;
+        var data = dataHeathArr;
+        var option = {
+          color: ['#FD9133', '#47F6A2', '#37D2D4', '#3493FF', '#858FF8'],
+          tooltip : {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c} ({d}%)"
+          },
+          legend: {
+            itemWidth: 15,// 标志图形的长度
+            itemHeight: 15,// 标志图形的宽度
+            orient: 'vertical',
+            // left: 'right',
+            top: '30%',
+            bottom: '50%',
+            x: '5%',
+            textStyle: {
+              color: '#fff',
+              fontSize: 8,
+
+            },
+            data: data,
+          },
+          series: [
+            {
+              name: '响应时间ms',
+              type: 'pie',
+              radius: ['50%', '70%'],
+              center: ['78%', '52%'],
+              labelLine: {
+                normal: {
+                  length: 12,
+                  lineStyle: {
+                    type: 'solid',
+                    color: '#0EFCFF'
+                  }
+                }
+
+              },
+              label: {
+                normal: {
+                  formatter: (params)=>{
+                    return params.name
+                  },
+                  borderWidth: 0,
+                  borderRadius: 4,
+                  padding: [0,0],
+                  height: 20,
+                  fontSize: 8,
+                  align: 'center',
+                  color: '#0EFCFF',
+                }
+              },
+              data: data
+            },
+            {
+              color: '#0EFCFF',
+              type: 'pie',
+              radius: ['55', '56'],
+              center: ['78%', '52%'],
+              data: [100],
+              label: {
+                show: false
+              }
+            },
+            {
+              type: 'pie',
+              radius: ['25', '26'],
+              center: ['78%', '52%'],
+              data: [100],
+              label: {
+                show: false
+              }
+            }
+          ]
+        };
+        heathChart.setOption(option)
+        setInterval(function() {
+          heathChart.clear()
+          heathChart.setOption(option)
+        },60000)
+      },
+      guideFn:function() {
+        $(".main_bottom_t_l_main").jCarouselLite({
+          vertical: true,
+          hoverPause:true,
+          visible: 4,
+          auto: 1000,
+          speed: 1000
+        });
+      },
+      // 最新资源恢复信息
+      policyFn:function() {
+        $(".main_bottom_t_l_main2").jCarouselLite({
+          vertical: true,
+          hoverPause:true,
+          visible: 4,
+          auto: 1000,
+          speed: 1000
+        });
+      },
+      // 蜘蛛网图
+      coverageFn:function() {
+        var resArr = [
+          {name: '监控主机', value: totalSystemInfoSize},
+          {name: '监控进程', value: totalSizeApp},
+          {name: '监控端口', value: portSize},
+          {name: '监控日志', value: fileWarnSize},
+          {name: '监控DOCKER', value: dockerSize},
+          {name: '自定义监控项', value: customInfoSize},
+          {name: '文件防篡改', value: fileSafeSize},
+        ]
+        var indicatorArr = []
+        var numArr = []
+        for(var i = 0; i < resArr.length; i++) {
+          indicatorArr.push({name: resArr[i].name,max: hostPowerMaxSize})
+          numArr.push(resArr[i].value)
+        }
+        var data = [
+          {
+            value: numArr,
+          }
+        ]
+        var coverageChart = echarts.init(document.getElementById('coverageId'));
+        var option = {
+          legend: {
+            show: true,
+            icon: "circle",
+            bottom: 30,
+            center: 0,
+            itemWidth: 14,
+            itemHeight: 14,
+            itemGap: 21,
+            orient: "horizontal",
+            data: ['a', 'b'],
+            textStyle: {
+              fontSize: '70%',
+              color: '#0EFCFF'
+            },
+          },
+
+          radar: {
+            // shape: 'circle',
+            radius: '70%',
+            triggerEvent: true,
+            // type: 'default',
+            name: {
+              textStyle: {
+                color: '#39DCF4',
+                fontSize: '10',
+                // borderRadius: 3,
+                padding: [10, 10]
+              }
+            },
+            nameGap: '2',
+            indicator: indicatorArr,
+            splitArea: {
+              areaStyle: {
+                color: 'rgba(255,255,255,0)'
+              }
+            },
+            axisLine: { //指向外圈文本的分隔线样式
+              lineStyle: {
+                color: 'rgba(255,255,255,.2)'
+              }
+            },
+            splitLine: {
+              lineStyle: {
+                width: 1,
+                color: 'rgba(255,255,255,.2)'
+              }
+            },
+
+          },
+          series: [{
+            name: '告警统计信息占比',
+            type: 'radar',
+            animationDuration: 2000,
+            areaStyle: {
+              normal: {
+                color: {
+                  type: 'linear',
+                  opacity: 1,
+                  x: 0,
+                  y: 0,
+                  x2: 0,
+                  y2: 1,
+                  color: '#2EEFAD'
+                }
+              }
+            },
+            symbolSize: 0,
+            lineStyle: {
+              normal: {
+                // color: 'rgba(252,211,3, 1)',
+                width: 0
+              }
+            },
+            data: data
+          }]
+        };
+        coverageChart.setOption(option)
+        setInterval(function() {
+          coverageChart.clear()
+          coverageChart.setOption(option)
+        },60000)
+      },
+      // 最新上报主机的cpu%，内存%，磁盘%
+      hostProcsFn:function() {
+        var nameArr = hostNameTop6List;
+        var memsArr = hostMemTop6List;
+        var cpusArr = hostCpuTop6List;
+        var disksArr = hostDiskPerTop6List;
+        var hostProcsChart = echarts.init(document.getElementById('hostProcsId'));
+        var spNum = 3,_max=maxSystemValue;
+        var y_data = nameArr;
+                _data1 = memsArr,
+                _data2 = cpusArr,
+                _data3 = disksArr;
+        var fomatter_fn = function(v) {
+          return v.value
+        }
+        var _label = {
+          normal: {
+            show: true,
+            position: 'inside',
+            formatter: fomatter_fn,
+            textStyle: {
+              color: '#fff',
+              fontSize: 8
+            }
+          }
+        };
+        var option = {
+          grid: {
+            containLabel: true,
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0
+          },
+          tooltip: {
+            show: true,
+            backgroundColor: '#fff',
+            borderColor: '#ddd',
+            borderWidth: 1,
+            textStyle: {
+              color: '#3c3c3c',
+              fontSize: 16
+            },
+            extraCssText: 'box-shadow: 0 0 5px rgba(0, 0, 0, 0.1)'
+          },
+          xAxis: {
+            splitNumber: spNum,
+            interval: _max / spNum,
+            max: _max,
+            axisLabel: {
+              show: false,
+              formatter: function(v) {
+                var _v = (v / _max * 100).toFixed(0);
+                return _v == 0 ? _v : _v + '%';
+              }
+            },
+            axisLine: {
+              show: false
+            },
+            axisTick: {
+              show: false
+            },
+            splitLine: {
+              show: false
+            }
+
+          },
+          yAxis: [{
+            data: y_data,
+            axisLabel: {
+              fontSize: 8,
+              color: 'rgba(255,255,255,.7)'
+
+            },
+            axisLine: {
+              show: false
+            },
+            axisTick: {
+              show: false
+            },
+            splitLine: {
+              show: false
+            }
+          }, {
+            show: false,
+            data: y_data,
+            axisLine: {
+              show: false
+            }
+          }],
+          series: [{
+            type: 'bar',
+            name: '内存%',
+            stack: '2',
+            label: _label,
+            legendHoverLink: false,
+            barWidth: 7,
+            itemStyle: {
+              normal: {
+                color: '#FD9133'
+              },
+              emphasis: {
+                color: '#FD9133'
+              }
+            },
+            data: _data1
+          }, {
+            type: 'bar',
+            name: 'cpu%',
+            stack: '2',
+            legendHoverLink: false,
+            barWidth: 20,
+            label: _label,
+            itemStyle: {
+              normal: {
+                color: '#2E8CFF'
+              },
+              emphasis: {
+                color: '#2E8CFF'
+              }
+            },
+            data: _data2
+          }, {
+            type: 'bar',
+            stack: '2',
+            name: '磁盘%',
+            legendHoverLink: false,
+            barWidth: 20,
+            label: _label,
+            itemStyle: {
+              normal: {
+                color: '#37D2D4'
+              },
+              emphasis: {
+                color: '#37D2D4'
+              }
+            },
+            data: _data3
+          }]
+        };
+        hostProcsChart.setOption(option)
+        setInterval(function() {
+          hostProcsChart.clear()
+          hostProcsChart.setOption(option)
+        },120000)
+      },
+      // 所有主机最近10分钟状态
+      contentFn:function() {
+        var nameArr = ['cpu%','内存%','磁盘%','负载(5分钟)','负载(15分钟)'];
+        var maxArr = [maxCpuInfo,maxMemInfo,maxDiskPer,maxFiveLoad,maxFifteenLoad];
+        var avgArr = [avgCpuInfo,avgMemInfo,avgDiskPer,avgFiveLoad,avgFifteenLoad];
+        var minArr = [minCpuInfo,minMemInfo,minDiskPer,minFiveLoad,minFifteenLoad];
+
+        var contentChart = echarts.init(document.getElementById('contentId'));
+        var option = {
+          tooltip: {
+            trigger: 'axis'
+          },
+          legend: {
+            x: '35%',
+            y: '0%',
+            data: ["最高","平均","最低"],
+            textStyle: {
+              color: "#fff",
+              fontSize: 8
+            },
+            itemWidth: 10,
+            itemHeight: 10,
+          },
+          calculable: true,
+          xAxis: [
+            {
+              type: 'category',
+              data: nameArr,
+              axisLabel: {
+                interval: 0,
+                textStyle: {
+                  fontSize: 8,
+                  color: 'rgba(255,255,255,.7)',
+                }
+              },
+              "axisTick": {       //y轴刻度线
+                "show": false
+              },
+              "axisLine": {       //y轴
+                "show": false,
+              },
+            }
+          ],
+          yAxis: [
+            {
+              type: 'value',
+              scale: true,
+              name: '单位：%',
+              nameTextStyle: {
+                color: 'rgba(255,255,255,.7)',
+                fontSize: 8
+              },
+              //max: 100,
+              min: 0,
+              boundaryGap: [0.2, 0.2],
+              "axisTick": {       //y轴刻度线
+                "show": false
+              },
+              "axisLine": {       //y轴
+                "show": false,
+              },
+              axisLabel: {
+                textStyle: {
+                  color: 'rgba(255,255,255,.8)',
+                  fontSize: 8
+                  // opacity: 0.1,
+                }
+              },
+              splitLine: {  //决定是否显示坐标中网格
+                show: true,
+                lineStyle: {
+                  color: ['#fff'],
+                  opacity: 0.2
+                }
+              },
+            },
+            {
+              type: 'value',
+              scale: true,
+              show: false,
+              // name: "销量额(万元)",
+              nameTextStyle: {
+                color: 'rgba(255,255,255,.2)',
+              },
+              max: 1,
+              min: 0,
+              boundaryGap: [0.2, 0.2],
+              "axisTick": {       //y轴刻度线
+                "show": false
+              },
+              "axisLine": {       //y轴
+                "show": false,
+              },
+              axisLabel: {
+                textStyle: {
+                  color: 'rgba(255,255,255,.2)',
+                  // opacity: 0.1,
+                }
+              },
+              splitLine: {  //决定是否显示坐标中网格
+                show: true,
+                lineStyle: {
+                  color: ['#fff'],
+                  opacity: 0.2
+                }
+              },
+
+            }
+          ],
+          color: ['#0EFCFF', '#FD9133','#2E8CFF'],
+          grid: {
+            left: '5%',
+            right: '1%',
+            top: '25%',
+            bottom: '15%'
+            // containLabel: true
+          },
+          series: [
+            {
+              barWidth: '10%',
+              name: '最高',
+              type: 'bar',
+              data: maxArr,
+            },
+            {
+              animationDuration: 2500,
+              barWidth: '20%',
+              name: '平均',
+              type: 'bar',
+              data: avgArr,
+            },
+            {
+              animationDuration: 2500,
+              barWidth: '20%',
+              name: '最低',
+              type: 'bar',
+              data: minArr,
+            }
+          ]
+        };
+        contentChart.setOption(option)
+        setInterval(function() {
+          contentChart.clear()
+          contentChart.setOption(option)
+        },90000)
+      },
+      // 主机最新top6 进程数量 连接数量
+      publicNumFn:function() {
+        var procsArr = hostProcsTop6List;
+        var netconnsArr = hostNetConnectionsTop6List;
+        var dateArr = hostNameTop6List;
+        var publicNumChart = echarts.init(document.getElementById('publicNumId'));
+        var option = {
+          tooltip: {
+            trigger: 'axis'
+          },
+          legend: {
+            x: '35%',
+            y: '0%',
+            data: ['进程数量', '连接数量'],
+            textStyle: {
+              color: "#fff",
+              fontSize: 8
+            },
+            itemWidth: 10,
+            itemHeight: 10,
+          },
+          calculable: true,
+          xAxis: [
+            {
+              type: 'category',
+              data: dateArr,
+              axisLabel: {
+                interval: 0,
+                textStyle: {
+                  fontSize: 8,
+                  color: 'rgba(255,255,255,.7)',
+                }
+              },
+              "axisTick": {       //y轴刻度线
+                "show": false
+              },
+              "axisLine": {       //y轴
+                "show": false,
+              },
+            }
+          ],
+          yAxis: [
+            {
+              type: 'value',
+              scale: true,
+              name: '单位：个',
+              nameTextStyle: {
+                color: 'rgba(255,255,255,.7)',
+                fontSize: 8
+              },
+              // max: 1000,
+              min: 0,
+              boundaryGap: [0.2, 0.2],
+              "axisTick": {       //y轴刻度线
+                "show": false
+              },
+              "axisLine": {       //y轴
+                "show": false,
+              },
+              axisLabel: {
+                textStyle: {
+                  color: 'rgba(255,255,255,.8)',
+                  fontSize: 8
+                  // opacity: 0.1,
+                }
+              },
+              splitLine: {  //决定是否显示坐标中网格
+                show: true,
+                lineStyle: {
+                  color: ['#fff'],
+                  opacity: 0.2
+                }
+              },
+            },
+            {
+              type: 'value',
+              scale: true,
+              show: false,
+              nameTextStyle: {
+                color: 'rgba(255,255,255,.2)',
+              },
+              max: 1,
+              min: 0,
+              boundaryGap: [0.2, 0.2],
+              "axisTick": {       //y轴刻度线
+                "show": false
+              },
+              "axisLine": {       //y轴
+                "show": false,
+              },
+              axisLabel: {
+                textStyle: {
+                  color: 'rgba(255,255,255,.2)',
+                  // opacity: 0.1,
+                }
+              },
+              splitLine: {  //决定是否显示坐标中网格
+                show: true,
+                lineStyle: {
+                  color: ['#fff'],
+                  opacity: 0.2
+                }
+              },
+
+            }
+          ],
+          color: ['#2E8CFF', '#38EB70'],
+          grid: {
+            left: '5%',
+            right: '1%',
+            top: '25%',
+            bottom: '15%'
+            // containLabel: true
+          },
+          series: [
+            {
+              animationDuration: 2500,
+              barWidth: '20%',
+              name: '进程数量',
+              type: 'bar',
+              data: procsArr,
+            },
+            {
+              barWidth: '20%',
+              name: '连接数量',
+              type: 'bar',
+              data: netconnsArr,
+            }
+          ],
+          animationEasing: 'cubicOut'
+        };
+        publicNumChart.setOption(option)
+        setInterval(function() {
+          publicNumChart.clear()
+          publicNumChart.setOption(option)
+        },90000)
+      }
+
+    }
+    var start = new apiFn()
+    start.Init()
+  })
+</script>
+
+
+</body>
+</html>

@@ -8,15 +8,14 @@
 		<result column="TXPCK" property="txpck" jdbcType="CHAR" />
 		<result column="RXBYT" property="rxbyt" jdbcType="CHAR" />
 		<result column="TXBYT" property="txbyt" jdbcType="CHAR" />
-		<result column="RXCMP" property="rxcmp" jdbcType="CHAR" />
-		<result column="TXCMP" property="txcmp" jdbcType="CHAR" />
-		<result column="RXMCST" property="rxmcst" jdbcType="CHAR" />
-		<result column="DATE_STR" property="dateStr" jdbcType="CHAR" />
+		<result column="DROPIN" property="dropin" jdbcType="CHAR" />
+		<result column="DROPOUT" property="dropout" jdbcType="CHAR" />
+		<result column="NET_CONNECTIONS" property="netConnections" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,HOST_NAME, RXPCK,TXPCK,RXBYT, TXBYT, RXCMP, TXCMP, RXMCST,DATE_STR,CREATE_TIME
+		ID,HOST_NAME, RXPCK,TXPCK,RXBYT, TXBYT, DROPIN, DROPOUT,NET_CONNECTIONS, CREATE_TIME
 	</sql>
 	
 	<sql id="queryByParams">
@@ -24,7 +23,15 @@
 			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
 		</if>
 		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-			<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			<if test="_databaseId == 'mysql'">
+				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			</if>
+			<if test="_databaseId == 'postgresql'">
+				<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+			</if>
+			<if test="_databaseId == 'oracle'">
+				<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+			</if>
 		</if>
 	</sql>
 	
@@ -34,10 +41,97 @@
 		FROM NETIO_STATE
 		WHERE ID=#{id} 
 	</select>
-	
+
+	<select id="selectMaxByHostname" resultType="com.wgcloud.entity.NetIoState" parameterType="map">
+		SELECT
+		<choose>
+			<when test="_databaseId == 'mysql'">
+				MAX(RXBYT + 0) as rxbyt,MAX(TXBYT + 0) as txbyt,MAX(TXPCK + 0) as txpck,MAX(RXPCK + 0) as rxpck
+			</when>
+			<otherwise>
+				MAX(RXBYT) as rxbyt,MAX(TXBYT) as txbyt,MAX(TXPCK) as txpck,MAX(RXPCK) as rxpck
+			</otherwise>
+		</choose>
+		FROM NETIO_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+	<select id="selectAvgByHostname" resultType="com.wgcloud.entity.NetIoState" parameterType="map">
+		SELECT
+		<choose>
+			<when test="_databaseId == 'mysql'">
+				AVG(RXBYT + 0) as rxbyt,AVG(TXBYT + 0) as txbyt,AVG(TXPCK + 0) as txpck,AVG(RXPCK + 0) as rxpck
+			</when>
+			<otherwise>
+				AVG(to_number(RXBYT,'9999999999999.999')) as rxbyt,AVG(to_number(TXBYT,'9999999999999.999')) as txbyt,AVG(to_number(TXPCK,'9999999999999.999')) as txpck,AVG(to_number(RXPCK,'9999999999999.999')) as rxpck
+			</otherwise>
+		</choose>
+		FROM NETIO_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+	<select id="selectMinByHostname" resultType="com.wgcloud.entity.NetIoState" parameterType="map">
+		SELECT
+		<choose>
+			<when test="_databaseId == 'mysql'">
+				MIN(RXBYT + 0) as rxbyt,MIN(TXBYT + 0) as txbyt,MIN(TXPCK + 0) as txpck,MIN(RXPCK + 0) as rxpck
+			</when>
+			<otherwise>
+				MIN(RXBYT) as rxbyt,MIN(TXBYT) as txbyt,MIN(TXPCK) as txpck,MIN(RXPCK) as rxpck
+			</otherwise>
+		</choose>
+		FROM NETIO_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+	<select id="selectMaxByDate" resultType="com.wgcloud.entity.NetIoState" parameterType="map">
+		SELECT
+		<choose>
+			<when test="_databaseId == 'mysql'">
+				MAX(RXBYT * 1) as rxbyt,MAX(TXBYT * 1) as txbyt,MAX(NET_CONNECTIONS * 1) as netConnections
+			</when>
+			<otherwise>
+				MAX(RXBYT) as rxbyt,MAX(TXBYT) as txbyt,MAX(NET_CONNECTIONS) as netConnections
+			</otherwise>
+		</choose>
+		FROM NETIO_STATE
+		<where>
+			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+				<if test="_databaseId == 'mysql'">
+					<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+				</if>
+				<if test="_databaseId == 'postgresql'">
+					<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+				</if>
+				<if test="_databaseId == 'oracle'">
+					<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+				</if>
+			</if>
+			<if test="account != null">
+				<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+			</if>
+		</where>
+	</select>
+
+
 	
 	<delete id="deleteByAccountAndDate"  parameterType="map">
-		DELETE FROM NETIO_STATE WHERE    <![CDATA[  CREATE_TIME <=#{endTime}]]>
+		DELETE FROM NETIO_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
 	</delete>
 	
 	
@@ -64,10 +158,9 @@
       		<if test="rxpck != null">RXPCK,</if>
       		<if test="rxbyt != null">RXBYT,</if>
       		<if test="txbyt != null" >TXBYT,</if>
-      		<if test="rxcmp != null" >RXCMP,</if>
-      		<if test="txcmp != null" >TXCMP,</if>
-      		<if test="rxmcst != null" >RXMCST,</if>
-      		<if test="dateStr != null" >DATE_STR,</if>
+      		<if test="dropin != null" >DROPIN,</if>
+      		<if test="dropout != null" >DROPOUT,</if>
+			<if test="netConnections != null" >NET_CONNECTIONS,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -77,22 +170,39 @@
       		<if test="rxpck != null" >#{rxpck},</if>
       		<if test="rxbyt != null" >#{rxbyt},</if>
       		<if test="txbyt != null" >#{txbyt},</if>
-      		<if test="rxcmp != null" >#{rxcmp},</if>
-      		<if test="txcmp != null" >#{txcmp},</if>
-      		<if test="rxmcst != null" >#{rxmcst},</if>
-      		<if test="dateStr != null" >#{dateStr},</if>
+      		<if test="dropin != null" >#{dropin},</if>
+      		<if test="dropout != null" >#{dropout},</if>
+			<if test="netConnections != null" >#{netConnections},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
 	
 	<insert id="insertList" parameterType="java.util.List" >
-	      INSERT INTO NETIO_STATE (ID,HOST_NAME,TXPCK,RXPCK,RXBYT,TXBYT,RXCMP,TXCMP,RXMCST,DATE_STR,CREATE_TIME)  VALUES
-	      <foreach collection="list" item="item" index="index" separator="," >  
-	        (#{item.id},#{item.hostname},#{item.txpck},#{item.rxpck},#{item.rxbyt},#{item.txbyt},
-	        #{item.rxcmp},#{item.txcmp},#{item.rxmcst},#{item.dateStr},#{item.createTime})  
-	      </foreach>
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO NETIO_STATE (ID,HOST_NAME,TXPCK,RXPCK,RXBYT,TXBYT,DROPIN,DROPOUT,NET_CONNECTIONS,CREATE_TIME)  VALUES
+					(#{item.id},#{item.hostname},#{item.txpck},#{item.rxpck},#{item.rxbyt},#{item.txbyt},
+					#{item.dropin},#{item.dropout},#{item.netConnections},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO NETIO_STATE (ID,HOST_NAME,TXPCK,RXPCK,RXBYT,TXBYT,DROPIN,DROPOUT,NET_CONNECTIONS,CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.txpck},#{item.rxpck},#{item.rxbyt},#{item.txbyt},
+					#{item.dropin},#{item.dropout},#{item.netConnections},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
 	 </insert>
-	
+
+	<select id="selectTop3" parameterType="map" resultMap="resultMap">
+		SELECT
+		<include refid="tableColumnList" />
+		FROM NETIO_STATE t ORDER BY TXBYT DESC,RXBYT DESC
+	</select>
 	
 	  <select id="selectAllByParams" parameterType="map" resultMap="resultMap">
 		SELECT
@@ -103,7 +213,18 @@
 		</where>
 		 ORDER BY CREATE_TIME ASC
 	</select>
-	
+
+	<sql id="mysqlOrderBySql">
+		<choose>
+			<when test="_databaseId == 'mysql' and (orderBy == 'TXBYT' || orderBy == 'RXBYT' || orderBy == 'NET_CONNECTIONS')">
+				<![CDATA[ ORDER BY ${orderBy} * 1 ${orderType}]]>
+			</when>
+			<otherwise>
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</otherwise>
+		</choose>
+	</sql>
+
 	<select id="selectByParams" parameterType="map" resultMap="resultMap">
 		SELECT
 		<include refid="tableColumnList" />
@@ -111,7 +232,14 @@
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		 ORDER BY CREATE_TIME DESC
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<include refid="mysqlOrderBySql" />
+			</when>
+			<otherwise>
+				ORDER BY CREATE_TIME DESC
+			</otherwise>
+		</choose>
 	</select>
 	
 	

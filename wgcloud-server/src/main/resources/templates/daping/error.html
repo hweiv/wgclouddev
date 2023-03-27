@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title th:text="${application.wgName}+'大屏展示'">WGClOUD监控系统</title>
+  <base href="./" th:href="'/'"/>
+  <meta charset="utf-8">
+  <link rel="shortcut icon" type="image/x-icon" th:href="${application.icoUrl}"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Font Awesome -->
+  <div  th:replace="common/header.html"></div>
+
+</head>
+<body>
+<h6>&nbsp;</h6>
+<h6 class="mb-2" style="margin-left:20px">此功能需要先升级到专业版，才可以使用，点击联系我们升级，<a href="http://www.wgstart.com">www.wgstart.com</a></h6>
+<h6>&nbsp;</h6>
+<div class="row">
+  <div class="col-md-6">
+    <!-- Box Comment -->
+    <div class="card card-widget">
+      <div class="card-body">
+          <img class="img-fluid pad" src="/wgcloud/static/images/daping.jpg" title="WGCLOUD - 大屏可视化原版">
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <!-- Box Comment -->
+    <div class="card card-widget">
+      <div class="card-body">
+          <img class="img-fluid pad" src="/wgcloud/static/images/dapingNew.jpg" title="WGCLOUD - 大屏可视化新版">
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

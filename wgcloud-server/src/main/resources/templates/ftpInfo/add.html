@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper"  style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active"></li>
+                </ol>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-10">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">添加监测信息（FTP或SFTP）</h3>
+          <div class=" float-sm-right">
+              <a href="javascript:history.back()">返回</a>
+          </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+        <form role="form" id="form1" th:action="@{'/ftpInfo/save'}"  onsubmit="onSubmit()">
+            <input type="hidden" name="id" th:value="${ftpInfo.id}"/>
+            <div class="card-body">
+                <div class="form-group">
+                    <label><font color="red">*</font>名称<span class="text-muted">（FTP/SFTP名称）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${ftpInfo.ftpName}" class="validate[required,maxSize[50]] form-control" name="ftpName" id="ftpName" placeholder="如CA服务器">
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>IP<span class="text-muted">（FTP/SFTP服务器IP）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${ftpInfo.ftpHost}" class="validate[required,maxSize[50]] form-control" name="ftpHost" id="ftpHost" placeholder="输入IP，如：192.168.1.2">
+                </div>
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>FTP/SFTP类型</label></br>
+                    <th:block th:if="${#strings.isEmpty(ftpInfo.ftpType)}" >
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary5" onclick="setFtpPort()" name="ftpType" value="FTP">
+                            <label for="radioPrimary5"> FTP </label>
+                        </div>
+                        <div class="icheck-danger d-inline" style="margin-left:10px;">
+                            <input type="radio" id="radioPrimary6" onclick="setSFtpPort()" value="SFTP" name="ftpType" checked>
+                            <label for="radioPrimary6"> SFTP </label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${ftpInfo.ftpType  == 'FTP'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary5" onclick="setFtpPort()" name="ftpType" value="FTP" checked>
+                            <label for="radioPrimary5"> FTP </label>
+                        </div>
+                        <div class="icheck-danger d-inline" style="margin-left:10px;">
+                            <input type="radio" id="radioPrimary6" onclick="setSFtpPort()" value="SFTP" name="ftpType" >
+                            <label for="radioPrimary6"> SFTP </label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${ftpInfo.ftpType  == 'SFTP'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary5" onclick="setFtpPort()" name="ftpType" value="FTP">
+                            <label for="radioPrimary5"> FTP </label>
+                        </div>
+                        <div class="icheck-danger d-inline" style="margin-left:10px;">
+                            <input type="radio" id="radioPrimary6" onclick="setSFtpPort()" value="SFTP" name="ftpType" checked>
+                            <label for="radioPrimary6"> SFTP </label>
+                        </div>
+                    </th:block>
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>端口<span class="text-muted">（FTP/SFTP端口）</span></label>
+                    <input type="text" autocomplete="off"  th:value="${ftpInfo.port}" class="validate[required,maxSize[50]] form-control" name="port" id="port" placeholder="输入FTP端口，如：22">
+                </div>
+                <div class="form-group">
+                    <label>用户名<span class="text-muted">（FTP/SFTP用户名）</span></label>
+                    <input type="text"  th:value="${ftpInfo.userName}" autocomplete="off" class="validate[maxSize[40]] form-control" name="userName" id="userName" placeholder="输入FTP/SFTP用户名">
+                </div>
+                <div class="form-group">
+                    <label>密码 <span data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="显示密码" onclick="javascript:showPasswd();" style="cursor:pointer;margin-left: 5px"><i id="eyeSwitch" class="fa fa-eye"></i></span></label>
+                    <input type="password"  th:value="${ftpInfo.passwd}" class="validate[maxSize[50]] form-control" name="passwd" id="passwd" placeholder="输入FTP/SFTP密码">
+                </div>
+
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>监控状态</label></br>
+                    <th:block th:if="${#strings.isEmpty(ftpInfo.active)}" >
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${ftpInfo.active  == '1'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${ftpInfo.active  == '2'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" value="1"  name="active" >
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2"  name="active" checked>
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+            <!-- /.card-body -->
+
+            <div class="card-footer">
+                <button type="button" onclick="test()" class="btn btn-primary btn-sm">连接测试</button>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
+            </div>
+
+        </form>
+      <!-- /.card-body -->
+    </div>
+    <!-- /.card -->
+
+
+  </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+
+<script th:src="@{'/static/js/ftpInfo.js?v=3.4.1'}"></script>
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#form1").validationEngine();
+    });
+    function showPasswd(){
+        var type = $("#passwd").attr("type");
+        if(type=='text'){
+            $("#eyeSwitch").attr("class","fa fa-eye");
+            $("#passwd").attr("type","password");
+        }else{
+            $("#eyeSwitch").attr("class","fa fa-eye-slash");
+            $("#passwd").attr("type","text");
+        }
+
+    }
+
+    function onSubmit() {
+        $("#form1").attr("action","/wgcloud/ftpInfo/save");
+        return true;
+    }
+
+    function test(){
+        $("#form1").attr("action","/wgcloud/ftpInfo/test");
+        $("#form1").ajaxSubmit(function(message) {
+            var msg = JSON.parse(message);
+            if(msg.code!=""){
+                if(msg.msg!='' && msg.code=="0"){
+                    toastr.success(msg.msg);
+                }
+                if(msg.msg!='' &&  msg.code=="1"){
+                    toastr.error(msg.msg);
+                }
+            }
+        });
+    }
+
+    function setFtpPort(){
+        $("#port").val("21");
+    }
+    function setSFtpPort(){
+        $("#port").val("22");
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item active"></li>
+                </ol>
+            </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-10">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">添加进程监控</h3>
+          <div class=" float-sm-right">
+              <a href="javascript:history.back()">返回</a>
+          </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+        <form role="form" id="form1" th:action="@{'/appInfo/saveBatch'}">
+            <input type="hidden" name="id" th:value="${appInfo.id}"/>
+            <div class="card-body">
+                <div class="form-group">
+                    <label><font color="red">*</font>监控主机</label>
+                    <div th:replace="common/multiSelectHost.html"></div>
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>获取进程方法</label>
+                    <select class="validate[required] form-control" onchange="jinchengfangfa()"  name="appType" id="appType">
+                        <option value="">请选择</option>
+                        <option value="1">进程ID号</option>
+                        <option value="2">PID文件路径</option>
+                        <option value="3">进程启动指令的关键字</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font><span id="jinchengfangfa">进程ID号</span></label>
+                    <input type="text" autocomplete="off"  th:value="${appInfo.appPid}" class="validate[required,maxSize[200]] form-control" name="appPid" id="appPid" placeholder="输入进程ID号如9639">
+                </div>
+                <div class="form-group">
+                    <label><font color="red">*</font>进程名称</label>
+                    <input type="text" autocomplete="off"  th:value="${appInfo.appName}" class="validate[required,maxSize[200]] form-control" name="appName" id="appName" placeholder="如ERP系统">
+                </div>
+                <div id="dataFormList" class="form-group clearfix"></div>
+                <th:block th:if="${#strings.isEmpty(appInfo.id)}" >
+                    <div class="form-group row">
+                        <div class="col-12"><button  type="button" onclick="addDataForm()" class="btn btn-primary btn-sm float-right"><i class="fa fa-plus-circle"></i> 添加一行</button>&nbsp;</div>
+                    </div>
+                    <input type="hidden" name="dataFromIndex"  id="dataFromIndex"/>
+                </th:block>
+                <div class="form-group clearfix">
+                    <label><font color="red">*</font>监控状态</label></br>
+                    <th:block th:if="${#strings.isEmpty(appInfo.active)}" >
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" value="2" name="active" >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${appInfo.active  == '1'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active"  value="1" checked>
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" name="active" value="2"  >
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${appInfo.active  == '2'}">
+                        <div class="icheck-primary d-inline">
+                            <input type="radio" id="radioPrimary1" name="active"  value="1">
+                            <label for="radioPrimary1"> 启用监控 </label>
+                        </div>
+                        <div class="icheck-danger d-inline">
+                            <input type="radio" id="radioPrimary3" name="active" value="2"  checked>
+                            <label for="radioPrimary3">停止监控</label>
+                        </div>
+                    </th:block>
+                </div>
+
+            </div>
+            <!-- /.card-body -->
+
+            <div class="card-footer">
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-right:10px;">保 存</button>
+                <button type="button"  th:onclick="goback()"  class="btn bg-gradient-danger btn-sm">返 回</button>
+            </div>
+
+        </form>
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-10 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<!-- 动态添加一行数据 -->
+<div  id="dataHideContent" style="display: none">
+    <div id="dataFrom_{num}" class="card card-primary card-outline">
+        <div class="card-body">
+            <div class="form-group">
+                <label><font color="red">*</font><span>进程ID号</span></label>
+                <input type="text" autocomplete="off" class="validate[required,maxSize[200]] form-control" name="appPid_{num}" id="appPid_{num}" placeholder="输入进程ID号如9639">
+            </div>
+            <div class="form-group">
+                <label><font color="red">*</font>进程名称</label>
+                <input type="text" autocomplete="off"  class="validate[required,maxSize[200]] form-control" name="appName_{num}" id="appName_{num}" placeholder="如ERP系统">
+            </div>
+            <div class="form-group">
+                <div class="col-12"><button type="button" onclick="removeDiv('dataFrom_{num}')" class="btn bg-gradient-danger btn-sm float-right"><i class="far fa-trash-alt"></i> 删除</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{'/static/js/app.js?v=3.3.8'}"></script>
+<script th:inline="javascript">
+    $(document).ready(function(){
+        $("#form1").validationEngine();
+        $('.duallistbox').bootstrapDualListbox({
+            nonSelectedListLabel: '未选监控主机',
+            selectedListLabel: '已选监控主机',
+            filterPlaceHolder: '过滤条件',
+            moveAllLabel: '添加全部',
+            removeAllLabel: '移除全部',
+            infoText: '当前列表共 {0} 项',
+            infoTextEmpty: '列表为空',
+        });
+        $("#hostname").val([[${appInfo.hostname}]]).select2();
+        $("#appType").val([[${appInfo.appType}]]);
+        jinchengfangfaHuixian();
+    });
+
+    function jinchengfangfaHuixian() {
+        var fangfa = $("#appType").val();
+        if(fangfa=='1'){
+            $("#jinchengfangfa").html("进程ID号");
+        }
+        if(fangfa=='2'){
+            $("#jinchengfangfa").html("PID文件路径");
+        }
+        if(fangfa=='3'){
+            $("#jinchengfangfa").html("进程启动指令的关键字");
+        }
+    }
+
+
+    function jinchengfangfa() {
+        var fangfa = $("#appType").val();
+        if(fangfa=='1'){
+            $("#jinchengfangfa").html("进程ID号");
+            $("#appPid").attr("placeholder","输入进程ID号如9639");
+        }
+        if(fangfa=='2'){
+            $("#jinchengfangfa").html("PID文件路径");
+            $("#appPid").attr("placeholder","如：/usr/local/nginx.pid");
+        }
+        if(fangfa=='3'){
+            $("#jinchengfangfa").html("进程启动指令的关键字");
+            $("#appPid").attr("placeholder","linux或windows的进程启动指令COMMAND里的关键字符，请保证关键字符能唯一对应进程，如：wgcloud-server-release.jar");
+        }
+        appType = fangfa;
+    }
+
+</script>
+</body>
+</html>

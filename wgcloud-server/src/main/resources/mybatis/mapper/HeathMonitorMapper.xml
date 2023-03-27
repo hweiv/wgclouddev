@@ -6,19 +6,49 @@
 		<result column="APP_NAME" property="appName" jdbcType="CHAR" />
 		<result column="HEATH_URL" property="heathUrl" jdbcType="CHAR" />
 		<result column="HEATH_STATUS" property="heathStatus" jdbcType="CHAR" />
+		<result column="RES_TIMES" property="resTimes" jdbcType="INTEGER" />
+		<result column="ACTIVE" property="active" jdbcType="CHAR" />
+		<result column="RES_KEYWORD" property="resKeyword" jdbcType="CHAR" />
+		<result column="RES_NO_KEYWORD" property="resNoKeyword" jdbcType="CHAR" />
+		<result column="METHOD" property="method" jdbcType="CHAR" />
+		<result column="POST_STR" property="postStr" jdbcType="CHAR" />
+		<result column="HEADER_JSON" property="headerJson" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="ACCOUNT" property="account" jdbcType="CHAR" />
+		<result column="RESPONSE_BODY_SIZE" property="responseBodySize" jdbcType="CHAR" />
+		<result column="FORM_JSON" property="formJson" jdbcType="CHAR" />
+		<result column="ERROR_MSG" property="errorMsg" jdbcType="CHAR" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,APP_NAME, HEATH_URL,HEATH_STATUS,CREATE_TIME
+		ID,APP_NAME, HEATH_URL,HEATH_STATUS,CREATE_TIME,RES_TIMES,ACTIVE,RES_KEYWORD,RES_NO_KEYWORD,METHOD,POST_STR,HEADER_JSON,ACCOUNT,RESPONSE_BODY_SIZE,FORM_JSON,ERROR_MSG
 	</sql>
 
 	<sql id="queryByParams">
+		<if test="appName != null">
+			<choose>
+				<when test="_databaseId == 'oracle'">
+					<![CDATA[ AND APP_NAME LIKE  CONCAT(CONCAT('%',#{appName}),'%') ]]>
+				</when>
+				<otherwise>
+					<![CDATA[ AND APP_NAME LIKE  CONCAT('%',#{appName},'%') ]]>
+				</otherwise>
+			</choose>
+		</if>
 		<if test="heathStatus != null">
 			<![CDATA[ AND HEATH_STATUS = #{heathStatus} ]]>
 		</if>
-		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-			<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+		<if test="active != null">
+			<![CDATA[ AND ACTIVE = #{active} ]]>
+		</if>
+		<if test="account != null">
+			<![CDATA[ AND ACCOUNT = #{account} ]]>
+		</if>
+		<if test="heathNames != null">
+			<![CDATA[ AND APP_NAME IN ]]>
+			<foreach item="item" index="index" collection="heathNames" open="(" separator="," close=")">
+				#{item}
+			</foreach>
 		</if>
 	</sql>
 
@@ -35,10 +65,16 @@
 		WHERE ID = #{id}
 	</delete>
 
-	<delete id="deleteByDate"  parameterType="map">
-		DELETE FROM HEATH_MONITOR WHERE   <![CDATA[  CREATE_TIME <=#{endTime}]]>
-	</delete>
+	<update id="updateToTargetAccount"  parameterType="map">
+		UPDATE  HEATH_MONITOR SET ACCOUNT = #{accountTarget} WHERE ACCOUNT = #{account}
+	</update>
 
+	<update id="updateActive"  parameterType="map">
+		UPDATE  HEATH_MONITOR SET ACTIVE = #{active} WHERE ID IN
+		<foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</update>
 
 	<delete id="deleteById" parameterType="java.lang.String">
 		DELETE FROM
@@ -56,6 +92,17 @@
       		<if test="appName != null">APP_NAME,</if>
 			<if test="heathUrl != null">HEATH_URL,</if>
 			<if test="heathStatus != null">HEATH_STATUS,</if>
+			<if test="resTimes != null">RES_TIMES,</if>
+			<if test="active != null">ACTIVE,</if>
+			<if test="resKeyword != null">RES_KEYWORD,</if>
+			<if test="resNoKeyword != null">RES_NO_KEYWORD,</if>
+			<if test="method != null">METHOD,</if>
+			<if test="postStr != null">POST_STR,</if>
+			<if test="headerJson != null">HEADER_JSON,</if>
+			<if test="account != null">ACCOUNT,</if>
+			<if test="responseBodySize != null">RESPONSE_BODY_SIZE,</if>
+			<if test="formJson != null">FORM_JSON,</if>
+			<if test="errorMsg != null">ERROR_MSG,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -63,20 +110,46 @@
       		<if test="appName != null" >#{appName},</if>
 			<if test="heathUrl != null" >#{heathUrl},</if>
 			<if test="heathStatus != null" >#{heathStatus},</if>
+			<if test="resTimes != null" >#{resTimes},</if>
+			<if test="active != null" >#{active},</if>
+			<if test="resKeyword != null" >#{resKeyword},</if>
+			<if test="resNoKeyword != null" >#{resNoKeyword},</if>
+			<if test="method != null" >#{method},</if>
+			<if test="postStr != null" >#{postStr},</if>
+			<if test="headerJson != null" >#{headerJson},</if>
+			<if test="account != null" >#{account},</if>
+			<if test="responseBodySize != null" >#{responseBodySize},</if>
+			<if test="formJson != null" >#{formJson},</if>
+			<if test="errorMsg != null" >#{errorMsg},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
 
 	<insert id="insertList" parameterType="java.util.List" >
-		INSERT INTO HEATH_MONITOR (ID,APP_NAME,HEATH_URL,HEATH_STATUS,CREATE_TIME)  VALUES
-		<foreach collection="list" item="item" index="index" separator="," >
-			(#{item.id},#{item.appName},#{item.heathUrl},#{item.heathStatus},#{item.createTime})
-		</foreach>
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO HEATH_MONITOR (ID,APP_NAME,HEATH_URL,HEATH_STATUS,CREATE_TIME,RES_TIMES,ACTIVE,RES_KEYWORD,RES_NO_KEYWORD,METHOD,POST_STR,HEADER_JSON,ACCOUNT,RESPONSE_BODY_SIZE,FORM_JSON,ERROR_MSG)  VALUES
+					(#{item.id},#{item.appName},#{item.heathUrl},#{item.heathStatus},#{item.createTime},#{item.resTimes},#{item.active},#{item.resKeyword},#{resNoKeyword},#{item.method},#{item.postStr},#{item.headerJson},#{item.account},#{item.responseBodySize},#{item.formJson},#{item.errorMsg});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO HEATH_MONITOR (ID,APP_NAME,HEATH_URL,HEATH_STATUS,CREATE_TIME,RES_TIMES,ACTIVE,RES_KEYWORD,RES_NO_KEYWORD,METHOD,POST_STR,HEADER_JSON,ACCOUNT,RESPONSE_BODY_SIZE,FORM_JSON,ERROR_MSG)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.appName},#{item.heathUrl},#{item.heathStatus},#{item.createTime},#{item.resTimes},#{item.active},#{item.resKeyword},#{resNoKeyword},#{item.method},#{item.postStr},#{item.headerJson},#{item.account},#{item.responseBodySize},#{item.formJson},#{item.errorMsg})
+				</foreach>
+			</otherwise>
+		</choose>
 	</insert>
 
 
 	<update id="updateList" parameterType="java.util.List" >
-		<foreach collection="list" item="item" index="index"  separator=";">
+		<if test="_databaseId == 'oracle'">
+			begin
+		</if>
+		<foreach collection="list" item="item" index="index">
 			UPDATE HEATH_MONITOR
 			<set>
 				<if test="item.appName != null">
@@ -88,12 +161,45 @@
 				<if test="item.heathStatus != null" >
 					HEATH_STATUS= #{item.heathStatus},
 				</if>
+				<if test="item.resTimes != null" >
+					RES_TIMES= #{item.resTimes},
+				</if>
+				<if test="item.active != null" >
+					ACTIVE= #{item.active},
+				</if>
+				<if test="item.resKeyword != null" >
+					RES_KEYWORD= #{item.resKeyword},
+				</if>
+				<if test="item.resNoKeyword != null" >
+					RES_NO_KEYWORD= #{item.resNoKeyword},
+				</if>
+				<if test="item.method != null" >
+					METHOD= #{item.method},
+				</if>
+				<if test="item.postStr != null" >
+					POST_STR= #{item.postStr},
+				</if>
+				<if test="item.headerJson != null" >
+					HEADER_JSON= #{item.headerJson},
+				</if>
+				<if test="item.responseBodySize != null" >
+					RESPONSE_BODY_SIZE= #{item.responseBodySize},
+				</if>
+				<if test="item.formJson != null" >
+					FORM_JSON= #{item.formJson},
+				</if>
+				<if test="item.errorMsg != null" >
+					ERROR_MSG= #{item.errorMsg},
+				</if>
 				<if test="item.createTime != null" >
 					CREATE_TIME= #{item.createTime},
 				</if>
 			</set>
-			WHERE ID = #{item.id}
+			WHERE ID = #{item.id};
 		</foreach>
+		<if test="_databaseId == 'oracle'">
+			end;
+		</if>
 	</update>
 
 
@@ -108,6 +214,36 @@
 			</if>
 			<if test="heathStatus != null">
 				HEATH_STATUS = #{heathStatus},
+			</if>
+			<if test="resTimes != null">
+				RES_TIMES = #{resTimes},
+			</if>
+			<if test="active != null">
+				ACTIVE = #{active},
+			</if>
+			<if test="resKeyword != null">
+				RES_KEYWORD = #{resKeyword},
+			</if>
+			<if test="resNoKeyword != null">
+				RES_NO_KEYWORD = #{resNoKeyword},
+			</if>
+			<if test="method != null">
+				METHOD = #{method},
+			</if>
+			<if test="postStr != null">
+				POST_STR = #{postStr},
+			</if>
+			<if test="headerJson != null">
+				HEADER_JSON = #{headerJson},
+			</if>
+			<if test="responseBodySize != null">
+				RESPONSE_BODY_SIZE = #{responseBodySize},
+			</if>
+			<if test="formJson != null">
+				FORM_JSON = #{formJson},
+			</if>
+			<if test="errorMsg != null">
+				ERROR_MSG = #{errorMsg},
 			</if>
 			<if test="createTime != null">
 				CREATE_TIME = #{createTime}
@@ -131,7 +267,7 @@
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		 ORDER BY CREATE_TIME DESC
+		 ORDER BY ID DESC
 	</select>
 	
 	<select id="selectByParams" parameterType="map" resultMap="resultMap">
@@ -141,7 +277,14 @@
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		 ORDER BY CREATE_TIME DESC
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</when>
+			<otherwise>
+				ORDER BY ID DESC
+			</otherwise>
+		</choose>
 	</select>
 	
 	

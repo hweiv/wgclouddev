@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item active"></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title" >日志监控告警详情</h3>
+        <div class=" float-sm-right">
+          <a href="javascript:history.back()">返回</a>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+      <form role="form">
+        <div class="card-body">
+          <div class="form-group">
+            <label>日志文件完整路径</label>
+            <div  th:text="${fileWarnState.filePath}"></div>
+          </div>
+          <div class="form-group">
+            <label>主机</label>
+            <div  th:text="${fileWarnInfo.hostname}"></div>
+          </div>
+          <div class="form-group">
+            <label>告警关键字</label>
+            <div><code class="highlighter-rouge" th:text="${fileWarnInfo.warnChars}" style="font-size:100%"></code></div>
+          </div>
+          <div class="form-group">
+            <label>添加时间</label>
+            <div  th:text="${#dates.format(fileWarnState.createTime,'yyyy-MM-dd HH:mm:ss')}"></div>
+          </div>
+          <div class="form-group">
+            <label>告警内容</label>
+              <div>
+                <textarea class="form-control" name="warContent" id="warContent" th:utext="${fileWarnState.warContent}"></textarea>
+              </div>
+          </div>
+        </div>
+        <!-- /.card-body -->
+      </form>
+      <!-- /.card-body -->
+
+
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-12 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<div th:replace="common/codemirror.html"></div>
+<script th:src="@{'/static/js/fileWarnInfo.js'}"></script>
+
+<script th:inline="javascript">
+  var editor = CodeMirror.fromTextArea(document.getElementById("warContent"), {
+    lineNumbers: true,
+    styleActiveLine: true,
+    lineSeparator: '</br>',
+    readOnly: true,
+    matchBrackets: true
+  });
+  editor.setOption("theme", "dracula");
+  editor.setSize('auto','auto');
+</script>
+
+</body>
+</html>

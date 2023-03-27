@@ -2,81 +2,42 @@ package com.wgcloud.entity;
 
 import java.util.Date;
 
-/**
- * @version v2.3
- * @ClassName:LogInfo.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: 日志信息
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class LogInfo extends BaseEntity {
+   private static final long serialVersionUID = 1L;
+   private String hostname;
+   private String infoContent;
+   private String state;
+   private Date createTime;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 1565538727002722890L;
+   public String getHostname() {
+      return this.hostname;
+   }
 
-    /**
-     * host名称
-     */
-    private String hostname;
+   public void setHostname(String hostname) {
+      this.hostname = hostname;
+   }
 
-    /**
-     * 描述
-     */
-    private String infoContent;
+   public String getInfoContent() {
+      return this.infoContent;
+   }
 
-    /**
-     * 0成功，1失败
-     */
-    private String state;
+   public void setInfoContent(String infoContent) {
+      this.infoContent = infoContent;
+   }
 
+   public String getState() {
+      return this.state;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+   public void setState(String state) {
+      this.state = state;
+   }
 
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
-    public String getHostname() {
-        return hostname;
-    }
-
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-
-    public String getInfoContent() {
-        return infoContent;
-    }
-
-
-    public void setInfoContent(String infoContent) {
-        this.infoContent = infoContent;
-    }
-
-
-    public String getState() {
-        return state;
-    }
-
-
-    public void setState(String state) {
-        this.state = state;
-    }
-
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 }

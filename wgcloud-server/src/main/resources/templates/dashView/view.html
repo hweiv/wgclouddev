@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WGCLOUD公众看板/主机列表/主机信息(请收藏)</title>
+    <title th:text="${application.wgName}">WGClOUD监控系统</title>
   <div  th:replace="common/header.html"></div>
+
 
 
 </head>
@@ -12,22 +13,34 @@
 <div class="wrapper">
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="font-size: 0.9rem;margin-left: 10px">
+  <div class="content-wrapper" style="margin-left: 10px;font-size:0.90rem">
     <!-- Content Header (Page header) -->
     <section class="content-header" >
       <div class="container-fluid">
         <div class="row mb-2">
 
-            <div class="col-sm-6" id="fuwuqixinxi">
-                <a href="http://www.wgstart.com"  target="_blank">
-                    <img th:src="@{'/static/logincss/logo.png'}" style="height:25px;width:25px;opacity: .8" class="brand-image img-circle elevation-3">&nbsp;<span style="vertical-align:bottom;">WGCLOUD</span>
+            <div class="col-sm-6">
+                <a href="javascript:location.reload();">
+                    <img th:src="${application.logoUrl}" style="height:25px;width:25px;opacity: .8" class="brand-image img-circle elevation-3">&nbsp;<span style="vertical-align:bottom;" th:text="${application.wgName}">WGCLOUD</span>
                 </a>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item ">
+                        <th:block  th:if="${session.timerWarnSound ne '1' }">
+                          <span style="cursor:pointer;margin-right: 10px" id="timerWarnSoundDiv" title="当前已关闭页面告警声音提示，点击可开启" value="2" data-toggle="dropdown" onclick="javascript:playSound();">
+                            <i class="far fa-bell-slash"></i>
+                          </span>
+                        </th:block>
+                        <th:block  th:if="${session.timerWarnSound eq '1' }">
+                          <span style="cursor:pointer;margin-right: 10px" id="timerWarnSoundDiv" title="当前已开启页面告警声音提示，点击可关闭" value="1" data-toggle="dropdown" onclick="javascript:playSound();">
+                            <i style="margin-right:3px" class="far fa-bell"></i>
+                          </span>
+                        </th:block>
+                    </li>
                     <li class="breadcrumb-item "><a href="/wgcloud/dash/main?dashView=1">监控概要</a></li>
-                    <li class="breadcrumb-item "><a href="/wgcloud/dash/systemInfoList?dashView=1">主机列表</a></li>
-                    <li class="breadcrumb-item active"><a  target="_blank" href="https://www.wgstart.com/elasticsearch-head/index.html">ES监控工具</a></li>
+                    <li class="breadcrumb-item "><a href="/wgcloud/systemInfo/systemInfoList?dashView=1">主机列表</a></li>
+                    <!--<li class="breadcrumb-item active"><a  target="_blank" href="https://www.wgstart.com/elasticsearch-head/index.html">ES监控工具</a></li>-->
                 </ol>
             </div>
         </div>
@@ -42,9 +55,12 @@
   <div class="col-md-12">
     <div class="card card-primary">
       <div class="card-header">
-        <h3 class="card-title" th:text="${systemInfo.hostname}">主机信息</h3>
+        <h3 class="card-title"><span th:text="${systemInfo.hostname}"></span>
+            <th:block th:if="${systemInfo.remark ne '' && systemInfo.remark ne null}">
+                (备注：<span th:text="${systemInfo.remark}"></span>)
+            </th:block></h3>
           <div class=" float-sm-right">
-              <a th:href="@{'/dash/systemInfoList?dashView=1'}">返回</a>
+              <a href="javascript:history.back()">返回</a>
           </div>
       </div>
       <!-- /.card-header -->
@@ -52,59 +68,63 @@
       <form role="form">
         <div class="card-body">
           <div class="form-group">
-            <label for="exampleInputEmail1">系统信息</label>
-              <div>系统描述：<span th:text="${systemInfo.versionDetail}"></span>，版本：<span th:text="${systemInfo.version}"></span>，cpu核数：<span th:text="${systemInfo.cpuCoreNum}"></span>
-                  ，cpu型号：<span th:text="${systemInfo.cpuXh}"></span></div>
+            <label>系统信息</label>
+              <div><strong>主机名：</strong><span th:text="${systemInfo.hostnameExt}"></span>，<strong>系统描述：</strong><span th:text="${systemInfo.platForm}"></span>，<strong>版本：</strong><span th:text="${systemInfo.platformVersion}"></span>，<strong>cpu核数：</strong><span th:text="${systemInfo.cpuCoreNum}"></span>
+                  ，<strong>cpu型号：</strong><span th:text="${systemInfo.cpuXh}"></span> ，<strong>运行进程数量：</strong><span th:text="${systemInfo.procs}"></span>，<strong>物理总内存：</strong><span th:text="${systemInfo.totalMem}"></span>
+                  ，<strong>交换区总内存：</strong><span th:text="${systemInfo.totalSwapMem}"></span>，<strong>交换区内存已使用：</strong><span th:text="${systemInfo.swapMemPer}"></span>%
+                  ，<strong>启动时间：</strong><span th:text="${systemInfo.bootTimeStr}"></span>，<strong>运行时间：</strong><span th:text="${systemInfo.uptimeStr}"></span>，<strong>备注：</strong><span th:text="${systemInfo.remark}"></span>
+                  ，<strong>累计接收流量：</strong><span th:text="${systemInfo.bytesRecv}+'G'"></span>，<strong>累计发送流量：</strong><span th:text="${systemInfo.bytesSent}+'G'"></span>
+                  ，<strong>agent版本：</strong><span th:text="${systemInfo.agentVer}"></span>，<strong>agent上报时间(秒)：</strong><span th:text="${systemInfo.submitSeconds}"></span></div>
           </div>
         </div>
         <!-- /.card-body -->
       </form>
       <!-- /.card-body -->
 
-        <label style="margin-left: .9rem">磁盘信息</label>
+        <div th:replace="common/cpuTemperatures.html"></div>
+
+
+        <label style="margin-left: .9rem">磁盘空间信息</label>
         <div class="row">
             <div class="col-12 table-responsive">
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>盘符名称</th>
-                        <th>磁盘空间</th>
-                        <th>已使用</th>
-                        <th>可用</th>
-                        <th>已使用%</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <th:block th:each="item : ${deskStateList}">
-                        <tr>
-                            <td th:text="${item.fileSystem}"></td>
-                            <td th:text="${item.size}"></td>
-                            <td th:text="${item.used}"></td>
-                            <td th:text="${item.avail}"></td>
-                            <td th:text="${item.usePer}"></td>
-                        </tr>
-                    </th:block>
-
-                    </tbody>
-                </table>
+                <div th:replace="common/disk.html"></div>
             </div>
             <!-- /.col -->
         </div>
 
+        <div th:if="${not #lists.isEmpty(deskIoList)}">
+            <label style="margin-left: .9rem">磁盘IO信息</label>
+            <div class="row">
+                <div class="col-12 table-responsive">
+                    <div th:replace="common/deskio.html"></div>
+                </div>
+                <!-- /.col -->
+            </div>
+        </div>
+
+        <div th:if="${not #lists.isEmpty(diskSmartList)}">
+            <label style="margin-left: .9rem">磁盘SMART信息</label>
+            <div class="row">
+                <div class="col-12 table-responsive">
+                    <div th:replace="common/disksmart.html"></div>
+                </div>
+                <!-- /.col -->
+            </div>
+        </div>
 
     </div>
     <!-- /.card -->
 
 
-  </div>
+  </div><!-- /.col-md-12 -->
 
-        </div>
-      </div>
-    </section>
-  </div>
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
 
 
-  <div th:replace="common/dashViewFooter.html"></div>
+  <div th:replace="common/footerDashView.html"></div>
 
 </div>
 <!-- ./wrapper -->

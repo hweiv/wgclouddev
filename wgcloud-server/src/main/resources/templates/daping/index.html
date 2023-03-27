@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title th:text="${application.wgName}">WGClOUD监控系统</title>
+  <base href="./" th:href="'/'"/>
+  <meta charset="utf-8">
+  <link rel="shortcut icon" type="image/x-icon" th:href="${application.icoUrl}"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- Tell the browser to be responsive to screen width -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" th:href="@{'/static/daping/css/comon0.css'}">
+  <script  type="text/javascript"  th:src="@{'/static/daping/js/jquery.js'}"></script>
+  <script>
+    $(window).on('load',function(){
+      $(".loading").fadeOut();
+    })
+
+    /****/
+    $(document).ready(function(){
+      var whei=$(window).width()
+      $("html").css({fontSize:whei/20})
+      $(window).resize(function(){
+        var whei=$(window).width()
+        $("html").css({fontSize:whei/20})
+      });
+    });
+  </script>
+  <script type="text/javascript"  th:src="@{'/static/daping/js/echarts.min.js'}"></script>
+
+
+</head>
+<body>
+<div class="canvas" style="opacity: .2">
+  <iframe frameborder="0" th:src="@{'/static/daping/js/index.html'}" style="width: 100%; height: 100%"></iframe>
+</div>
+<div class="loading">
+  <div class="loadbox"> <img th:src="@{'/static/daping/picture/loading.gif'}"> 页面加载中... </div>
+</div>
+<div class="head">
+  <h1 th:text="${application.wgName}"></h1>
+  <div class="weather"><span id="dpheadBanner1"></span><span id="showTime"></span></div>
+
+  <script>
+    var t = null;
+    t = setTimeout(time,1000);//開始运行
+    function time()
+    {
+      clearTimeout(t);//清除定时器
+      dt = new Date();
+      var y=dt.getFullYear();
+      var mt=dt.getMonth()+1;
+      var day=dt.getDate();
+      var h=dt.getHours();//获取时
+      var m=dt.getMinutes();//获取分
+      var s=dt.getSeconds();//获取秒
+      document.getElementById("showTime").innerHTML = y+"年"+mt+"月"+day+"日-"+h+"时"+m+"分"+s+"秒";
+      t = setTimeout(time,1000); //设定定时器，循环运行
+    }
+    
+    function reload() {
+      window.location.reload();
+    }
+    setTimeout(reload,600000);
+
+  </script>
+
+
+</div>
+<div class="mainbox">
+  <ul class="clearfix">
+    <li>
+      <div class="boxall" style="height: 3.2rem">
+        <div class="alltitle">机型数量</div>
+        <div class="allnav" id="echart1"></div>
+        <div class="boxfoot"></div>
+      </div>
+      <div class="boxall" style="height: 3.2rem">
+        <div class="alltitle">上下行速率最新TOP10(KB/s)</div>
+        <div class="allnav" id="echart2"></div>
+        <div class="boxfoot"></div>
+      </div>
+      <div class="boxall" style="height: 3.2rem">
+        <div class="alltitle">资源告警次数统计</div>
+          <div class="allnav" id="echart7"></div>
+          <div class="boxfoot"></div>
+      </div>
+    </li>
+    <li>
+      <div class="bar">
+        <div class="barbox">
+          <ul class="clearfix">
+            <li class="pulll_left counter" th:text="${totalSystemInfoSize}">12581189</li>
+            <li class="pulll_left counter"  th:text="${cpuCoresSum}">3912410</li>
+            <li class="pulll_left counter" th:text="${memSum}">3912410</li>
+          </ul>
+        </div>
+        <div class="barbox2">
+          <ul class="clearfix">
+            <li class="pulll_left">主机总数</li>
+            <li class="pulll_left">CPU总核数</li>
+            <li class="pulll_left">内存总和</li>
+          </ul>
+        </div>
+      </div>
+      <div class="map">
+        <div class="map1"><img th:src="@{'/static/daping/picture/lbx.png'}"></div>
+        <div class="map2"><img th:src="@{'/static/daping/picture/jt.png'}"></div>
+        <div class="map3"><img th:src="@{'/static/daping/picture/map.png'}"></div>
+        <div id="chart_4" class="map4" style="height: 7.9rem;"></div>
+      </div>
+    </li>
+    <li>
+      <div class="boxall" style="height:3.4rem">
+        <div class="alltitle">主机状态</div>
+        <div class="allnav" id="echart4"></div>
+        <div class="boxfoot"></div>
+      </div>
+      <div class="boxall" style="height: 3.2rem">
+        <div class="alltitle">CPU使用率最新TOP10</div>
+        <div class="allnav" id="echart5"></div>
+        <div class="boxfoot"></div>
+      </div>
+      <div class="boxall" style="height: 3rem">
+        <div class="alltitle">内存使用率最新TOP10</div>
+        <div class="allnav" id="echart6"></div>
+        <div class="boxfoot"></div>
+      </div>
+    </li>
+  </ul>
+</div>
+<div class="back"></div>
+
+
+<script  th:inline="javascript">
+  const systemInfoTypeNameList = [[${systemInfoTypeNameList}]];
+  const systemInfoTypeValList = [[${systemInfoTypeValList}]];
+  const hostDownSize = [[${hostDownSize}]];
+  const hostOnSize = [[${hostOnSize}]];
+
+  const systemTop10NameList = [[${systemTop10NameList}]];
+  const cpuTop10ValList = [[${cpuTop10ValList}]];
+  const memTop10ValList = [[${memTop10ValList}]];
+
+  const rxbytTop10List = [[${rxbytTop10List}]];
+  const txbytTop10List = [[${txbytTop10List}]];
+
+  const middleDataList = [[${middleDataList}]];
+  const middleDataListIp = [[${middleDataListIp}]];
+
+
+  $(function () {
+    echarts_1();
+    echarts_2();
+    echarts_4();
+    echarts_5();
+    echarts_6();
+    echarts_3();
+    echarts_7();
+    function echarts_1() {
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('echart1'));
+
+      option = {
+        //  backgroundColor: '#00265f',
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '0%',
+          top:'10px',
+          right: '0%',
+          bottom: '4%',
+          containLabel: true
+        },
+        xAxis: [{
+          type: 'category',
+          data: systemInfoTypeNameList,
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: "rgba(255,255,255,.1)",
+              width: 1,
+              type: "solid"
+            },
+          },
+
+          axisTick: {
+            show: false,
+          },
+          axisLabel:  {
+            interval: 0,
+            // rotate:50,
+            show: true,
+            splitNumber: 15,
+            textStyle: {
+              color: "rgba(255,255,255,.6)",
+              fontSize: '12',
+            },
+          },
+        }],
+        yAxis: [{
+          type: 'value',
+          axisLabel: {
+            //formatter: '{value} %'
+            show:true,
+            textStyle: {
+              color: "rgba(255,255,255,.6)",
+              fontSize: '12',
+            },
+          },
+          axisTick: {
+            show: false,
+          },
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: "rgba(255,255,255,.1	)",
+              width: 1,
+              type: "solid"
+            },
+          },
+          splitLine: {
+            lineStyle: {
+              color: "rgba(255,255,255,.1)",
+            }
+          }
+        }],
+        series: [
+          {
+            type: 'bar',
+            data: systemInfoTypeValList,
+            barWidth:'35%', //柱子宽度
+            // barGap: 1, //柱子之间间距
+            itemStyle: {
+              normal: {
+                color:'#2f89cf',
+                opacity: 1,
+                barBorderRadius: 5,
+              }
+            }
+          }
+
+        ]
+      };
+
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+      window.addEventListener("resize",function(){
+        myChart.resize();
+      });
+    }
+
+    function echarts_2() {
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('echart2'));
+
+      option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            lineStyle: {
+              color: '#dddc6b'
+            }
+          }
+        },
+        legend: {
+          top:'0%',
+          data:['上行','下行'],
+          textStyle: {
+            color: 'rgba(255,255,255,.5)',
+            fontSize:'12',
+          }
+        },
+        grid: {
+          left: '10',
+          top: '30',
+          right: '10',
+          bottom: '10',
+          containLabel: true
+        },
+
+        xAxis: [{
+          type: 'category',
+          show: false,
+          boundaryGap: false,
+          axisLabel:  {
+            textStyle: {
+              color: "rgba(255,255,255,.6)",
+              fontSize:12,
+            },
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'rgba(255,255,255,.2)'
+            }
+
+          },
+
+          data: systemTop10NameList
+
+        }, {
+
+          axisPointer: {show: false},
+          axisLine: {  show: false},
+          position: 'bottom',
+          offset: 20,
+
+        }],
+
+        yAxis: [{
+          type: 'value',
+          axisTick: {show: false},
+          axisLine: {
+            lineStyle: {
+              color: 'rgba(255,255,255,.1)'
+            }
+          },
+          axisLabel:  {
+            textStyle: {
+              color: "rgba(255,255,255,.6)",
+              fontSize:12,
+            },
+          },
+
+          splitLine: {
+            lineStyle: {
+              color: 'rgba(255,255,255,.1)'
+            }
+          }
+        }],
+        series: [
+          {
+            name: '上行',
+            type: 'line',
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 5,
+            showSymbol: false,
+            lineStyle: {
+
+              normal: {
+                color: '#0184d5',
+                width: 2
+              }
+            },
+            areaStyle: {
+              normal: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                  offset: 0,
+                  color: 'rgba(1, 132, 213, 0.4)'
+                }, {
+                  offset: 0.8,
+                  color: 'rgba(1, 132, 213, 0.1)'
+                }], false),
+                shadowColor: 'rgba(0, 0, 0, 0.1)',
+              }
+            },
+            itemStyle: {
+              normal: {
+                color: '#0184d5',
+                borderColor: 'rgba(221, 220, 107, .1)',
+                borderWidth: 12
+              }
+            },
+            data: txbytTop10List
+
+          },
+          {
+            name: '下行',
+            type: 'line',
+            smooth: true,
+            symbol: 'circle',
+            symbolSize: 5,
+            showSymbol: false,
+            lineStyle: {
+
+              normal: {
+                color: '#00d887',
+                width: 2
+              }
+            },
+            areaStyle: {
+              normal: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                  offset: 0,
+                  color: 'rgba(0, 216, 135, 0.4)'
+                }, {
+                  offset: 0.8,
+                  color: 'rgba(0, 216, 135, 0.1)'
+                }], false),
+                shadowColor: 'rgba(0, 0, 0, 0.1)',
+              }
+            },
+            itemStyle: {
+              normal: {
+                color: '#00d887',
+                borderColor: 'rgba(221, 220, 107, .1)',
+                borderWidth: 12
+              }
+            },
+            data: rxbytTop10List
+
+          },
+
+        ]
+
+      };
+
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+      window.addEventListener("resize",function(){
+        myChart.resize();
+      });
+    }
+    function echarts_5() {
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('echart5'));
+
+      option = {
+        //  backgroundColor: '#00265f',
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+
+        grid: {
+          left: '0%',
+          top:'10px',
+          right: '0%',
+          bottom: '2%',
+          containLabel: true
+        },
+        xAxis: [{
+          type: 'category',
+          data: systemTop10NameList,
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: "rgba(255,255,255,.1)",
+              width: 1,
+              type: "solid"
+            }
+          },
+
+          axisTick: {
+            show: false,
+          },
+          axisLabel:  {
+            interval: 0,
+            rotate:30,
+            show: true,
+            splitNumber: 15,
+            textStyle: {
+              color: "rgba(255,255,255,.6)",
+              fontSize: '12',
+            },
+          },
+        }],
+        yAxis: [{
+          type: 'value',
+          axisLabel: {
+            //formatter: '{value} %'
+            show:true,
+            textStyle: {
+              color: "rgba(255,255,255,.6)",
+              fontSize: '12',
+            },
+          },
+          axisTick: {
+            show: false,
+          },
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: "rgba(255,255,255,.1	)",
+              width: 1,
+              type: "solid"
+            },
+          },
+          splitLine: {
+            lineStyle: {
+              color: "rgba(255,255,255,.1)",
+            }
+          }
+        }],
+        series: [{
+          type: 'bar',
+          data: cpuTop10ValList,
+          barWidth:'35%', //柱子宽度
+          // barGap: 1, //柱子之间间距
+          itemStyle: {
+            normal: {
+              color:'#27d08a',
+              opacity: 1,
+              barBorderRadius: 5,
+            }
+          }
+        }
+        ]
+      };
+
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+      window.addEventListener("resize",function(){
+        myChart.resize();
+      });
+    }
+
+    function echarts_4() {
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('echart4'));
+
+      option = {
+        tooltip: {
+          trigger: 'item',
+          formatter: '{a} <br/>{b} : {c} ({d}%)'
+        },
+        color : [ '#F559A9', '#00B5F0' ],
+        series: [
+          {
+            name: '主机状态',
+            type: 'pie',
+            data: [
+              {value: hostDownSize, name: '下线'},
+              {value: hostOnSize, name: '正常'}
+            ],
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            }
+          }
+        ]
+      };
+
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+      window.addEventListener("resize",function(){
+        myChart.resize();
+      });
+    }
+    function echarts_6() {
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('echart6'));
+
+      option = {
+        //  backgroundColor: '#00265f',
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+
+        grid: {
+          left: '0%',
+          top:'10px',
+          right: '0%',
+          bottom: '2%',
+          containLabel: true
+        },
+        xAxis: [{
+          type: 'category',
+          data: systemTop10NameList,
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: "rgba(255,255,255,.1)",
+              width: 1,
+              type: "solid"
+            },
+          },
+
+          axisTick: {
+            show: false,
+          },
+          axisLabel:  {
+            interval: 0,
+            rotate:30,
+            show: true,
+            splitNumber: 15,
+            textStyle: {
+              color: "rgba(255,255,255,.6)",
+              fontSize: '12',
+            },
+          },
+        }],
+        yAxis: [{
+          type: 'value',
+          axisLabel: {
+            //formatter: '{value} %'
+            show:true,
+            textStyle: {
+              color: "rgba(255,255,255,.6)",
+              fontSize: '12',
+            },
+          },
+          axisTick: {
+            show: false,
+          },
+          axisLine: {
+            show: true,
+            lineStyle: {
+              color: "rgba(255,255,255,.1	)",
+              width: 1,
+              type: "solid"
+            },
+          },
+          splitLine: {
+            lineStyle: {
+              color: "rgba(255,255,255,.1)",
+            }
+          }
+        }],
+        series: [{
+          type: 'bar',
+          data: memTop10ValList,
+          barWidth:'35%', //柱子宽度
+          // barGap: 1, //柱子之间间距
+          itemStyle: {
+            normal: {
+              color:'#F57474',
+              opacity: 1,
+              barBorderRadius: 5,
+            }
+          }
+        }
+        ]
+      };
+
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+      window.addEventListener("resize",function(){
+        myChart.resize();
+      });
+    }
+
+
+    function echarts_3() {
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('chart_4'));
+      var data = middleDataList;
+      var titlename = ['CPU%最高', 'CPU%平均', 'CPU%最低', '内存%最高', '内存%平均', '内存%最低', '存储%最高', '存储%平均', '存储%最低'];
+      var valdata = middleDataList;
+      var myColor = ['#F57474', '#1089E7', '#56D0E3', '#F8B448', '#8B78F6', '#2C78E6', '#F57474', '#8B78F6', '#2C78E6'];
+      option = {
+        tooltip: {
+          trigger: 'axis',
+          formatter:function(params) {
+            var result = middleDataListIp[params[0].dataIndex];
+            return result;
+          }
+        },
+        title: {
+          text: '监控主机实时状态',
+          x: 'center',
+          textStyle: {
+            color: '#FFF'
+          },
+          left: '30%',
+          top: '15%'
+        },
+        //图标位置
+        grid: {
+          top: '20%',
+          left: '38%',
+          width: '30%'
+        },
+        xAxis: {
+          show: false
+        },
+        yAxis: [{
+          show: true,
+          data: titlename,
+          inverse: true,
+          axisLine: {
+            show: false
+          },
+          splitLine: {
+            show: false
+          },
+          axisTick: {
+            show: false
+          },
+          axisLabel: {
+            color: '#fff',
+            formatter: (value, index) => {
+            return [
+              `{lg|${index+1}}  ` + '{title|' + value + '} '
+            ].join('\n')
+          },
+          rich: {
+            lg: {
+              backgroundColor: '#339911',
+              color: '#fff',
+              borderRadius: 15,
+              // padding: 5,
+              align: 'center',
+              width: 15,
+              height: 15
+            },
+          }
+        }
+
+      }, {
+        show: true,
+        inverse: true,
+        data: valdata,
+        axisLabel: {
+          textStyle: {
+            fontSize: 12,
+            color: '#fff',
+          },
+        },
+        axisLine: {
+          show: false
+        },
+        splitLine: {
+          show: false
+        },
+        axisTick: {
+          show: false
+        },
+
+      }],
+      series: [{
+        name: '%',
+        type: 'bar',
+        yAxisIndex: 0,
+        data: data.map(item => {
+          return {
+            value: item,
+            label: {
+              normal: {
+                show: true,
+                position: item>10?'inside':'insideLeft',
+                formatter: '{c}%'
+              }
+            }
+          }
+        }),
+        barWidth: 15,
+        itemStyle: {
+          normal: {
+            barBorderRadius: 20,
+            color: function(params) {
+              var num = myColor.length;
+              return myColor[params.dataIndex % num]
+            },
+          }
+        },
+        label: {
+          normal: {
+            show: true,
+            position: 'inside',
+            formatter: '{c}%'
+          }
+        },
+      }, {
+        name: '%',
+        type: 'bar',
+        yAxisIndex: 1,
+        barGap: '-100%',
+        data: [100, 100, 100, 100, 100, 100, 100, 100, 100],
+        barWidth: 20,
+        itemStyle: {
+          normal: {
+            color: 'none',
+            borderColor: '#00c1de',
+            borderWidth: 3,
+            barBorderRadius: 20,
+          }
+        }
+      }, ]
+    };
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+      window.addEventListener("resize", function () {
+        myChart.resize();
+      });
+    }
+
+
+    function echarts_7() {
+      // 基于准备好的dom，初始化echarts实例
+      var myChart = echarts.init(document.getElementById('echart7'));
+      var dataStyle = {
+        normal: {
+          label: {
+            show: false
+          },
+          labelLine: {
+            show: false
+          },
+          //shadowBlur: 40,
+          //shadowColor: 'rgba(40, 40, 40, 1)',
+        }
+      };
+      var placeHolderStyle = {
+        normal: {
+          color: 'rgba(255,255,255,.05)',
+          label: {show: false,},
+          labelLine: {show: false}
+        },
+        emphasis: {
+          color: 'rgba(0,0,0,0)'
+        }
+      };
+      option = {
+        color: ['#0f63d6', '#0f78d6', '#0f8cd6', '#0fa0d6', '#0fb4d6'],
+        tooltip: {
+          show: true,
+          formatter: "{a} : {c} "
+        },
+        legend: {
+          itemWidth: 10,
+          itemHeight: 10,
+          itemGap: 12,
+          bottom: '3%',
+          data: ['主机下线告警', 'CPU告警', '内存告警', '磁盘告警', '上下行速率告警', '系统负载告警'],
+          textStyle: {
+            color: 'rgba(255,255,255,.6)',
+          }
+        },
+        series: [
+          {
+            name: '主机下线告警',
+            type: 'pie',
+            clockWise: false,
+            center: ['50%', '42%'],
+            radius: ['59%', '70%'],
+            itemStyle: dataStyle,
+            hoverAnimation: false,
+            data: [{
+              value: [[${hostDownWarnSize}]],
+              name: '01'
+            }, {
+              value: 20,
+              name: 'invisible',
+              tooltip: {show: false},
+              itemStyle: placeHolderStyle
+            }]
+          },
+          {
+            name: 'CPU告警',
+            type: 'pie',
+            clockWise: false,
+            center: ['50%', '42%'],
+            radius: ['49%', '60%'],
+            itemStyle: dataStyle,
+            hoverAnimation: false,
+            data: [{
+              value: [[${cpuWarnSize}]],
+              name: '02'
+            }, {
+              value: 30,
+              name: 'invisible',
+              tooltip: {show: false},
+              itemStyle: placeHolderStyle
+            }]
+          },
+          {
+            name: '内存告警',
+            type: 'pie',
+            clockWise: false,
+            hoverAnimation: false,
+            center: ['50%', '42%'],
+            radius: ['39%', '50%'],
+            itemStyle: dataStyle,
+            data: [{
+              value: [[${memWarnSize}]],
+              name: '03'
+            }, {
+              value: 35,
+              name: 'invisible',
+              tooltip: {show: false},
+              itemStyle: placeHolderStyle
+            }]
+          },
+          {
+            name: '磁盘告警',
+            type: 'pie',
+            clockWise: false,
+            hoverAnimation: false,
+            center: ['50%', '42%'],
+            radius: ['29%', '40%'],
+            itemStyle: dataStyle,
+            data: [{
+              value: [[${diskWarnSize}]],
+              name: '04'
+            }, {
+              value: 40,
+              name: 'invisible',
+              tooltip: {show: false},
+              itemStyle: placeHolderStyle
+            }]
+          },
+          {
+            name: '上下行速率告警',
+            type: 'pie',
+            clockWise: false,
+            hoverAnimation: false,
+            center: ['50%', '42%'],
+            radius: ['20%', '30%'],
+            itemStyle: dataStyle,
+            data: [{
+              value: [[${netWarnSize}]],
+              name: '05'
+            }, {
+              value: 50,
+              name: 'invisible',
+              tooltip: {show: false},
+              itemStyle: placeHolderStyle
+            }]
+          },
+          {
+            name: '系统负载告警',
+            type: 'pie',
+            clockWise: false,
+            hoverAnimation: false,
+            center: ['50%', '42%'],
+            radius: ['10%', '20%'],
+            itemStyle: dataStyle,
+            data: [{
+              value: [[${load5WarnSize}]],
+              name: '06'
+            }, {
+              value: 50,
+              name: 'invisible',
+              tooltip: {show: false},
+              itemStyle: placeHolderStyle
+            }]
+          },]
+      };
+      // 使用刚指定的配置项和数据显示图表。
+      myChart.setOption(option);
+      window.addEventListener("resize",function(){
+        myChart.resize();
+      });
+    }
+
+  })
+</script>
+
+
+</body>
+</html>

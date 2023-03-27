@@ -4,18 +4,17 @@
 	<resultMap id="resultMap" type="com.wgcloud.entity.CpuState">
 		<id column="ID" property="id" jdbcType="CHAR" />
 		<result column="HOST_NAME" property="hostname" jdbcType="CHAR" />
-		<result column="USER" property="user" jdbcType="CHAR" />
+		<result column="USER_PER" property="userPer" jdbcType="CHAR" />
 		<result column="SYS" property="sys" jdbcType="DOUBLE" />
 		<result column="IDLE" property="idle" jdbcType="DOUBLE" />
 		<result column="IOWAIT" property="iowait" jdbcType="DOUBLE" />
 		<result column="IRQ" property="irq" jdbcType="CHAR" />
 		<result column="SOFT" property="soft" jdbcType="CHAR" />
-		<result column="DATE_STR" property="dateStr" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,HOST_NAME, USER, SYS, IDLE,IOWAIT,IRQ,SOFT,DATE_STR,CREATE_TIME
+		ID,HOST_NAME, USER_PER, SYS, IDLE,IOWAIT,IRQ,SOFT,CREATE_TIME
 	</sql>
 	
 	<sql id="queryByParams">
@@ -23,7 +22,15 @@
 			<![CDATA[ AND HOST_NAME = #{hostname} ]]>
 		</if>
 		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-			<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			<if test="_databaseId == 'mysql'">
+				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			</if>
+			<if test="_databaseId == 'postgresql'">
+				<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+			</if>
+			<if test="_databaseId == 'oracle'">
+				<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+			</if>
 		</if>
 	</sql>
 	
@@ -34,10 +41,48 @@
 		FROM CPU_STATE
 		WHERE ID=#{id} 
 	</select>
+
+	<select id="selectMaxAvgByHostname" resultMap="resultMap" parameterType="map">
+		SELECT MAX(SYS) as sys,AVG(SYS) as idle,MIN(SYS) as iowait
+		FROM CPU_STATE
+		<where>
+			<include refid="queryByParams" />
+		</where>
+	</select>
+
+	<select id="selectMaxByDate" resultType="java.lang.Double" parameterType="map">
+		SELECT MAX(SYS)
+		FROM CPU_STATE
+		<where>
+			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+				<if test="_databaseId == 'mysql'">
+					<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+				</if>
+				<if test="_databaseId == 'postgresql'">
+					<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+				</if>
+				<if test="_databaseId == 'oracle'">
+					<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+				</if>
+			</if>
+			<if test="account != null">
+				<![CDATA[ AND HOST_NAME IN (SELECT c.HOST_NAME FROM SYSTEM_INFO c WHERE c.ACCOUNT= #{account}) ]]>
+			</if>
+		</where>
+	</select>
 	
 	
 	<delete id="deleteByAccountAndDate"  parameterType="map">
-		DELETE FROM CPU_STATE WHERE    <![CDATA[  CREATE_TIME <=#{endTime}]]>
+		DELETE FROM CPU_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
 	</delete>
 	
 	
@@ -60,34 +105,44 @@
     	<trim prefix="(" suffix=")" suffixOverrides="," >
       		<if test="id != null" >ID,</if>
       		<if test="hostname != null" > HOST_NAME,</if>
-      		<if test="user != null">USER,</if>
+      		<if test="userPer != null">USER_PER,</if>
       		<if test="sys != null">SYS,</if>
       		<if test="idle != null">IDLE,</if>
       		<if test="iowait != null">IOWAIT,</if>
       		<if test="irq != null" >IRQ,</if>
       		<if test="soft != null" >SOFT,</if>
-      		<if test="dateStr != null" >DATE_STR,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
       		<if test="id != null" >#{id},</if>
       		<if test="hostname != null" >#{hostname},</if>
-      		<if test="user != null" >#{user},</if>
+      		<if test="userPer != null" >#{userPer},</if>
       		<if test="sys != null" >#{sys},</if>
       		<if test="idle != null" >#{idle},</if>
       		<if test="iowait != null" >#{iowait},</if>
       		<if test="irq != null" >#{irq},</if>
       		<if test="soft != null" >#{soft},</if>
-      		<if test="dateStr != null" >#{dateStr},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
 	
 	<insert id="insertList" parameterType="java.util.List" >
-	      INSERT INTO CPU_STATE (ID,HOST_NAME,USER,SYS,IDLE,IOWAIT,IRQ,SOFT,DATE_STR,CREATE_TIME)  VALUES
-	      <foreach collection="list" item="item" index="index" separator="," >  
-	        (#{item.id},#{item.hostname},#{item.user},#{item.sys},#{item.idle},#{item.iowait},#{item.irq},#{item.soft},#{item.dateStr},#{item.createTime})
-	      </foreach>
+		<choose>
+			<when test="_databaseId == 'oracle'">
+				begin
+				<foreach collection="list" item="item" index="index">
+					INSERT INTO CPU_STATE (ID,HOST_NAME,USER_PER,SYS,IDLE,IOWAIT,IRQ,SOFT,CREATE_TIME)  VALUES
+					(#{item.id},#{item.hostname},#{item.userPer},#{item.sys},#{item.idle},#{item.iowait},#{item.irq},#{item.soft},#{item.createTime});
+				</foreach>
+				end;
+			</when>
+			<otherwise>
+				INSERT INTO CPU_STATE (ID,HOST_NAME,USER_PER,SYS,IDLE,IOWAIT,IRQ,SOFT,CREATE_TIME)  VALUES
+				<foreach collection="list" item="item" index="index" separator="," >
+					(#{item.id},#{item.hostname},#{item.userPer},#{item.sys},#{item.idle},#{item.iowait},#{item.irq},#{item.soft},#{item.createTime})
+				</foreach>
+			</otherwise>
+		</choose>
 	 </insert>
 	
 	
@@ -108,7 +163,14 @@
 		<where>
 			<include refid="queryByParams" />
 		</where>
-		 ORDER BY CREATE_TIME DESC
+		<choose>
+			<when test="orderBy !=null and orderBy != ''">
+				<![CDATA[ ORDER BY ${orderBy} ${orderType}]]>
+			</when>
+			<otherwise>
+				ORDER BY CREATE_TIME DESC
+			</otherwise>
+		</choose>
 	</select>
 	
 	

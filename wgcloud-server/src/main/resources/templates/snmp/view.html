@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper"  style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item active"></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title">SNMP设备监测信息</h3>
+        <div class=" float-sm-right">
+          <a href="javascript:history.back()">返回</a>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+      <form role="form">
+        <div class="card-body">
+          <div class="form-group">
+            <label>设备IP</label>
+              <div><span th:text="${snmpInfo.hostname}"></span>
+                  <th:block th:if="${snmpInfo.remark ne '' && snmpInfo.remark ne null}">
+                      （备注：<span th:text="${snmpInfo.remark}"></span>）
+                  </th:block></div>
+          </div>
+        </div>
+        <!-- /.card-body -->
+      </form>
+      <!-- /.card-body -->
+
+      <div class="row">
+        <div class="col-12 table-responsive">
+          <table class="table table-striped"><tbody><tr>
+            <th:block th:each="item : ${amList}">
+              <th:block th:if="${item.code eq  am}">
+                <td width="2%" style="vertical-align:bottom;"> <button type="button" title="当前已显示该时间段图表" class="btn btn-block btn-outline-danger btn-sm disabled" th:text="${item.msg}">Primary</button></td>
+              </th:block>
+              <th:block th:unless="${item.code eq  am}">
+                <td width="2%" style="vertical-align:bottom;"> <button type="button"  th:onclick="viewDate([[${snmpInfo.id}]],[[${item.code}]])" class="btn btn-block btn-outline-primary btn-sm" th:text="${item.msg}">Primary</button></td>
+              </th:block>
+            </th:block>
+
+            <td width="10%">
+              <form class="form-inline ml-3   float-sm-right" action="/wgcloud/snmpInfo/view">
+                <input type="hidden" name="id" th:value="${snmpInfo.id}"/>
+                <div class="input-group input-group-sm">
+                  <input type="text" autocomplete="off" value="" class="validate[maxSize[50]] form-control"  th:value="${startTime}" name="startTime" id="startTime" placeholder="开始时间" style="margin-right:5px;">
+                  <label style="margin-right:5px;">至</label>
+                  <input type="text" autocomplete="off" value="" class="validate[maxSize[50]] form-control"  th:value="${endTime}" name="endTime" id="endTime" placeholder="结束时间" style="margin-right:5px;">
+                  <button type="submit" class="btn btn-primary btn-sm" style="margin-right:5px;">查询</button>
+                  <button type="button" onclick="resetParam()" class="btn bg-danger btn-sm" style="margin-right:5px;">重置</button>
+                </div>
+              </form>
+            </td>
+            <td width="2%" style="vertical-align:bottom;text-align: right"><button type="button" th:onclick="excelExport([[${snmpInfo.id}]],[[${am}]])" class="btn btn-primary btn-sm">导出Excel</button></td>
+          </tr></tbody></table>
+        </div>
+        <!-- /.col -->
+      </div>
+
+      <label style="margin-left: .9rem">出口/入口流量速率（MB/s）
+        <span style="margin-left:20px">出口流量速率最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${sentSubtitleDto.maxValue}">18</span></span>
+        平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${sentSubtitleDto.avgValue}">0</span></span>
+        最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${sentSubtitleDto.minValue}">17</span></span>
+        <span style="margin-left:20px">入口流量速率最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${rxbytSubtitleDto.maxValue}">18</span></span>
+        平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${rxbytSubtitleDto.avgValue}">0</span></span>
+        最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${rxbytSubtitleDto.minValue}">17</span></span></label>
+        <div id="snmpStateJson"></div>
+
+      <label style="margin-left: .9rem">cpu使用率%
+        <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${cpuPerSubtitleDto.maxValue}">18</span></span>
+        平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${cpuPerSubtitleDto.avgValue}">0</span></span>
+        最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${cpuPerSubtitleDto.minValue}">17</span></span></label>
+      <div id="cpuStateJson"></div>
+
+      <label style="margin-left: .9rem">内存使用率%
+        <span style="margin-left:20px">最高</span><span class="description-percentage text-danger" style="margin-left:10px;margin-right:10px;"><i class="fas fa-caret-down"></i> <span th:text="${memSizeSubtitleDto.maxValue}">18</span></span>
+        平均<span class="description-percentage text-warning" style="margin-left:5px;margin-right:10px;"><i class="fas fa-caret-left"></i> <span th:text="${memSizeSubtitleDto.avgValue}">0</span></span>
+        最低<span class="description-percentage text-success" style="margin-left:5px;margin-right:30px;"><i class="fas fa-caret-up"></i> <span th:text="${memSizeSubtitleDto.minValue}">17</span></span></label>
+      <div id="memStateJson"></div>
+
+    </div>
+    <!-- /.card -->
+
+
+  </div>
+
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<script th:src="@{'/static/js/snmp.js?v=3.4.1'}"></script>
+
+
+<script th:inline="javascript">
+  var startTimeResponse =[[${startTime}]];
+  var endTimeResponse =[[${endTime}]];
+  $(document).ready(function(){
+    var startTime = $('#startTime');
+    if(startTime!=null && startTime != undefined){
+      startTime.daterangepicker({
+        singleDatePicker: true,
+        timePicker: true,
+        timePicker24Hour : true,
+        "opens": "center",
+        "locale": {
+          format: 'YYYY-MM-DD HH:mm',
+          applyLabel: "应用",
+          cancelLabel: "取消",
+          daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+          monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        }
+      });
+      if(startTimeResponse=='' || startTimeResponse==null){
+        startTime.val("");
+      }
+    }
+
+    var endTime = $('#endTime');
+    if(endTime!=null && endTime != undefined){
+      endTime.daterangepicker({
+        singleDatePicker: true,
+        timePicker: true,
+        timePicker24Hour : true,
+        "opens": "center",
+        "locale": {
+          format: 'YYYY-MM-DD HH:mm',
+          applyLabel: "应用",
+          cancelLabel: "取消",
+          daysOfWeek: ['日', '一', '二', '三', '四', '五', '六'],
+          monthNames: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'],
+        }
+      });
+      if(endTimeResponse=='' || endTimeResponse==null){
+        endTime.val("");
+      }
+    }
+  });
+
+  function resetParam(){
+    $("#startTime").val("");
+    $("#endTime").val("");
+  }
+
+    var snmpStateJson =[[${snmpStateList}]];
+    $(function() {
+      var chart = new G2.Chart({
+        container: 'snmpStateJson',
+        forceFit: true,
+        height: 400,
+        padding: [30, 40, 70, 48]
+      });
+      chart.axis('dateStr', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chart.axis('sentAvgDouble', false);
+      chart.tooltip({
+        crosshairs: false
+      });
+      chart.legend({
+        position: 'top-center'
+      });
+      chart.source(snmpStateJson, {
+        recvAvgDouble: {
+          alias: '入口MB/秒',
+          min: 0,
+          max: [[${snmpAvgMax}]]
+        },
+        sentAvgDouble: {
+          alias: '出口MB/秒',
+          min: 0,
+          max: [[${snmpAvgMax}]]
+        }
+      });
+      chart.scale('dateStr',{tickCount: 12,alias: '时间'});
+      chart.line().position('dateStr*recvAvgDouble').color('#1890ff');
+      chart.line().position('dateStr*sentAvgDouble').color('#2fc25b');
+      chart.render();
+
+      var chartCpuPer = new G2.Chart({
+        container: 'cpuStateJson',
+        forceFit: true,
+        height: 400,
+        padding: [30, 40, 70, 40]
+      });
+      chartCpuPer.axis('dateStr', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chartCpuPer.axis('cpuPerDouble', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chartCpuPer.tooltip({
+        crosshairs: false
+      });
+      chartCpuPer.legend({
+        position: 'top-center'
+      });
+      chartCpuPer.source(snmpStateJson, {
+        cpuPerDouble: {
+          alias: 'cpu使用率%'
+        }
+      });
+      chartCpuPer.scale('dateStr',{tickCount: 12,alias: '时间'});
+      chartCpuPer.line().position('dateStr*cpuPerDouble').color('#1890ff');
+      chartCpuPer.render();
+
+      var chartMem = new G2.Chart({
+        container: 'memStateJson',
+        forceFit: true,
+        height: 400,
+        padding: [30, 40, 70, 40]
+      });
+      chartMem.axis('dateStr', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chartMem.axis('memPerDouble', {
+        label: {
+          textStyle: {
+            fill: '#aaaaaa'
+          }
+        }
+      });
+      chartMem.tooltip({
+        crosshairs: false
+      });
+      chartMem.legend({
+        position: 'top-center'
+      });
+      chartMem.source(snmpStateJson, {
+        memPerDouble: {
+          alias: '使用率%'
+        }
+      });
+      chartMem.scale('dateStr', {tickCount: 12, alias: '时间'});
+      chartMem.line().position('dateStr*memPerDouble').color('#8B78F6');
+      chartMem.render();
+    })
+
+  var msg = [[${msg}]];
+  if(msg!='' && msg!=null){
+    toastr.info(msg);
+  }
+</script>
+
+
+</body>
+</html>

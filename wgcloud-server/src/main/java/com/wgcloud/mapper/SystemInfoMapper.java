@@ -1,47 +1,39 @@
 package com.wgcloud.mapper;
 
 import com.wgcloud.entity.SystemInfo;
-import org.springframework.stereotype.Repository;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.stereotype.Repository;
 
-/**
- * @version v2.3
- * @ClassName:SystemInfoDao.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: 查看系统信息
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 @Repository
 public interface SystemInfoMapper {
+   List<SystemInfo> selectAllHostNameByParams(Map<String, Object> map) throws Exception;
 
+   List<SystemInfo> selectAllByParams(Map<String, Object> map) throws Exception;
 
-    public List<SystemInfo> selectAllByParams(Map<String, Object> map) throws Exception;
+   List<SystemInfo> selectByHostname(String hostname) throws Exception;
 
-    public List<SystemInfo> selectByAccountId(String accountId) throws Exception;
+   List<SystemInfo> selectByParams(Map<String, Object> params);
 
-    public List<SystemInfo> selectByParams(Map<String, Object> params);
+   void insertList(List<SystemInfo> recordList) throws Exception;
 
-    public void insertList(List<SystemInfo> recordList) throws Exception;
+   void updateList(List<SystemInfo> recordList) throws Exception;
 
-    public void updateList(List<SystemInfo> recordList) throws Exception;
+   SystemInfo selectById(String id) throws Exception;
 
-    public SystemInfo selectById(String id) throws Exception;
+   int updateById(SystemInfo SystemInfo) throws Exception;
 
-    public int updateById(SystemInfo SystemInfo) throws Exception;
+   int countByParams(Map<String, Object> params) throws Exception;
 
-    public int countByParams(Map<String, Object> params) throws Exception;
+   void save(SystemInfo SystemInfo) throws Exception;
 
-    public void save(SystemInfo SystemInfo) throws Exception;
+   int deleteById(String[] id) throws Exception;
 
-    public int deleteById(String[] id) throws Exception;
+   void downByHostName(List<String> recordList) throws Exception;
 
+   int deleteByAccHname(Map<String, Object> map) throws Exception;
 
-    public int deleteByAccountAndDate(Map<String, Object> map) throws Exception;
+   int updateAccountByHostName(Map<String, Object> params) throws Exception;
 
-    public int deleteByAccHname(Map<String, Object> map) throws Exception;
-
-
+   int updateToTargetAccount(Map<String, Object> params) throws Exception;
 }

@@ -1,122 +1,73 @@
 package com.wgcloud.entity;
 
+import com.wgcloud.util.DateUtil;
+import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
-
-/**
- * @version v2.3
- * @ClassName:MemState.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: 查看内存使用情况
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class MemState extends BaseEntity {
+   private static final long serialVersionUID = 1L;
+   private String hostname;
+   private String total;
+   private String used;
+   private String free;
+   private Double usePer;
+   private String dateStr;
+   private Date createTime;
 
+   public String getTotal() {
+      return this.total;
+   }
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -1412473355088780549L;
+   public void setTotal(String total) {
+      this.total = total;
+   }
 
+   public String getUsed() {
+      return this.used;
+   }
 
-    /**
-     * host名称
-     */
-    private String hostname;
+   public void setUsed(String used) {
+      this.used = used;
+   }
 
-    /**
-     * 总计内存，M
-     */
-    private String total;
+   public String getFree() {
+      return this.free;
+   }
 
-    /**
-     * 已使用多少，M
-     */
-    private String used;
+   public void setFree(String free) {
+      this.free = free;
+   }
 
-    /**
-     * 未使用，M
-     */
-    private String free;
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
-    /**
-     * 已使用百分比%
-     */
-    private Double usePer;
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 
-    /**
-     * 添加时间
-     * yyyy-MM-dd hh:mm:ss
-     */
-    private String dateStr;
+   public String getDateStr() {
+      String s = DateUtil.getDateTimeString(this.getCreateTime());
+      return !StringUtils.isEmpty(s) && s.length() > 16 ? s.substring(5) : this.dateStr;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+   public void setDateStr(String dateStr) {
+      this.dateStr = dateStr;
+   }
 
+   public String getHostname() {
+      return this.hostname;
+   }
 
-    public String getTotal() {
-        return total;
-    }
+   public void setHostname(String hostname) {
+      this.hostname = hostname;
+   }
 
-    public void setTotal(String total) {
-        this.total = total;
-    }
+   public Double getUsePer() {
+      return this.usePer;
+   }
 
-    public String getUsed() {
-        return used;
-    }
-
-    public void setUsed(String used) {
-        this.used = used;
-    }
-
-    public String getFree() {
-        return free;
-    }
-
-    public void setFree(String free) {
-        this.free = free;
-    }
-
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getDateStr() {
-        if (!StringUtils.isEmpty(dateStr) && dateStr.length() > 16) {
-            return dateStr.substring(11);
-        }
-        return dateStr;
-    }
-
-    public void setDateStr(String dateStr) {
-        this.dateStr = dateStr;
-    }
-
-    public String getHostname() {
-        return hostname;
-    }
-
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public Double getUsePer() {
-        return usePer;
-    }
-
-    public void setUsePer(Double usePer) {
-        this.usePer = usePer;
-    }
-
-
+   public void setUsePer(Double usePer) {
+      this.usePer = usePer;
+   }
 }

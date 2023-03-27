@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+<div th:replace="common/chart.html"></div>
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header" style="height:38px">
+      <div class="container-fluid">
+        <div class="row mb-2" style="margin-top: -7px;">
+          <div class="col-sm-6"></div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="javascript:history.back()">返回上级</a></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-terminal"></i>&nbsp;指令下发列表</h3>
+        <div class=" float-sm-right">
+          <!-- SEARCH FORM -->
+          <form class="form-inline ml-3" th:action="@{'/shellInfo/list'}">
+            <button type="button" onclick="searchByOnline('')" class="btn btn-primary btn-sm" style="margin-right:5px;">全部</button>
+            <button type="button" onclick="searchByOnline('1')" class="btn btn-success btn-sm" style="margin-right:5px;">正常</button>
+            <button type="button" onclick="searchByOnline('2')" class="btn bg-danger btn-sm" style="margin-right:5px;">已取消</button>
+            <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+              <button type="button" onclick="delChecks('/shellInfo/del')"  class="btn bg-danger btn-sm" style="margin-right:5px;">删除</button>
+              <button type="button" onclick="add()"  class="btn btn-primary btn-sm" style="margin-right:5px;">添加</button>
+            </th:block>
+            <div th:replace="common/accountSelect.html"></div>
+            <div class="input-group input-group-sm">
+              <input class="form-control" id="shellName" name="shellName" autocomplete="off" th:value="${shellInfo.shellName}" type="text" placeholder="输入指令名称">
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body">
+        <table class="table table-bordered table-hover">
+          <thead>
+          <tr>
+            <th style="width: 20px"> <input type="checkbox" value="" name="checkall" id="checkall"></th>
+            <th style="width: 60px">序号</th>
+            <th>指令名称</th>
+            <th>指令内容</th>
+            <th>指令状态</th>
+            <th data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="已执行/下发中数量">已执行/下发中</th>
+            <th>下发时间</th>
+            <th>更新时间</th>
+            <th th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}">账号</th>
+            <th>操作</th>
+          </tr>
+          </thead>
+          <tbody>
+          <th:block th:each="item,iterStat : ${page.list}">
+            <tr>
+              <td><input type="checkbox" th:value="${item.id}" name="todo2" th:id="${item.id}+'_check'"/></td>
+              <td th:text="${iterStat.index+1}">1</td>
+              <td><span  th:onclick="view([[${item.id}]])"  style="cursor:pointer;" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.shellName}" th:text="${#strings.abbreviate(item.shellName,20)}"></span></td>
+              <td><code  data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" th:data-content="${item.shell}" class="highlighter-rouge" style="font-size:100%" th:text="${#strings.abbreviate(item.shell,60)}">result</code></td>
+
+                <th:block th:if="${item.state  == '1'}">
+                  <td><span  th:id="${item.id}" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="表示指令正常下发中、执行中，5分钟内会执行完成"  class="badge bg-primary">正常</span>
+                </th:block>
+                <th:block th:if="${item.state  == '2'}">
+                  <td><span  th:id="${item.id}" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="表示指令已被取消下发执行"   class="badge bg-warning" >已取消</span>
+                </th:block>
+                <th:block th:if="${item.state  == '3'}">
+                  <td><span  th:id="${item.id}" data-trigger="hover"  data-container="body" data-toggle="popover" data-placement="top" data-content="表示指令已完成下发执行"   class="badge bg-success" >已完成</span>
+                </th:block>
+              </td>
+
+              <td><span  th:text="${item.stateOtherCount}">1</span>/<span  th:text="${item.state1Count}">1</span></td>
+
+              <th:block th:if="${item.shellType  != '2'}">
+                <td>立即下发
+              </th:block>
+              <th:block th:if="${item.shellType  == '2'}">
+                <td th:text="${item.shellTime}">
+              </th:block>
+              </td>
+
+              <td th:text="${#dates.format(item.createTime,'yyyy-MM-dd HH:mm:ss')}">Update software</td>
+              <th th:text="${item.account}" th:if="${application.LICENSE_STATE eq '1' && application.userInfoManage == 'true' && session.LOGIN_KEY.role == 'admin'}"></th>
+              <td>
+                <button type="button"  th:onclick="view([[${item.id}]])"  class="btn bg-gradient-primary btn-sm">查看</button>
+                <th:block th:if="${session.LOGIN_KEY.role != 'guest'}">
+                  <button type="button"  th:onclick="cancelShell([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">取消</button>
+                  <button type="button"  th:onclick="del([[${item.id}]])"  class="btn bg-gradient-danger btn-sm">删除</button>
+                </th:block>
+            </tr>
+          </th:block>
+
+          </tbody>
+        </table>
+      </div>
+      <!-- /.card-body -->
+      <div th:replace="common/page.html"></div>
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-12 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<script th:src="@{'/static/js/shellInfo.js?v=3.4.2'}"></script>
+
+<script th:inline="javascript">
+  $(document).ready(function(){
+    $("#account").val([[${shellInfo.account}]]);
+  });
+
+  var msg = [[${msg}]];
+  if(msg!='' && msg!=null){
+    toastr.info(msg);
+  }
+</script>
+
+</body>
+</html>

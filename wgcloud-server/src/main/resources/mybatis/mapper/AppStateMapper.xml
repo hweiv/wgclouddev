@@ -6,11 +6,29 @@
 		<result column="APP_INFO_ID" property="appInfoId" jdbcType="CHAR" />
 		<result column="CPU_PER" property="cpuPer" jdbcType="DOUBLE" />
 		<result column="MEM_PER" property="memPer" jdbcType="DOUBLE" />
+		<result column="THREADS_NUM" property="threadsNum" jdbcType="CHAR" />
 		<result column="CREATE_TIME" property="createTime" jdbcType="TIMESTAMP" />
 	</resultMap>
 	
 	<sql id="tableColumnList">
-		ID,APP_INFO_ID, CPU_PER,MEM_PER,CREATE_TIME
+		ID,APP_INFO_ID, CPU_PER,MEM_PER,CREATE_TIME,THREADS_NUM
+	</sql>
+
+	<sql id="queryByParams">
+		<if test="appInfoId != null">
+			<![CDATA[ AND APP_INFO_ID  = #{appInfoId} ]]>
+		</if>
+		<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
+			<if test="_databaseId == 'mysql'">
+				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
+			</if>
+			<if test="_databaseId == 'postgresql'">
+				<![CDATA[ AND CREATE_TIME >= cast(#{startTime} as timestamp) and CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+			</if>
+			<if test="_databaseId == 'oracle'">
+				<![CDATA[ AND CREATE_TIME >= to_date(#{startTime},'yyyy-MM-dd hh24:mi:ss') and CREATE_TIME <= to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+			</if>
+		</if>
 	</sql>
 	
 	<select id="selectById" resultMap="resultMap" parameterType="java.lang.String">
@@ -26,7 +44,16 @@
 	</delete>
 	
 	<delete id="deleteByDate"  parameterType="map">
-		DELETE FROM APP_STATE WHERE   <![CDATA[  CREATE_TIME <=#{endTime}]]>
+		DELETE FROM APP_STATE WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
+		<if test="_databaseId == 'oracle'">
+			<![CDATA[  CREATE_TIME <=  to_date(#{endTime},'yyyy-MM-dd hh24:mi:ss')]]>
+		</if>
 	</delete>
 	
 	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
@@ -51,6 +78,7 @@
       		<if test="appInfoId != null" >APP_INFO_ID,</if>
       		<if test="cpuPer != null" >CPU_PER,</if>
       		<if test="memPer != null" >MEM_PER,</if>
+			<if test="threadsNum != null" >THREADS_NUM,</if>
       		<if test="createTime != null" >CREATE_TIME</if>
     	</trim>
     	<trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -58,16 +86,29 @@
       		<if test="appInfoId != null" >#{appInfoId},</if>
       		<if test="cpuPer != null" >#{cpuPer},</if>
       		<if test="memPer != null" >#{memPer},</if>
+			<if test="threadsNum != null" >#{threadsNum},</if>
       		<if test="createTime != null" >#{createTime}</if>
     	</trim>
 	</insert>
 	
 	
 	 <insert id="insertList" parameterType="java.util.List" >
-	      INSERT INTO APP_STATE (ID, APP_INFO_ID, CPU_PER,MEM_PER,CREATE_TIME)  VALUES
-	      <foreach collection="list" item="item" index="index" separator="," >  
-	        (#{item.id},#{item.appInfoId},#{item.cpuPer},#{item.memPer},#{item.createTime})  
-	      </foreach>
+		 <choose>
+			 <when test="_databaseId == 'oracle'">
+				 begin
+				 <foreach collection="list" item="item" index="index">
+					 INSERT INTO APP_STATE (ID, APP_INFO_ID, CPU_PER,MEM_PER,CREATE_TIME,THREADS_NUM)  VALUES
+					 (#{item.id},#{item.appInfoId},#{item.cpuPer},#{item.memPer},#{item.createTime},#{item.threadsNum});
+				 </foreach>
+				 end;
+			 </when>
+			 <otherwise>
+				 INSERT INTO APP_STATE (ID, APP_INFO_ID, CPU_PER,MEM_PER,CREATE_TIME,THREADS_NUM)  VALUES
+				 <foreach collection="list" item="item" index="index" separator="," >
+					 (#{item.id},#{item.appInfoId},#{item.cpuPer},#{item.memPer},#{item.createTime},#{item.threadsNum})
+				 </foreach>
+			 </otherwise>
+		 </choose>
 	 </insert>
 	 
 	
@@ -76,12 +117,7 @@
 		<include refid="tableColumnList" />
 		FROM APP_STATE t
 		<where>
-			<if test="appInfoId != null">
-			<![CDATA[ AND APP_INFO_ID  = #{appInfoId} ]]>
-			</if>
-			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
-			</if>
+			<include refid="queryByParams" />
 		</where>
 		  ORDER BY CREATE_TIME ASC
 	</select>
@@ -91,12 +127,7 @@
 		<include refid="tableColumnList" />
 		FROM APP_STATE 
 		<where>
-			<if test="appInfoId != null">
-			<![CDATA[ AND APP_INFO_ID  = #{appInfoId} ]]>
-			</if>
-			<if test="startTime != null and endTime !=null and startTime !='' and endTime != '' ">
-				<![CDATA[ AND CREATE_TIME >= #{startTime} and CREATE_TIME <=#{endTime}]]>
-			</if>
+			<include refid="queryByParams" />
 		</where>
 		  ORDER BY CREATE_TIME DESC
 	</select>

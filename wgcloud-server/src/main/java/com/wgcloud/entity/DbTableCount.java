@@ -1,77 +1,46 @@
 package com.wgcloud.entity;
 
+import com.wgcloud.util.DateUtil;
+import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
-
-/**
- * @version v2.3
- * @ClassName:DbTableCount.java
- * @author: http://www.wgstart.com
- * @date: 2019年11月16日
- * @Description: 检查系统入侵信息
- * @Copyright: 2017-2022 wgcloud. All rights reserved.
- */
 public class DbTableCount extends BaseEntity {
+   private static final long serialVersionUID = 1L;
+   private String dbTableId;
+   private Long tableCount;
+   private String dateStr;
+   private Date createTime;
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = 879979812204191283L;
+   public String getDbTableId() {
+      return this.dbTableId;
+   }
 
-    /**
-     * 表id
-     */
-    private String dbTableId;
+   public void setDbTableId(String dbTableId) {
+      this.dbTableId = dbTableId;
+   }
 
-    /**
-     * w数据量
-     */
-    private Long tableCount;
+   public Long getTableCount() {
+      return this.tableCount;
+   }
 
-    /**
-     * 添加时间
-     * MM-dd hh:mm:ss
-     */
-    private String dateStr;
+   public void setTableCount(Long tableCount) {
+      this.tableCount = tableCount;
+   }
 
-    /**
-     * 创建时间
-     */
-    private Date createTime;
+   public String getDateStr() {
+      String s = DateUtil.getDateTimeString(this.getCreateTime());
+      return !StringUtils.isEmpty(s) && s.length() > 16 ? s.substring(5) : this.dateStr;
+   }
 
-    public String getDbTableId() {
-        return dbTableId;
-    }
+   public void setDateStr(String dateStr) {
+      this.dateStr = dateStr;
+   }
 
-    public void setDbTableId(String dbTableId) {
-        this.dbTableId = dbTableId;
-    }
+   public Date getCreateTime() {
+      return this.createTime;
+   }
 
-    public Long getTableCount() {
-        return tableCount;
-    }
-
-    public void setTableCount(Long tableCount) {
-        this.tableCount = tableCount;
-    }
-
-    public String getDateStr() {
-        if (!StringUtils.isEmpty(dateStr) && dateStr.length() > 16) {
-            return dateStr.substring(5);
-        }
-        return dateStr;
-    }
-
-    public void setDateStr(String dateStr) {
-        this.dateStr = dateStr;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
+   public void setCreateTime(Date createTime) {
+      this.createTime = createTime;
+   }
 }

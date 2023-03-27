@@ -35,7 +35,13 @@
 	</delete>
 	
 	<delete id="deleteByAccountAndDate"  parameterType="map">
-		DELETE FROM INTRUSION_INFO WHERE  <![CDATA[  CREATE_TIME <=#{endTime}]]>
+		DELETE FROM INTRUSION_INFO WHERE
+		<if test="_databaseId == 'mysql'">
+			<![CDATA[  CREATE_TIME <=#{endTime}]]>
+		</if>
+		<if test="_databaseId == 'postgresql'">
+			<![CDATA[  CREATE_TIME <= cast(#{endTime} as timestamp)]]>
+		</if>
 	</delete>
 	
 	<delete id="deleteByAccHname"  parameterType="map">

@@ -1,0 +1,33 @@
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>硬盘名称</th>
+        <th>健康状态</th>
+        <th>通电时间(小时)</th>
+        <th>通电次数</th>
+        <th>当前温度</th>
+    </tr>
+    </thead>
+    <tbody>
+    <th:block th:each="item : ${diskSmartList}">
+        <tr>
+            <td th:text="${item.fileSystem}"></td>
+            <td th:title="${item.diskState}">
+                <th:block th:if="${item.diskState  == 'PASSED'}">
+                    <span class="badge bg-success">健康</span>
+                </th:block>
+                <th:block th:if="${item.diskState  == 'FAILED'}">
+                    <span class="badge bg-danger">失败</span>
+                </th:block>
+                <th:block th:if="${item.diskState  == 'Disabled'}">
+                    <span class="badge bg-warning">SMART已禁用</span>
+                </th:block>
+            </td>
+            <td th:text="${item.powerHours}"></td>
+            <td th:text="${item.powerCount}"></td>
+            <td><span class="badge bg-primary" th:text="${item.temperature}+'℃'"></span></td>
+        </tr>
+    </th:block>
+
+    </tbody>
+</table>

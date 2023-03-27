@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${hostname}+'('+${remark}+')'">xterm.js</title>
+    <div  th:replace="common/header.html"></div>
+    <link type="text/css" rel="stylesheet" th:href="@{'/static/common/xtermjs/xterm.css'}" />
+    <script th:src="@{'/static/js/jQuery/jquery-3.6.0.min.js'}"></script>
+    <script th:src="@{'/static/common/xtermjs/xterm.js'}"></script>
+    <script th:src="@{'/static/common/xtermjs/FitAddon.js'}"></script>
+    <style type="text/css">
+        #container-terminal{
+            width:99%;
+            height:99%;
+            margin: 5px 5px 5px 10px;
+        }
+    </style>
+</head>
+<body>
+<div id="container-terminal"></div>
+<script>
+    //前端部分参考wssh
+    var socketPort = [[${webSocketPort}]];
+
+    function WSSHClient() {};
+
+    WSSHClient.prototype.connect = function (options) {
+        var protocol = "ws://";
+        if (window.location.protocol == 'https:') {
+            protocol = 'wss://';
+            socketPort = 443
+        }
+        var socketUrl = protocol+window.location.hostname+':'+socketPort+'/ws';
+        if (window.WebSocket) {
+            this._connection = new WebSocket(socketUrl);
+        }else {
+            options.onError('你的浏览器不支持WebSocket。请使用谷歌或火狐浏览器');
+            return;
+        }
+        this._connection.onopen = function () {
+            //在远程打开连接时调用
+            options.onConnect();
+        };
+        this._connection.onmessage = function (evt) {
+            //在远程返回数据时调用
+            var data = evt.data.toString();
+            options.onData(data);
+        };
+        this._connection.onclose = function (evt) {
+            //在远程关闭连接时调用
+            options.onClose();
+        };
+    };
+
+    WSSHClient.prototype.send = function (data) {
+        //发送指令执行
+        this._connection.send(JSON.stringify({"handle": "cmd", "value": data}))
+    };
+    WSSHClient.prototype.sendOptions = function (options) {
+        //连接服务器
+        this._connection.send(JSON.stringify(options));
+    }
+
+    var prefixLen = 0;
+
+    var client = new WSSHClient();
+
+    //ssh连接主机
+    function connectHost() {
+        term.write('\r\n~$ 正在连接主机......');
+        var hostIp = $("#hostIp").val();
+        var hostUser = $("#hostUser").val();
+        var hostPwd = $("#hostPwd").val();
+        var hostSSHPort = $("#hostSSHPort").val();
+        var priKeyBasePath = $("#priKeyBasePath").val();
+        var sshInfoJson = {"handle":"connect","ip":""+hostIp+"","port":""+hostSSHPort+"","user":""+hostUser+"","pwd":""+hostPwd+"","priKeyBasePath":""+priKeyBasePath+""};
+        client.sendOptions(sshInfoJson);
+        $("#modal-default").modal("toggle");
+    }
+
+    // 获取容器宽高/字号大小，定义行数和列数
+    var rows = window.screen.height/ 16 - 10;
+    var cols = window.screen.width / 10;
+
+
+    var term = new Terminal({
+        rendererType: "canvas", //渲染类型
+        rows: parseInt(rows), //行数
+        // cols: parseInt(cols), //列数
+        cursorStyle: 'block', //光标样式
+        cursorBlink: true, // 光标闪烁
+        scrollback: 800, //回滚
+        // tabStopWidth: 8, //制表宽度
+        convertEol: true, //启用时，光标将设置为下一行的开头
+        disableStdin: false, //是否应禁用输入。
+        theme: {
+            //foreground: '#7e9192', // 字体
+            background: '#060101', // 背景色
+            cursor: 'help',//设置光标
+        },
+        screenKeys: true
+    });
+
+    term.onData(function (data) {
+        //键盘输入时的回调函数
+        client.send(data);
+    });
+
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    term.open(document.getElementById('container-terminal'));
+    fitAddon.fit();
+    term.focus();
+
+    //执行连接操作
+    client.connect({
+        onError: function (error) {
+            //连接失败回调
+            term.write('Error: ' + error + '\r\n');
+        },
+        onConnect: function () {
+            //连接成功回调
+            // client.sendOptions(sshInfoJson);
+        },
+        onClose: function () {
+            //连接关闭回调
+            term.write("\r\nwebsocket服务连接已断开");
+        },
+        onData: function (data) {
+            //收到数据时回调
+            term.write(data);
+            //返回数据处理，确定每行前缀的长度，如：[root@iZ2zea ~]#
+            if(data.length > 0){
+                if (data.indexOf('[') > -1 && data.indexOf('#') > -1){
+                    prefixLen = data.lastIndexOf('#') - data.lastIndexOf('[') + 2;
+                }
+            }
+            // prompt(term);
+        }
+    });
+
+
+    function runFakeTerminal() {
+        if (term._initialized) {
+            return;
+        }
+
+        term._initialized = true;
+
+        term.prompt = () => {
+            term.write('\r\n$ ');
+        };
+
+        term.writeln('欢迎使用WGCLOUD的Web SSH。重新连接请刷新浏览器。');
+        term.writeln('提示：1.当前版本对vim编辑保存支持不太好，但查看是ok的。2.所有快捷键记得加回车才能发送执行。3.退出ssh客户端输入exit');
+        term.writeln('Copyright ©2017-2023 www.wgstart.com. All rights reserved.');
+        term.writeln('');
+        prompt(term);
+
+        term.onData(e => {
+            switch (e) {
+            case '\r': // Enter
+                break;
+            case '\t': // Tab
+                break;
+            case '\u0003': // Ctrl+C
+                prompt(term);
+                break;
+            case '\u007F': // Backspace (DEL)
+                // Do not delete the prompt
+                if (term._core.buffer.x > (prefixLen==0?2:prefixLen)) {
+                    term.write('\b \b');
+                }
+                break;
+            default: // Print all other characters for demo
+                term.write(e);
+            }
+        });
+    }
+
+    function prompt(term) {
+        term.write('\r\n~$ ');
+    }
+    runFakeTerminal();
+</script>
+
+<div class="modal fade" id="modal-default">
+    <div class="modal-dialog">
+        <form id="form1"  method="post">
+            <div class="modal-content" style="font-size:0.90rem">
+                <div class="modal-header">
+                    <h4 class="modal-title">主机SSH连接信息</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <div class="form-group">
+                                <label><font color="red">*</font>主机IP</label>
+                                <input type="text" autocomplete="off" th:value="${hostname}"  class="validate[required,maxSize[100] form-control" id="hostIp" placeholder="主机IP">
+                            </div>
+                            <div class="form-group">
+                                <label><font color="red">*</font>SSH端口</label>
+                                <input type="text" autocomplete="off"  value="22" class="validate[required,custom[number],maxSize[10] form-control" id="hostSSHPort" placeholder="SSH端口">
+                            </div>
+                            <div class="form-group">
+                                <label><font color="red">*</font>用户名</label>
+                                <input type="text" autocomplete="off" value="root" class="validate[required,maxSize[50] form-control" id="hostUser" placeholder="用户名">
+                            </div>
+                            <div class="form-group clearfix">
+                                <label><font color="red">*</font>身份验证方式</label></br>
+                                    <div class="icheck-turquoise d-inline">
+                                        <input type="radio" onclick="hideKeyPath()" id="radioPrimary2" name="method" value="1" checked>
+                                        <label for="radioPrimary2"> 密码 </label>
+                                    </div>
+                                    <div class="icheck-wisteria d-inline" style="margin-left:10px;">
+                                        <input type="radio" onclick="showKeyPath()" id="radioPrimary4" value="2" name="method" >
+                                        <label for="radioPrimary4">密钥文件(私钥)</label>
+                                    </div>
+                            </div>
+                            <div class="form-group" id="hostPwdDiv">
+                                <label></label>
+                                <input type="password" autocomplete="off"   class="validate[maxSize[50] form-control" id="hostPwd" placeholder="请输入密码">
+                            </div>
+                            <div class="form-group" id="priKeyBasePathDiv" style="display: none">
+                                <label><span class="text-muted">请将密钥存在server/template/下</span></label>
+                                <select  name="priKeyBasePath" id="priKeyBasePath"  class="form-control select2" style="width: 100%;">
+                                    <option value="">请选择</option>
+                                    <th:block th:each="item,iterStat : ${keyFileList}">
+                                            <option  data-select2-id="" th:value="${item}" th:attr="data-select2-id=${item}" th:text="${item}">Alabama</option>
+                                    </th:block>
+                                </select>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" onclick="connectHost()" class="btn btn-primary">连接</button>
+                </div>
+            </div>
+        </form>
+            <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+
+<!-- Bootstrap 4 -->
+<script th:src="@{'/static/AdminLTE/plugins/bootstrap/js/bootstrap.bundle.min.js'}"></script>
+<!-- Select2 -->
+<script  th:src="@{'/static/AdminLTE/plugins/select2/js/select2.full.min.js'}"></script>
+<!-- ChartJS -->
+<script th:src="@{'/static/AdminLTE/plugins/chart.js/Chart.min.js'}"></script>
+<!-- Sparkline -->
+<script th:src="@{'/static/AdminLTE/plugins/sparklines/sparkline.js'}"></script>
+<!-- JQVMap -->
+<script th:src="@{'/static/AdminLTE/plugins/jqvmap/jquery.vmap.min.js'}"></script>
+<script th:src="@{'/static/AdminLTE/plugins/jqvmap/maps/jquery.vmap.usa.js'}"></script>
+<!-- jQuery Knob Chart -->
+<script th:src="@{'/static/AdminLTE/plugins/jquery-knob/jquery.knob.min.js'}"></script>
+<!-- InputMask -->
+<script th:src="@{'/static/AdminLTE/plugins/moment/moment.min.js'}"></script>
+<script th:src="@{'/static/AdminLTE/plugins/inputmask/min/jquery.inputmask.bundle.min.js'}"></script>
+<!-- daterangepicker -->
+<script th:src="@{'/static/AdminLTE/plugins/daterangepicker/daterangepicker.js'}"></script>
+<!-- Tempusdominus Bootstrap 4 -->
+<script th:src="@{'/static/AdminLTE/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js'}"></script>
+<!-- Summernote -->
+<script th:src="@{'/static/AdminLTE/plugins/summernote/summernote-bs4.min.js'}"></script>
+<!-- overlayScrollbars -->
+<script th:src="@{'/static/AdminLTE/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js'}"></script>
+<!-- AdminLTE App -->
+<script th:src="@{'/static/AdminLTE/dist/js/adminlte.js'}"></script>
+<!-- SweetAlert2 -->
+<script th:src="@{'/static/AdminLTE/plugins/sweetalert2/sweetalert2.min.js'}"></script>
+<!-- Toastr -->
+<script th:src="@{'/static/AdminLTE/plugins/toastr/toastr.min.js'}"></script>
+<!-- AdminLTE for demo purposes -->
+<script th:src="@{'/static/AdminLTE/dist/js/demo.js'}"></script>
+<link rel="stylesheet" th:href="@{'/static/js/jQuery/validationEngine.jquery.css'}" type="text/css"/>
+<script th:src="@{'/static/js/jQuery/jquery.validationEngine-zh_CN.js'}" type="text/javascript" charset="utf-8"></script>
+<script th:src="@{'/static/js/jQuery/jquery.validationEngine.js'}" type="text/javascript" charset="utf-8"></script>
+<script>
+    $(document).ready(function(){
+        $("#modal-default").modal();
+        $("#form1").validationEngine();
+    });
+
+    function showKeyPath() {
+        $("#priKeyBasePathDiv").show();
+        $("#hostPwdDiv").hide();
+        $("#hostPwd").val("");
+    }
+
+    function hideKeyPath() {
+        $("#priKeyBasePathDiv").hide();
+        $("#hostPwdDiv").show();
+    }
+
+</script>
+</body>
+</html>

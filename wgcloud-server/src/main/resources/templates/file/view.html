@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <div  th:replace="common/header.html"></div>
+
+
+</head>
+<body th:class="${application.sidebarCollapse}">
+
+<div class="wrapper">
+
+  <div th:replace="common/navbar.html"></div>
+
+  <div th:replace="common/aside.html"></div>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper" style="font-size:0.90rem">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1></h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item active"></li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        <div class="row">
+
+  <div class="col-md-12">
+    <div class="card card-primary">
+      <div class="card-header">
+        <h3 class="card-title" >日志监控</h3>
+        <div class=" float-sm-right">
+          <a href="javascript:history.back()">返回</a>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+      <form role="form">
+        <div class="card-body">
+          <div class="form-group">
+            <label>监控主机</label>
+            <div  th:text="${fileWarnInfo.hostname}"></div>
+          </div>
+          <div class="form-group">
+            <label>日志文件或文件夹完整路径</label>
+            <div  th:text="${fileWarnInfo.filePath}"></div>
+          </div>
+          <div class="form-group">
+            <label>告警关键字</label>
+            <div  th:text="${fileWarnInfo.warnChars}"></div>
+          </div>
+          <div class="form-group">
+            <label>时间</label>
+            <div  th:text="${#dates.format(fileWarnInfo.createTime,'yyyy-MM-dd HH:mm:ss')}"></div>
+          </div>
+          <div class="form-group">
+            <label>日志文件名称需包含的关键字<span class="text-muted">（当监控日志文件夹时，此处才生效，用来标识文件夹下的日志文件名称需要包含的关键字）</span></label>
+            <div  th:text="${fileWarnInfo.fileNamePrefix}"></div>
+          </div>
+          <div class="form-group">
+            <label>日志文件类型<span class="text-muted">（当监控日志文件夹时，此处设置才生效）</span></label>
+            <select class="form-control"  name="fileType" id="fileType">
+              <option value="1">.log</option>
+              <option value="2">.txt</option>
+              <option value="3">.out</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>备注</label>
+            <div  th:text="${fileWarnInfo.remark}"></div>
+          </div>
+          <div class="form-group clearfix">
+            <label><font color="red">*</font>监控状态</label></br>
+            <th:block th:if="${#strings.isEmpty(fileWarnInfo.active)}" >
+              <div class="icheck-primary d-inline">
+                <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                <label for="radioPrimary1"> 启用监控 </label>
+              </div>
+              <div class="icheck-danger d-inline">
+                <input type="radio" id="radioPrimary3" value="2" name="active" >
+                <label for="radioPrimary3">停止监控</label>
+              </div>
+            </th:block>
+            <th:block th:if="${fileWarnInfo.active  == '1'}">
+              <div class="icheck-primary d-inline">
+                <input type="radio" id="radioPrimary1" name="active" value="1" checked>
+                <label for="radioPrimary1"> 启用监控 </label>
+              </div>
+              <div class="icheck-danger d-inline">
+                <input type="radio" id="radioPrimary3" name="active" value="2">
+                <label for="radioPrimary3">停止监控</label>
+              </div>
+            </th:block>
+            <th:block th:if="${fileWarnInfo.active  == '2'}">
+              <div class="icheck-primary d-inline">
+                <input type="radio" id="radioPrimary1" name="active" value="1">
+                <label for="radioPrimary1"> 启用监控 </label>
+              </div>
+              <div class="icheck-danger d-inline">
+                <input type="radio" id="radioPrimary3" name="active" checked value="2">
+                <label for="radioPrimary3">停止监控</label>
+              </div>
+            </th:block>
+          </div>
+        </div>
+        <!-- /.card-body -->
+      </form>
+      <!-- /.card-body -->
+
+
+    </div>
+    <!-- /.card -->
+
+
+  </div><!-- /.col-md-12 -->
+
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </section><!-- /.content -->
+  </div><!-- /.content-wrapper -->
+
+
+  <div th:replace="common/footer.html"></div>
+
+</div>
+<!-- ./wrapper -->
+
+<script th:src="@{'/static/js/fileWarnInfo.js'}"></script>
+<script th:inline="javascript">
+  $(document).ready(function(){
+    $("#fileType").val([[${fileWarnInfo.fileType}]]);
+  });
+
+</script>
+
+</body>
+</html>
